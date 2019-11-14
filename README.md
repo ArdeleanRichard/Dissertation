@@ -1,2 +1,2 @@
 # Dissertation
-Dissertation Thesis
+Thesis - Alexandru Hristache
