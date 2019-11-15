@@ -2,6 +2,79 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from scipy.io import loadmat
+from sklearn.decomposition import PCA
+
+
+def spike_extract(signal, spike_start, spike_length):
+    spikes = np.zeros([len(spike_start), spike_length])
+
+    for i in range(len(spike_start)):
+        spikes[i, :] = signal[spike_start[i]: spike_start[i] + spike_length]
+
+    return spikes
+
+
+def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize_spikes, spike_label):
+    spikes = spike_extract(signal, spike_start, spike_length)
+
+    # align to max
+    if align_to_peak:
+        for unit in np.unique(spike_label):
+            # compute average waveform
+            ind = np.squeeze(np.argwhere(spike_label == unit))
+            avg_spike = np.mean(spikes[ind, :], 0)
+
+            # shift start times to max
+            peak_ind = np.squeeze(np.argmax(avg_spike))
+            spike_start[ind] = spike_start[ind] + peak_ind - 20
+
+        # re-extract spikes with new alignment
+        spikes = spike_extract(signal, spike_start, spike_length)
+
+    # normalize spikes using Z-score: (value - mean)/ standard deviation
+    if normalize_spikes:
+        normalized_spikes = [(spike - np.mean(spike)) / np.std(spike) for spike in spikes]
+        return normalized_spikes
+    return spikes
+
+
+def getTestDataset79():
+    dictionary = loadmat('./datasets/dataset.mat')
+
+    # dataset file is a dictionary (the data has been extracted from ground_truth.mat and simulation_79.mat), containing following keys:
+    # ground_truth (shape = 14536): the labels of the points
+    # start_spikes (shape = 14536): the start timestamp of each spike
+    # data (shape = 14400000): the raw spikes with all their points
+    # spike_wf (shape = (20, 316)): contains the form of each spike (20 spikes, each with 316 dimensions/features) NOT USED YET
+
+    labels = dictionary['ground_truth'][0, :]
+    start = dictionary['start_spikes'][0, :]
+    data = dictionary['data'][0, :]
+
+    # spike extraction options
+    # original sampling rate 96KHz, with each waveform at 316 points(dimensions/features)
+    # downsampled to 24KHz, (regula-3-simpla) => 79 points (de aici vine 79 de mai jos)
+    spike_length = 79  # length of spikes in number of samples
+    align_to_peak = False  # aligns each spike to it's maximum value
+    normalize_spike = False  # applies z-scoring normalization to each spike
+
+    # each spike will contain the first 79 points from the data after it has started
+    spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike, labels)
+
+    # apply pca
+    pca_2d = PCA(n_components=2)
+    pca_3d = PCA(n_components=3)
+    spikes_pca_2d = pca_2d.fit_transform(spikes)
+    spikes_pca_3d = pca_3d.fit_transform(spikes)
+
+
+    # np.save('79_ground_truth', label)
+    # np.save('79_x', spikes_reduced[:, 0])
+    # np.save('79_y', spikes_reduced[:, 1])
+
+    return spikes_pca_2d, labels
+
 def getTINSDataChance():
     # Importing the dataset
     data = pd.read_csv('./datasets/data.csv', skiprows=0)

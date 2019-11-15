@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-
+from sklearn import metrics
 
 import SBM
 import SBM_functions as fs
