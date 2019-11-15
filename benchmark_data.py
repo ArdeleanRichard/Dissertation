@@ -17,11 +17,11 @@ import datasets as ds
 
 algName = ["K-MEANS", "DBSCAN", "SBM"]
 files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
-kmeansValues = [15, 15, 8, 6]
-epsValues = [27000, 45000, 18000, 0.5]
+kmeansValues = [15, 15, 8, 6, 20]
+epsValues = [27000, 45000, 18000, 0.5, 1]
 pn = 25
 
-dataName = ["S1", "S2", "U", "UO", "S97"]
+dataName = ["S1", "S2", "U", "UO", "Sim97"]
 algorithmNames = ["K-MEANS", "K-MEANS", "K-MEANS", "K-MEANS", "DBSCAN", "SBM", ]
 settings = ["ARI", "AMI", "ARI", "AMI", "NNP", "NNP"]
 table = [algName]
@@ -52,19 +52,34 @@ for i in range(0, 5):
         elif j == 2:
             labels = SBM.multiThreaded(X, pn)
 
-        results = []
-        results.append(metrics.adjusted_rand_score(y, labels))
-        results.append(metrics.adjusted_mutual_info_score(labels, y))
+        print('ALL SETTING')
+        print(dataName[i] + " - " + algName[j] + " - "+ "ARI:" + str(metrics.adjusted_rand_score(y, labels)))
+        print(dataName[i] + " - " + algName[j] + " - "+ "AMI:" + str(metrics.adjusted_mutual_info_score(labels, y)))
 
         # start of the NO-NOISE-POINTS (NNP) setting
         # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
+        print('NNP SETTING')
+
         adj = labels > 0
         yNN = y[adj]
         labelsNN = labels[adj]
 
-        results.append(metrics.adjusted_rand_score(yNN, labelsNN))
-        results.append(metrics.adjusted_mutual_info_score(labelsNN, yNN))
+        print(dataName[i] + " - " + algName[j] + " - " + "ARI:" + str(metrics.adjusted_rand_score(yNN, labelsNN)))
+        print(dataName[i] + " - " + algName[j] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labelsNN, yNN)))
 
-        print(results)
 
+        # results = []
+        # results.append(metrics.adjusted_rand_score(y, labels))
+        # results.append(metrics.adjusted_mutual_info_score(labels, y))
+        #
+        # # start of the NO-NOISE-POINTS (NNP) setting
+        # # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
+        # adj = labels > 0
+        # yNN = y[adj]
+        # labelsNN = labels[adj]
+        #
+        # results.append(metrics.adjusted_rand_score(yNN, labelsNN))
+        # results.append(metrics.adjusted_mutual_info_score(labelsNN, yNN))
+        #
+        # print(results)
 

@@ -6,20 +6,31 @@ from scipy.io import loadmat
 from sklearn.decomposition import PCA
 
 
-def spike_extract(signal, spike_start, spike_length, align_to_peak, normalize_spikes):
+def spike_extract(signal, spike_start, spike_length):
     spikes = np.zeros([len(spike_start), spike_length])
 
     for i in range(len(spike_start)):
-        # select spikes from data
-        start = spike_start[i]
-        spikes[i] = signal[start: start + spike_length]
+        spikes[i, :] = signal[spike_start[i]: spike_start[i] + spike_length]
 
-        # align to max
-        if align_to_peak:
-            peak = np.max(spikes[i])
-            peak_ind = np.squeeze(np.argwhere(spikes[i] == peak))
-            start = start + peak_ind - 20
-            spikes[i] = signal[start: start + spike_length]
+    return spikes
+
+
+def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize_spikes, spike_label):
+    spikes = spike_extract(signal, spike_start, spike_length)
+
+    # align to max
+    if align_to_peak:
+        for unit in np.unique(spike_label):
+            # compute average waveform
+            ind = np.squeeze(np.argwhere(spike_label == unit))
+            avg_spike = np.mean(spikes[ind, :], 0)
+
+            # shift start times to max
+            peak_ind = np.squeeze(np.argmax(avg_spike))
+            spike_start[ind] = spike_start[ind] + peak_ind - 20
+
+        # re-extract spikes with new alignment
+        spikes = spike_extract(signal, spike_start, spike_length)
 
     # normalize spikes using Z-score: (value - mean)/ standard deviation
     if normalize_spikes:
@@ -49,7 +60,7 @@ def getTestDataset79():
     normalize_spike = False  # applies z-scoring normalization to each spike
 
     # each spike will contain the first 79 points from the data after it has started
-    spikes = spike_extract(data, start, spike_length, align_to_peak, normalize_spike)
+    spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike, labels)
 
     # apply pca
     pca_2d = PCA(n_components=2)
