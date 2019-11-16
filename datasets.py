@@ -38,6 +38,31 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
         return normalized_spikes
     return spikes
 
+def getDatasetSimulation(simNr):
+    simulation_dictionary = loadmat('./datasets/simulation_'+str(simNr)+'.mat')
+    ground_truth_dictionary = loadmat('./datasets/ground_truth.mat')
+
+    labels = ground_truth_dictionary['spike_classes'][0][simNr-1][0, :]
+    start = ground_truth_dictionary['spike_first_sample'][0][simNr-1][0, :]
+    data = simulation_dictionary['data'][0, :]
+
+    # spike extraction options
+    # original sampling rate 96KHz, with each waveform at 316 points(dimensions/features)
+    # downsampled to 24KHz, (regula-3-simpla) => 79 points (de aici vine 79 de mai jos)
+    spike_length = 79  # length of spikes in number of samples
+    align_to_peak = False  # aligns each spike to it's maximum value
+    normalize_spike = False  # applies z-scoring normalization to each spike
+
+    # each spike will contain the first 79 points from the data after it has started
+    spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike, labels)
+
+    # apply pca
+    pca_2d = PCA(n_components=2)
+    pca_3d = PCA(n_components=3)
+    spikes_pca_2d = pca_2d.fit_transform(spikes)
+    spikes_pca_3d = pca_3d.fit_transform(spikes)
+
+    return spikes_pca_2d, labels
 
 # FOR SIMULATION 79
 # dataset.mat in key 'data' == simulation_97.mat in key 'data'

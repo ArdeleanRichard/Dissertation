@@ -11,7 +11,7 @@ import datasets as ds
 def main():
     #data = ds.getTINSData()
     #data, y = ds.getGenData()
-    data, y = ds.getDatasetSim79()
+    data, y = ds.getDatasetSimulation(simNr=79)
 
     pn = 25
     start = time.time()
@@ -21,7 +21,7 @@ def main():
 
     scatter.griddedPlotFunction('SBM' + str(len(data)), data, labels, pn, marker='o')
     # plt.show()
-    plt.savefig('./figures/SBM_sim97')
+    plt.savefig('./figures/SBM_sim79')
 
     unique, counts = np.unique(labels, return_counts=True)
     print(dict(zip(unique, counts)))
