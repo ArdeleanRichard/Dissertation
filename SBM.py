@@ -13,6 +13,7 @@ import SBM_functions as fs
 def sequential(X, pn, version=1, ccThreshold = 5):
     X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
     ndArray = fs.chunkify(X, pn)
+
     clusterCenters = fs.findClusterCenters(ndArray, ccThreshold)
 
     labelsMatrix = np.zeros_like(ndArray, dtype=int)
@@ -48,6 +49,7 @@ def multiThreaded(X, pn, version=1,  ccThreshold = 5):
     # returns an array of pn for each dimension
     start = time.time()
     ndArray = fs.chunkifyMT(X, pn)
+    ndArray = np.asarray(ndArray, dtype=int)
     end = time.time()
     #print('CHUNKIFY: ' + str(end - start))
 

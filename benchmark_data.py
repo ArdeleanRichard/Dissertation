@@ -13,50 +13,95 @@ import SBM
 import SBM_functions as fs
 import scatter
 import datasets as ds
+import scatter
 
-dataName = ["S1", "S2", "U", "UO"]
 algName = ["K-MEANS", "DBSCAN", "SBM"]
 files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
-kmeansValues = [15, 15, 8, 6]
-epsValues = [27000, 45000, 18000, 0.5]
+kmeansValues = [15, 15, 8, 6, 20]
+epsValues = [27000, 45000, 18000, 0.5, 0.1]
 pn = 25
-for i in range(0, 4):
-    if i<3:
-        X = np.genfromtxt("./datasets/"+files[i], delimiter=",")
-        X, y = X[:, [0, 1]], X[:, 2]
-    else:
-        X, y = ds.getGenData()
 
-    if i == 1:
+dataName = ["S1", "S2", "U", "UO", "Sim97"]
+algorithmNames = ["K-MEANS", "K-MEANS", "K-MEANS", "K-MEANS", "DBSCAN", "SBM", ]
+settings = ["ARI", "AMI", "ARI", "AMI", "NNP", "NNP"]
+table = [algName]
+
+# datasetNumber = 1 => S1
+# datasetNumber = 2 => S2
+# datasetNumber = 3 => U
+# datasetNumber = 4 => UO
+# datasetNumber = 5 => Sim97
+
+def benchmark_dataset(datasetNumber, plot=False):
+    print("DATASET: "+dataName[datasetNumber])
+    datasetName = dataName[datasetNumber]
+    if datasetNumber < 3:
+        X = np.genfromtxt("./datasets/"+files[datasetNumber], delimiter=",")
+        X, y = X[:, [0, 1]], X[:, 2]
+    elif datasetNumber == 3:
+        X, y = ds.getGenData()
+    else:
+        X, y = ds.getDatasetSim79()
+
+    # S2 has label problems
+    if datasetNumber == 1:
         for k in range(len(X)):
             y[k] = y[k] - 1
 
-    for j in range(0, 3):
-        if j == 0:
-            kmeans = KMeans(n_clusters=kmeansValues[i]).fit(X)
-            labels = kmeans.labels_
-        elif j == 1:
-            if i == 1:
-                min_samples = np.log(len(X)) * 10
-            else:
-                min_samples = np.log(len(X))
-            db = DBSCAN(eps=epsValues[i], min_samples=min_samples).fit(X)
-            labels = db.labels_
-        elif j == 2:
-            labels = SBM.multiThreaded(X, pn)
+    kmeans = KMeans(n_clusters=kmeansValues[datasetNumber]).fit(X)
+    labels = kmeans.labels_
+    scatter.plotFunction("K-MEANS on"+datasetName, X, labels, plot, marker='X')
+    plt.show()
+    calculateAccuracy(datasetName, 0, labels, y)
 
-        print('ALL SETTING')
-        print(dataName[i] + " - " + algName[j] + " - "+ "ARI:" + str(metrics.adjusted_rand_score(y, labels)))
-        print(dataName[i] + " - " + algName[j] + " - "+ "AMI:" + str(metrics.adjusted_mutual_info_score(labels, y)))
 
-        # start of the NO-NOISE-POINTS (NNP) setting
-        # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
-        print('NNP SETTING')
+    if datasetNumber == 1:
+        min_samples = np.log(len(X)) * 10
+    else:
+        min_samples = np.log(len(X))
+    db = DBSCAN(eps=epsValues[datasetNumber], min_samples=min_samples).fit(X)
+    labels = db.labels_
+    scatter.plotFunction("DBSCAN on"+datasetName, X, labels, plot, marker='X')
+    plt.show()
+    calculateAccuracy(datasetName, 1, labels, y)
 
-        adj = labels > 0
-        yNN = y[adj]
-        labelsNN = labels[adj]
 
-        print(dataName[i] + " - " + algName[j] + " - " + "ARI:" + str(metrics.adjusted_rand_score(yNN, labelsNN)))
-        print(dataName[i] + " - " + algName[j] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labelsNN, yNN)))
+    labels = SBM.multiThreaded(X, pn)
+    scatter.plotFunction("SBM on"+datasetName, X, labels, plot, marker='X')
+    plt.show()
+    calculateAccuracy(datasetName, 2, labels, y)
 
+
+
+        # results = []
+        # results.append(metrics.adjusted_rand_score(y, labels))
+        # results.append(metrics.adjusted_mutual_info_score(labels, y))
+        #
+        # # start of the NO-NOISE-POINTS (NNP) setting
+        # # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
+        # adj = labels > 0
+        # yNN = y[adj]
+        # labelsNN = labels[adj]
+        #
+        # results.append(metrics.adjusted_rand_score(yNN, labelsNN))
+        # results.append(metrics.adjusted_mutual_info_score(labelsNN, yNN))
+        #
+        # print(results)
+
+def calculateAccuracy(datasetName, algorithmNumber, labels, y):
+    print('ALL SETTING')
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(metrics.adjusted_rand_score(y, labels)))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labels, y)))
+
+    # start of the NO-NOISE-POINTS (NNP) setting
+    # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
+    print('NNP SETTING')
+
+    adj = labels > 0
+    yNN = y[adj]
+    labelsNN = labels[adj]
+
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(metrics.adjusted_rand_score(yNN, labelsNN)))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labelsNN, yNN)))
+
+benchmark_dataset(4, plot=True)

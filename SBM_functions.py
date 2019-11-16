@@ -81,7 +81,10 @@ def getDropoff(ndArray, location):
 
 def getStrength(ndArray, clusterCenter, questionPoint, expansionPoint):
     dist = distance(clusterCenter, questionPoint)
-    strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
+    #strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
+
+    #BEST FOR NOW
+    strength = ndArray[questionPoint] / dist / ndArray[clusterCenter]
 
     return strength
 
@@ -245,8 +248,6 @@ def dechunkifyMT(X, labelsArray, pn, nrThreads=num_cores):
 
 
 """return array of "number of points" length with the label for each point"""
-
-
 def dechunkify(X, labelsArray, pn):
     pointLabels = np.zeros(len(X), dtype=int)
 
@@ -270,13 +271,4 @@ def distance(pointA, pointB):
         sum += (pointA[i] - pointB[i]) ** 2
     return math.sqrt(sum)
 
-
-
-def sortCenters(matrix, clusterCenters2):
-    l = []
-    for point in clusterCenters2:
-        l.append((matrix[point], point))
-    l.sort(reverse=True)
-
-    return [x[1] for x in l]
 
