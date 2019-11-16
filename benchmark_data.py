@@ -25,47 +25,44 @@ dataName = ["S1", "S2", "U", "UO", "Sim97"]
 algorithmNames = ["K-MEANS", "K-MEANS", "K-MEANS", "K-MEANS", "DBSCAN", "SBM", ]
 settings = ["ARI", "AMI", "ARI", "AMI", "NNP", "NNP"]
 table = [algName]
-for i in range(0, 5):
-    if i < 3:
-        X = np.genfromtxt("./datasets/"+files[i], delimiter=",")
+
+# datasetNumber = 1 => S1
+# datasetNumber = 2 => S2
+# datasetNumber = 3 => U
+# datasetNumber = 4 => UO
+# datasetNumber = 5 => Sim97
+
+def benchmark_dataset(datasetNumber):
+    if datasetNumber < 3:
+        X = np.genfromtxt("./datasets/"+files[datasetNumber], delimiter=",")
         X, y = X[:, [0, 1]], X[:, 2]
     elif i == 4:
         X, y = ds.getGenData()
     else:
         X, y = ds.getTestDataset79()
 
-    if i == 1:
+    # S2 has label problems
+    if datasetNumber == 1:
         for k in range(len(X)):
             y[k] = y[k] - 1
 
-    for j in range(0, 3):
-        if j == 0:
-            kmeans = KMeans(n_clusters=kmeansValues[i]).fit(X)
-            labels = kmeans.labels_
-        elif j == 1:
-            if i == 1:
-                min_samples = np.log(len(X)) * 10
-            else:
-                min_samples = np.log(len(X))
-            db = DBSCAN(eps=epsValues[i], min_samples=min_samples).fit(X)
-            labels = db.labels_
-        elif j == 2:
-            labels = SBM.multiThreaded(X, pn)
+    kmeans = KMeans(n_clusters=kmeansValues[datasetNumber]).fit(X)
+    labels = kmeans.labels_
+    calculateAccuracy(datasetNumber, 0, labels, y)
 
-        print('ALL SETTING')
-        print(dataName[i] + " - " + algName[j] + " - "+ "ARI:" + str(metrics.adjusted_rand_score(y, labels)))
-        print(dataName[i] + " - " + algName[j] + " - "+ "AMI:" + str(metrics.adjusted_mutual_info_score(labels, y)))
 
-        # start of the NO-NOISE-POINTS (NNP) setting
-        # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
-        print('NNP SETTING')
+    if datasetNumber == 1:
+        min_samples = np.log(len(X)) * 10
+    else:
+        min_samples = np.log(len(X))
+    db = DBSCAN(eps=epsValues[datasetNumber], min_samples=min_samples).fit(X)
+    labels = db.labels_
+    calculateAccuracy(datasetNumber, 1, labels, y)
 
-        adj = labels > 0
-        yNN = y[adj]
-        labelsNN = labels[adj]
 
-        print(dataName[i] + " - " + algName[j] + " - " + "ARI:" + str(metrics.adjusted_rand_score(yNN, labelsNN)))
-        print(dataName[i] + " - " + algName[j] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labelsNN, yNN)))
+    labels = SBM.multiThreaded(X, pn)
+    calculateAccuracy(datasetNumber, 2, labels, y)
+
 
 
         # results = []
@@ -83,3 +80,20 @@ for i in range(0, 5):
         #
         # print(results)
 
+def calculateAccuracy(datasetNumber, algorithmNumber, labels, y):
+    print('ALL SETTING')
+    print(dataName[datasetNumber] + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(metrics.adjusted_rand_score(y, labels)))
+    print(dataName[datasetNumber] + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labels, y)))
+
+    # start of the NO-NOISE-POINTS (NNP) setting
+    # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
+    print('NNP SETTING')
+
+    adj = labels > 0
+    yNN = y[adj]
+    labelsNN = labels[adj]
+
+    print(dataName[datasetNumber] + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(metrics.adjusted_rand_score(yNN, labelsNN)))
+    print(dataName[datasetNumber] + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labelsNN, yNN)))
+
+benchmark_dataset(0)

@@ -39,7 +39,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     return spikes
 
 
-def getTestDataset79():
+def getDatasetSim79():
     dictionary = loadmat('./datasets/dataset.mat')
 
     # dataset file is a dictionary (the data has been extracted from ground_truth.mat and simulation_79.mat), containing following keys:
@@ -68,12 +68,36 @@ def getTestDataset79():
     spikes_pca_2d = pca_2d.fit_transform(spikes)
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
+    # getDatasetSim97Plots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
     # np.save('79_ground_truth', label)
     # np.save('79_x', spikes_reduced[:, 0])
     # np.save('79_y', spikes_reduced[:, 1])
 
     return spikes_pca_2d, labels
+
+def getDatasetSim97Plots(spikes, spike_pca_2d, spikes_pca_3d, labels):
+    # plot some spikes
+    ind = np.random.randint(0, len(labels), [20])
+    plt.plot(np.transpose(spikes[ind, :]))
+    plt.show()
+
+    # plot all spikes from one unit
+    unit = 15
+    ind = np.squeeze(np.argwhere(labels == unit))
+    plt.plot(np.transpose(spikes[ind, :]))
+    plt.title('Unit {}'.format(unit))
+    plt.show()
+
+    # plot scatter of pca
+    plt.scatter(spike_pca_2d[:, 0], spike_pca_2d[:, 1], c=labels, marker='x', cmap='brg')
+    plt.show()
+
+    # plot scatter of pca in 3d
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(spikes_pca_3d[:, 0], spikes_pca_3d[:, 1], spikes_pca_3d[:, 2], c=labels, marker='x', cmap='brg')
+    plt.show()
 
 def getTINSDataChance():
     # Importing the dataset
@@ -160,4 +184,19 @@ def getGenData(plotFig=False):
     c6Labels = np.full(len(C6), 6)
 
     y = np.hstack((c1Labels, c2Labels, c3Labels, c4Labels, c5Labels, c6Labels))
+    return X, y
+
+def getDatasetS1():
+    X = np.genfromtxt("./datasets/s1_labeled.csv", delimiter=",")
+    X, y = X[:, [0, 1]], X[:, 2]
+    return X, y
+
+def getDatasetS2():
+    X = np.genfromtxt("./datasets/s2_labeled.csv", delimiter=",")
+    X, y = X[:, [0, 1]], X[:, 2]
+    return X, y
+
+def getDatasetU():
+    X = np.genfromtxt("./datasets/unbalance.csv", delimiter=",")
+    X, y = X[:, [0, 1]], X[:, 2]
     return X, y

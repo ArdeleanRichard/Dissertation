@@ -81,7 +81,10 @@ def getDropoff(ndArray, location):
 
 def getStrength(ndArray, clusterCenter, questionPoint, expansionPoint):
     dist = distance(clusterCenter, questionPoint)
-    strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
+    #strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
+
+    #BEST FOR NOW
+    strength = ndArray[questionPoint] / dist / ndArray[clusterCenter]
 
     return strength
 
