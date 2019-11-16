@@ -39,6 +39,11 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     return spikes
 
 
+# FOR SIMULATION 79
+# dataset.mat in key 'data' == simulation_97.mat in key 'data'
+# dataset.mat in key 'ground_truth' == ground_truth.mat in key 'spike_classes'[78]
+# dataset.mat in key 'start_spikes' == ground_truth.mat in key 'spike_first_sample'[78]
+# dataset.mat in key 'spike_wf' == ground_truth.mat in key 'su_waveforms'[78] (higher precision in GT)
 def getDatasetSim79():
     dictionary = loadmat('./datasets/dataset.mat')
 
