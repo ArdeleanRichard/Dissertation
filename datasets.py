@@ -5,6 +5,7 @@ import pandas as pd
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
 
+import scatter
 
 def spike_extract(signal, spike_start, spike_length):
     spikes = np.zeros([len(spike_start), spike_length])
@@ -62,7 +63,7 @@ def getDatasetSimulation(simNr):
     spikes_pca_2d = pca_2d.fit_transform(spikes)
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
-    #getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
+    getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
     # np.save('79_ground_truth', label)
     # np.save('79_x', spikes_reduced[:, 0])
@@ -104,8 +105,6 @@ def getDatasetSim79():
     spikes_pca_2d = pca_2d.fit_transform(spikes)
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
-
-
     return spikes_pca_2d, labels
 
 def getDatasetSimulationPlots(spikes, spike_pca_2d, spikes_pca_3d, labels):
@@ -121,14 +120,22 @@ def getDatasetSimulationPlots(spikes, spike_pca_2d, spikes_pca_3d, labels):
     plt.title('Unit {}'.format(unit))
     plt.show()
 
-    plotSimulation_PCA2D(spike_pca_2d, labels)
+    plotSimulation_PCA2D_grid(spike_pca_2d, labels)
 
     plotSimulation_PCA3D(spikes_pca_3d, labels)
+
 
 def plotSimulation_PCA2D(spike_pca_2d, labels):
     # plot scatter of pca
     plt.scatter(spike_pca_2d[:, 0], spike_pca_2d[:, 1], c=labels, marker='x', cmap='brg')
     plt.show()
+
+
+def plotSimulation_PCA2D_grid(spike_pca_2d, labels):
+    # plot scatter of pca
+    scatter.griddedPlotFunction('Sim97Gridded', spike_pca_2d, labels + 1, 25, marker='x')
+    plt.show()
+
 
 def plotSimulation_PCA3D(spikes_pca_3d, labels):
     # plot scatter of pca in 3d

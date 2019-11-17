@@ -49,8 +49,8 @@ def multiThreaded(X, pn, version=1,  ccThreshold = 5):
     # returns an array of pn for each dimension
     start = time.time()
     ndArray = fs.chunkifyMT(X, pn)
-    muie = rotateMatrix(np.copy(ndArray))
-    np.savetxt("csf.txt", muie, fmt="%i", delimiter="\t")
+    #rotated = rotateMatrix(np.copy(ndArray))
+    #np.savetxt("csf.txt", rotated, fmt="%i", delimiter="\t")
     end = time.time()
     #print('CHUNKIFY: ' + str(end - start))
 

@@ -67,7 +67,7 @@ def benchmark_dataset(datasetNumber, plot=False):
 
 
     labels = SBM.multiThreaded(X, pn)
-    scatter.plotFunction("SBM on"+datasetName, X, labels, plot, marker='X')
+    scatter.griddedPlotFunction("SBM on"+datasetName, X, labels, pn,  plot, marker='X')
     plt.show()
     calculateAccuracy(datasetName, 2, labels, y, print=True)
 

@@ -13,9 +13,6 @@ def main():
     #data, y = ds.getGenData()
     data, y = ds.getDatasetSimulation(simNr=79)
 
-    csf, muie = ds.getDatasetSimulation(3)
-    print(np.amax(muie))
-
     pn = 25
     start = time.time()
     labels = SBM.multiThreaded(data, pn, ccThreshold=5)
