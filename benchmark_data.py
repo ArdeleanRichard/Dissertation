@@ -52,7 +52,7 @@ def benchmark_dataset(datasetNumber, plot=False):
     labels = kmeans.labels_
     scatter.plotFunction("K-MEANS on"+datasetName, X, labels, plot, marker='X')
     plt.show()
-    calculateAccuracy(datasetName, 0, labels, y)
+    calculateAccuracy(datasetName, 0, labels, y, print=True)
 
 
     if datasetNumber == 1:
@@ -63,13 +63,13 @@ def benchmark_dataset(datasetNumber, plot=False):
     labels = db.labels_
     scatter.plotFunction("DBSCAN on"+datasetName, X, labels, plot, marker='X')
     plt.show()
-    calculateAccuracy(datasetName, 1, labels, y)
+    calculateAccuracy(datasetName, 1, labels, y, print=True)
 
 
     labels = SBM.multiThreaded(X, pn)
     scatter.plotFunction("SBM on"+datasetName, X, labels, plot, marker='X')
     plt.show()
-    calculateAccuracy(datasetName, 2, labels, y)
+    calculateAccuracy(datasetName, 2, labels, y, print=True)
 
 
 
@@ -88,20 +88,59 @@ def benchmark_dataset(datasetNumber, plot=False):
         #
         # print(results)
 
-def calculateAccuracy(datasetName, algorithmNumber, labels, y):
+def printAccuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI):
     print('ALL SETTING')
-    print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(metrics.adjusted_rand_score(y, labels)))
-    print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labels, y)))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(allARI))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(allAMI))
+
+    print('NNP SETTING')
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(nnpARI))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(nnpAMI))
+
+def calculateAccuracy(datasetName, algorithmNumber, labels, y, print=False):
+
+    allARI = metrics.adjusted_rand_score(y, labels)
+    allAMI = metrics.adjusted_mutual_info_score(labels, y)
+
 
     # start of the NO-NOISE-POINTS (NNP) setting
     # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
-    print('NNP SETTING')
 
     adj = labels > 0
     yNN = y[adj]
     labelsNN = labels[adj]
 
-    print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(metrics.adjusted_rand_score(yNN, labelsNN)))
-    print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(metrics.adjusted_mutual_info_score(labelsNN, yNN)))
+    nnpARI = metrics.adjusted_rand_score(yNN, labelsNN)
+    nnpAMI = metrics.adjusted_mutual_info_score(labelsNN, yNN)
 
+    if print == True:
+        printAccuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI)
+
+    return np.array([allARI, allAMI, nnpARI, nnpAMI])
+
+def getSimulationAverageAccuracy():
+    averageKMeans = np.array([0,0,0,0])
+    averageDBSCAN = np.array([0,0,0,0])
+    averageSBM = np.array([0,0,0,0])
+    for i in range(1, 96):
+        X, y = ds.getDatasetSimulation(simNr=1)
+
+        kmeans = KMeans(n_clusters=np.amax(y)).fit(X)
+        labels = kmeans.labels_
+        averageKMeans = np.add(averageKMeans, calculateAccuracy('', 0, labels, y))
+
+        min_samples = np.log(len(X))
+        db = DBSCAN(eps=0.1, min_samples=min_samples).fit(X)
+        labels = db.labels_
+        averageDBSCAN = np.add(averageDBSCAN, calculateAccuracy('', 1, labels, y))
+
+        labels = SBM.multiThreaded(X, pn)
+        averageSBM = np.add(averageSBM, calculateAccuracy('', 2, labels, y))
+
+    print("Average KMeans: {}".format(np.array(averageKMeans)/95))
+    print("Average DBSCAN: {}".format(np.array(averageDBSCAN)/95))
+    print("Average SBM: {}".format(np.array(averageSBM)/95))
+
+
+#getSimulationAverageAccuracy()
 benchmark_dataset(4, plot=True)

@@ -62,6 +62,12 @@ def getDatasetSimulation(simNr):
     spikes_pca_2d = pca_2d.fit_transform(spikes)
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
+    #getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
+
+    # np.save('79_ground_truth', label)
+    # np.save('79_x', spikes_reduced[:, 0])
+    # np.save('79_y', spikes_reduced[:, 1])
+
     return spikes_pca_2d, labels
 
 # FOR SIMULATION 79
@@ -98,15 +104,11 @@ def getDatasetSim79():
     spikes_pca_2d = pca_2d.fit_transform(spikes)
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
-    # getDatasetSim97Plots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
-    # np.save('79_ground_truth', label)
-    # np.save('79_x', spikes_reduced[:, 0])
-    # np.save('79_y', spikes_reduced[:, 1])
 
     return spikes_pca_2d, labels
 
-def getDatasetSim97Plots(spikes, spike_pca_2d, spikes_pca_3d, labels):
+def getDatasetSimulationPlots(spikes, spike_pca_2d, spikes_pca_3d, labels):
     # plot some spikes
     ind = np.random.randint(0, len(labels), [20])
     plt.plot(np.transpose(spikes[ind, :]))
@@ -119,15 +121,22 @@ def getDatasetSim97Plots(spikes, spike_pca_2d, spikes_pca_3d, labels):
     plt.title('Unit {}'.format(unit))
     plt.show()
 
+    plotSimulation_PCA2D(spike_pca_2d, labels)
+
+    plotSimulation_PCA3D(spikes_pca_3d, labels)
+
+def plotSimulation_PCA2D(spike_pca_2d, labels):
     # plot scatter of pca
     plt.scatter(spike_pca_2d[:, 0], spike_pca_2d[:, 1], c=labels, marker='x', cmap='brg')
     plt.show()
 
+def plotSimulation_PCA3D(spikes_pca_3d, labels):
     # plot scatter of pca in 3d
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.scatter(spikes_pca_3d[:, 0], spikes_pca_3d[:, 1], spikes_pca_3d[:, 2], c=labels, marker='x', cmap='brg')
     plt.show()
+
 
 def getTINSDataChance():
     # Importing the dataset

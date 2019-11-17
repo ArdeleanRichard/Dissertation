@@ -49,7 +49,8 @@ def multiThreaded(X, pn, version=1,  ccThreshold = 5):
     # returns an array of pn for each dimension
     start = time.time()
     ndArray = fs.chunkifyMT(X, pn)
-    ndArray = np.asarray(ndArray, dtype=int)
+    muie = rotateMatrix(np.copy(ndArray))
+    np.savetxt("csf.txt", muie, fmt="%i", delimiter="\t")
     end = time.time()
     #print('CHUNKIFY: ' + str(end - start))
 
@@ -85,3 +86,29 @@ def multiThreaded(X, pn, version=1,  ccThreshold = 5):
     #print("number of actual clusters: ", nrClust)
 
     return labels
+
+
+def rotateMatrix(mat):
+    # Consider all squares one by one
+    N = len(mat)
+    for x in range(0, int(N / 2)):
+
+        # Consider elements in group
+        # of 4 in current square
+        for y in range(x, N - x - 1):
+            # store current cell in temp variable
+            temp = mat[x][y]
+
+            # move values from right to top
+            mat[x][y] = mat[y][N - 1 - x]
+
+            # move values from bottom to right
+            mat[y][N - 1 - x] = mat[N - 1 - x][N - 1 - y]
+
+            # move values from left to bottom
+            mat[N - 1 - x][N - 1 - y] = mat[N - 1 - y][x]
+
+            # assign temp to left
+            mat[N - 1 - y][x] = temp
+
+    return mat
