@@ -63,7 +63,7 @@ def getDatasetSimulation(simNr):
     spikes_pca_2d = pca_2d.fit_transform(spikes)
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
-    getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
+    #getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
     # np.save('79_ground_truth', label)
     # np.save('79_x', spikes_reduced[:, 0])

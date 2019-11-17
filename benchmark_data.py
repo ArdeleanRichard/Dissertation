@@ -65,8 +65,7 @@ def benchmark_dataset(datasetNumber, plot=False):
     plt.show()
     calculateAccuracy(datasetName, 1, labels, y, print=True)
 
-
-    labels = SBM.multiThreaded(X, pn)
+    labels = SBM.multiThreaded(X, pn=25, version=2)
     scatter.griddedPlotFunction("SBM on"+datasetName, X, labels, pn,  plot, marker='X')
     plt.show()
     calculateAccuracy(datasetName, 2, labels, y, print=True)
@@ -97,7 +96,7 @@ def printAccuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI):
     print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(nnpARI))
     print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(nnpAMI))
 
-def calculateAccuracy(datasetName, algorithmNumber, labels, y, print=False):
+def calculateAccuracy(datasetName, algorithmNumber, labels, y, print = False):
 
     allARI = metrics.adjusted_rand_score(y, labels)
     allAMI = metrics.adjusted_mutual_info_score(labels, y)
@@ -134,7 +133,7 @@ def getSimulationAverageAccuracy():
         labels = db.labels_
         averageDBSCAN = np.add(averageDBSCAN, calculateAccuracy('', 1, labels, y))
 
-        labels = SBM.multiThreaded(X, pn)
+        labels = SBM.multiThreaded(X, pn=30)
         averageSBM = np.add(averageSBM, calculateAccuracy('', 2, labels, y))
 
     print("Average KMeans: {}".format(np.array(averageKMeans)/95))
@@ -142,5 +141,5 @@ def getSimulationAverageAccuracy():
     print("Average SBM: {}".format(np.array(averageSBM)/95))
 
 
-#getSimulationAverageAccuracy()
-benchmark_dataset(4, plot=True)
+getSimulationAverageAccuracy()
+#benchmark_dataset(4, plot=True)

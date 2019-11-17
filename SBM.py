@@ -6,11 +6,13 @@ sys.setrecursionlimit(100000)
 
 import SBM_functions as fs
 
+
 # X = dataset
 # pn = partioning number, number of segments for each dimension
 # version = no need to know
 # ccThreshold = cluster center threshold, minimum count the cluster center needs to be valid
-def sequential(X, pn, version=1, ccThreshold = 5):
+# version = 0 - original, 1 - xanny final, 2 - rici
+def sequential(X, pn, version=2, ccThreshold = 5):
     X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
     ndArray = fs.chunkify(X, pn)
 
@@ -40,7 +42,7 @@ def sequential(X, pn, version=1, ccThreshold = 5):
     return labels
 
 
-def multiThreaded(X, pn, version=1,  ccThreshold = 5):
+def multiThreaded(X, pn, version=2,  ccThreshold = 5):
     # 1. normalization of the dataset to bring it to 0-pn on all axes
     X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
 
