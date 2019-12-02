@@ -5,6 +5,7 @@ import pandas as pd
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
 
+import scatter
 
 def spike_extract(signal, spike_start, spike_length):
     spikes = np.zeros([len(spike_start), spike_length])
@@ -19,18 +20,31 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     spikes = spike_extract(signal, spike_start, spike_length)
 
     # align to max
-    if align_to_peak:
+    if align_to_peak == 1:
+        # iterate through each of the unique labels (0->20)
         for unit in np.unique(spike_label):
-            # compute average waveform
+            #### compute average waveform
+            # find the indexes of the spikes of label unit
             ind = np.squeeze(np.argwhere(spike_label == unit))
+            # spikes[ind, :] is a matrix each row contains the 79 of the spikes from that index
+            # avg_spike is a vector, each entry containing the average of the corresponding row in spikes[ind, :]
             avg_spike = np.mean(spikes[ind, :], 0)
 
-            # shift start times to max
-            peak_ind = np.squeeze(np.argmax(avg_spike))
+            ##### shift start times to max
+            # peak_ind contains the index of the peak of the label
+            peak_ind = np.argmax(avg_spike)
+            #print(np.argmax(avg_spike))
             spike_start[ind] = spike_start[ind] + peak_ind - 20
 
         # re-extract spikes with new alignment
         spikes = spike_extract(signal, spike_start, spike_length)
+    if align_to_peak == 2:
+        peak_ind = np.argmax(spikes, axis=1)
+        avg_peak = np.floor(np.mean(peak_ind))
+        spike_start = spike_start + (avg_peak - peak_ind)
+        spike_start = spike_start.astype(int)
+        spikes = spike_extract(signal, spike_start, spike_length)
+
 
     # normalize spikes using Z-score: (value - mean)/ standard deviation
     if normalize_spikes:
@@ -39,7 +53,57 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     return spikes
 
 
-def getTestDataset79():
+def getDatasetSimulationPCA2D(simNr):
+    spikes, labels = getDatasetSimulation(simNr)
+
+    # apply pca
+    pca_2d = PCA(n_components=2)
+    spikes_pca_2d = pca_2d.fit_transform(spikes)
+
+    #getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
+
+    # np.save('79_ground_truth', label)
+    # np.save('79_x', spikes_reduced[:, 0])
+    # np.save('79_y', spikes_reduced[:, 1])
+
+    return spikes_pca_2d, labels
+
+
+def getDatasetSimulationPCA3D(simNr):
+    spikes, labels = getDatasetSimulation(simNr)
+    # apply pca
+    pca_3d = PCA(n_components=3)
+    spikes_pca_3d = pca_3d.fit_transform(spikes)
+
+    return spikes_pca_3d, labels
+
+
+def getDatasetSimulation(simNr):
+    simulation_dictionary = loadmat('./datasets/simulation_'+str(simNr)+'.mat')
+    ground_truth_dictionary = loadmat('./datasets/ground_truth.mat')
+
+    labels = ground_truth_dictionary['spike_classes'][0][simNr-1][0, :]
+    start = ground_truth_dictionary['spike_first_sample'][0][simNr-1][0, :]
+    data = simulation_dictionary['data'][0, :]
+
+    # spike extraction options
+    # original sampling rate 96KHz, with each waveform at 316 points(dimensions/features)
+    # downsampled to 24KHz, (regula-3-simpla) => 79 points (de aici vine 79 de mai jos)
+    spike_length = 79  # length of spikes in number of samples
+    align_to_peak = 2  # aligns each spike to it's maximum value
+    normalize_spike = False  # applies z-scoring normalization to each spike
+
+    # each spike will contain the first 79 points from the data after it has started
+    spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike, labels)
+
+    return spikes, labels
+
+# FOR SIMULATION 79
+# dataset.mat in key 'data' == simulation_97.mat in key 'data'
+# dataset.mat in key 'ground_truth' == ground_truth.mat in key 'spike_classes'[78]
+# dataset.mat in key 'start_spikes' == ground_truth.mat in key 'spike_first_sample'[78]
+# dataset.mat in key 'spike_wf' == ground_truth.mat in key 'su_waveforms'[78] (higher precision in GT)
+def getDatasetSim79():
     dictionary = loadmat('./datasets/dataset.mat')
 
     # dataset file is a dictionary (the data has been extracted from ground_truth.mat and simulation_79.mat), containing following keys:
@@ -68,12 +132,45 @@ def getTestDataset79():
     spikes_pca_2d = pca_2d.fit_transform(spikes)
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
-
-    # np.save('79_ground_truth', label)
-    # np.save('79_x', spikes_reduced[:, 0])
-    # np.save('79_y', spikes_reduced[:, 1])
-
     return spikes_pca_2d, labels
+
+def getDatasetSimulationPlots(spikes, spike_pca_2d, spikes_pca_3d, labels):
+    # plot some spikes
+    ind = np.random.randint(0, len(labels), [20])
+    plt.plot(np.transpose(spikes[ind, :]))
+    plt.show()
+
+    # plot all spikes from one unit
+    unit = 15
+    ind = np.squeeze(np.argwhere(labels == unit))
+    plt.plot(np.transpose(spikes[ind, :]))
+    plt.title('Unit {}'.format(unit))
+    plt.show()
+
+    plotSimulation_PCA2D_grid(spike_pca_2d, labels)
+
+    plotSimulation_PCA3D(spikes_pca_3d, labels)
+
+
+def plotSimulation_PCA2D(spike_pca_2d, labels):
+    # plot scatter of pca
+    plt.scatter(spike_pca_2d[:, 0], spike_pca_2d[:, 1], c=labels, marker='x', cmap='brg')
+    plt.show()
+
+
+def plotSimulation_PCA2D_grid(spike_pca_2d, labels):
+    # plot scatter of pca
+    scatter.griddedPlotFunction('Sim97Gridded', spike_pca_2d, labels + 1, 25, marker='x')
+    plt.show()
+
+
+def plotSimulation_PCA3D(spikes_pca_3d, labels):
+    # plot scatter of pca in 3d
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(spikes_pca_3d[:, 0], spikes_pca_3d[:, 1], spikes_pca_3d[:, 2], c=labels, marker='x', cmap='brg')
+    plt.show()
+
 
 def getTINSDataChance():
     # Importing the dataset
@@ -160,4 +257,19 @@ def getGenData(plotFig=False):
     c6Labels = np.full(len(C6), 6)
 
     y = np.hstack((c1Labels, c2Labels, c3Labels, c4Labels, c5Labels, c6Labels))
+    return X, y
+
+def getDatasetS1():
+    X = np.genfromtxt("./datasets/s1_labeled.csv", delimiter=",")
+    X, y = X[:, [0, 1]], X[:, 2]
+    return X, y
+
+def getDatasetS2():
+    X = np.genfromtxt("./datasets/s2_labeled.csv", delimiter=",")
+    X, y = X[:, [0, 1]], X[:, 2]
+    return X, y
+
+def getDatasetU():
+    X = np.genfromtxt("./datasets/unbalance.csv", delimiter=",")
+    X, y = X[:, [0, 1]], X[:, 2]
     return X, y

@@ -9,17 +9,23 @@ import scatter
 import datasets as ds
 
 def main():
-    data, y = ds.getGenData()
+    #data = ds.getTINSData()
+    # data, y = ds.getGenData()
+    data, y = ds.getDatasetSimulationPCA2D(simNr=79)
 
     pn = 25
     start = time.time()
-    labels = SBM.multiThreaded(data, pn, ccThreshold=5)
+    labels = SBM.multiThreaded(data, pn, ccThreshold=5, version=2)
     end = time.time()
     print('SBM: ' + str(end - start))
 
     scatter.griddedPlotFunction('SBM' + str(len(data)), data, labels, pn, marker='o')
     # plt.show()
-    plt.savefig('./figures/SBM')
+    plt.savefig('./figures/SBMv2_gen')
+
+    scatter.griddedPlotFunction('SBM' + str(len(data)), data, y, pn, marker='o')
+    # plt.show()
+    plt.savefig('./figures/ground_truth')
 
     unique, counts = np.unique(labels, return_counts=True)
     print(dict(zip(unique, counts)))
@@ -27,4 +33,3 @@ def main():
     # plt.show()
 
 main()
-

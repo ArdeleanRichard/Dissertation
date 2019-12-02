@@ -81,7 +81,10 @@ def getDropoff(ndArray, location):
 
 def getStrength(ndArray, clusterCenter, questionPoint, expansionPoint):
     dist = distance(clusterCenter, questionPoint)
-    strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
+    #strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
+
+    #BEST FOR NOW
+    strength = ndArray[questionPoint] / dist / ndArray[clusterCenter]
 
     return strength
 
@@ -118,7 +121,10 @@ def expand(array, start, labels, currentLabel, clusterCenters, version=1):  # TO
         neighbours = getNeighbours(point, np.shape(array))
         for neighbour in neighbours:
             location = tuple(neighbour)
-            number = math.floor(math.sqrt(dropoff * distance(start, location)))
+            if version == 1:
+                number = dropoff * math.sqrt(distance(start, location))
+            elif version == 2:
+                number = math.floor(math.sqrt(dropoff * distance(start, location)))
             # print(number)
             if array[location] == 0:
                 pass
@@ -130,20 +136,21 @@ def expand(array, start, labels, currentLabel, clusterCenters, version=1):  # TO
                     expansionQueue.append(location)
                     labels[location] = currentLabel
                 else:
-                    if version == 2:
+                    if version == 0:
                         labels[location] = -1
                     else:
                         oldLabel = labels[location]
                         disRez = disambiguate(array,
-                                             location,
-                                             point,
-                                             clusterCenters[currentLabel - 1],
-                                             clusterCenters[oldLabel - 1])
+                                              location,
+                                              point,
+                                              clusterCenters[currentLabel - 1],
+                                              clusterCenters[oldLabel - 1],
+                                              version)
                         # print("choice"+str(disRez))
                         if disRez == 1:
                             labels[location] = currentLabel
                             expansionQueue.append(location)
-                        elif disRez == 2:
+                        elif disRez == 2 and version == 2:
                             labels[location] = oldLabel
                             expansionQueue.append(location)
                         elif disRez == 11:
@@ -158,7 +165,7 @@ def expand(array, start, labels, currentLabel, clusterCenters, version=1):  # TO
 
     return labels
 
-def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCenter2, threshold=0):
+def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCenter2, version):
     # CHOOSE CLUSTER FOR ALREADY ASSIGNED POINT
     # usually wont get to this
     if (clusterCenter1 == questionPoint) or (clusterCenter2 == questionPoint):
@@ -173,18 +180,25 @@ def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCe
     # cluster 2 was expanded first, but it is actually connected to a bigger cluster
     if array[clusterCenter2] == array[questionPoint]:
         return 11
-    # cluster 1 was expanded first, but it is actually connected to a bigger cluster
-    if array[clusterCenter1] == array[questionPoint]:
-        return 22
+    if version == 2:
+        # cluster 1 was expanded first, but it is actually connected to a bigger cluster
+        if array[clusterCenter1] == array[questionPoint]:
+            return 22
 
+    # XANNY
+    if version == 1:
+        distanceToC1 = distance(questionPoint, clusterCenter1)
+        distanceToC2 = distance(questionPoint, clusterCenter2)
+        pointStrength = array[questionPoint]
 
-    # c1Strength = array[cluster1] / pointStrength - getDropoff(array, cluster1) * distanceToC1
-    # c2Strength = array[cluster2] / pointStrength - getDropoff(array, cluster2) * distanceToC2
+        c1Strength = array[clusterCenter1] / pointStrength - getDropoff(array, clusterCenter1) * distanceToC1
+        c2Strength = array[clusterCenter2] / pointStrength - getDropoff(array, clusterCenter2) * distanceToC2
 
-    #print("{}, {}".format(pointStrength / array[clusterCenter1], getDropoff2(array, clusterCenter1, questionPoint) * distanceToC1))
-    c1Strength = getStrength(array, clusterCenter1, questionPoint, expansionPoint)
-    c2Strength = getStrength(array, clusterCenter2, questionPoint, expansionPoint)
-    # print("{}, {}".format(c1Strength, c2Strength))
+    # RICI
+    elif version == 2:
+        c1Strength = getStrength(array, clusterCenter1, questionPoint, expansionPoint)
+        c2Strength = getStrength(array, clusterCenter2, questionPoint, expansionPoint)
+
 
     # RICI VERSION
     # neighbours = getNeighbours(questionPoint, np.shape(array))
