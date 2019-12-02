@@ -20,24 +20,63 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     spikes = spike_extract(signal, spike_start, spike_length)
 
     # align to max
-    if align_to_peak:
+    if align_to_peak == 1:
+        # iterate through each of the unique labels (0->20)
         for unit in np.unique(spike_label):
-            # compute average waveform
+            #### compute average waveform
+            # find the indexes of the spikes of label unit
             ind = np.squeeze(np.argwhere(spike_label == unit))
+            # spikes[ind, :] is a matrix each row contains the 79 of the spikes from that index
+            # avg_spike is a vector, each entry containing the average of the corresponding row in spikes[ind, :]
             avg_spike = np.mean(spikes[ind, :], 0)
 
-            # shift start times to max
-            peak_ind = np.squeeze(np.argmax(avg_spike))
+            ##### shift start times to max
+            # peak_ind contains the index of the peak of the label
+            peak_ind = np.argmax(avg_spike)
+            #print(np.argmax(avg_spike))
             spike_start[ind] = spike_start[ind] + peak_ind - 20
 
         # re-extract spikes with new alignment
         spikes = spike_extract(signal, spike_start, spike_length)
+    if align_to_peak == 2:
+        peak_ind = np.argmax(spikes, axis=1)
+        avg_peak = np.floor(np.mean(peak_ind))
+        spike_start = spike_start + (avg_peak - peak_ind)
+        spike_start = spike_start.astype(int)
+        spikes = spike_extract(signal, spike_start, spike_length)
+
 
     # normalize spikes using Z-score: (value - mean)/ standard deviation
     if normalize_spikes:
         normalized_spikes = [(spike - np.mean(spike)) / np.std(spike) for spike in spikes]
         return normalized_spikes
     return spikes
+
+
+def getDatasetSimulationPCA2D(simNr):
+    spikes, labels = getDatasetSimulation(simNr)
+
+    # apply pca
+    pca_2d = PCA(n_components=2)
+    spikes_pca_2d = pca_2d.fit_transform(spikes)
+
+    #getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
+
+    # np.save('79_ground_truth', label)
+    # np.save('79_x', spikes_reduced[:, 0])
+    # np.save('79_y', spikes_reduced[:, 1])
+
+    return spikes_pca_2d, labels
+
+
+def getDatasetSimulationPCA3D(simNr):
+    spikes, labels = getDatasetSimulation(simNr)
+    # apply pca
+    pca_3d = PCA(n_components=3)
+    spikes_pca_3d = pca_3d.fit_transform(spikes)
+
+    return spikes_pca_3d, labels
+
 
 def getDatasetSimulation(simNr):
     simulation_dictionary = loadmat('./datasets/simulation_'+str(simNr)+'.mat')
@@ -51,25 +90,13 @@ def getDatasetSimulation(simNr):
     # original sampling rate 96KHz, with each waveform at 316 points(dimensions/features)
     # downsampled to 24KHz, (regula-3-simpla) => 79 points (de aici vine 79 de mai jos)
     spike_length = 79  # length of spikes in number of samples
-    align_to_peak = False  # aligns each spike to it's maximum value
+    align_to_peak = 2  # aligns each spike to it's maximum value
     normalize_spike = False  # applies z-scoring normalization to each spike
 
     # each spike will contain the first 79 points from the data after it has started
     spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike, labels)
 
-    # apply pca
-    pca_2d = PCA(n_components=2)
-    pca_3d = PCA(n_components=3)
-    spikes_pca_2d = pca_2d.fit_transform(spikes)
-    spikes_pca_3d = pca_3d.fit_transform(spikes)
-
-    #getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
-
-    # np.save('79_ground_truth', label)
-    # np.save('79_x', spikes_reduced[:, 0])
-    # np.save('79_y', spikes_reduced[:, 1])
-
-    return spikes_pca_2d, labels
+    return spikes, labels
 
 # FOR SIMULATION 79
 # dataset.mat in key 'data' == simulation_97.mat in key 'data'

@@ -120,25 +120,43 @@ def calculateAccuracy(datasetName, algorithmNumber, labels, y, print = False):
 def getSimulationAverageAccuracy():
     averageKMeans = np.array([0,0,0,0])
     averageDBSCAN = np.array([0,0,0,0])
-    averageSBM = np.array([0,0,0,0])
+    averageSBMv2 = np.array([0,0,0,0])
+    averageSBMv1 = np.array([0,0,0,0])
+    header = "Dataset Number, KMEANS-ALL-ARI, KMEANS-ALL-AMI, KMEANS-NNP-ARI, KMEANS-NNP-AMI, DBSCAN-ALL-ARI, DBSCAN-ALL-AMI, DBSCAN-NNP-ARI, DBSCAN-NNP-AMI, SBM-V2-ALL-ARI, SBM-V2-ALL-AMI, SBM-V2-NNP-ARI, SBM-V2-NNP-AMI, SBM-V1-ALL-ARI, SBM-V1-ALL-AMI, SBM-V1-NNP-ARI, SBM-V1-NNP-AMI"
+    allAccuracies = np.empty((17, ))
     for i in range(1, 96):
-        X, y = ds.getDatasetSimulation(simNr=1)
+        print(i)
+        if i==24 or i==25 or i==44:
+            continue
+        X, y = ds.getDatasetSimulationPCA2D(simNr=i)
 
         kmeans = KMeans(n_clusters=np.amax(y)).fit(X)
         labels = kmeans.labels_
-        averageKMeans = np.add(averageKMeans, calculateAccuracy('', 0, labels, y))
+        accuracy_kmeans = calculateAccuracy('', 0, labels, y)
+        averageKMeans = np.add(averageKMeans, accuracy_kmeans)
 
         min_samples = np.log(len(X))
-        db = DBSCAN(eps=0.1, min_samples=min_samples).fit(X)
+        db = DBSCAN(eps=1, min_samples=min_samples).fit(X)
         labels = db.labels_
-        averageDBSCAN = np.add(averageDBSCAN, calculateAccuracy('', 1, labels, y))
+        accuracy_dbscan = calculateAccuracy('', 1, labels, y)
+        averageDBSCAN = np.add(averageDBSCAN, accuracy_dbscan)
 
-        labels = SBM.multiThreaded(X, pn=30)
-        averageSBM = np.add(averageSBM, calculateAccuracy('', 2, labels, y))
+        labels = SBM.multiThreaded(X, pn=30, version=2)
+        accuracy_sbmv2 = calculateAccuracy('', 2, labels, y)
+        averageSBMv2 = np.add(averageSBMv2, accuracy_sbmv2)
 
-    print("Average KMeans: {}".format(np.array(averageKMeans)/95))
-    print("Average DBSCAN: {}".format(np.array(averageDBSCAN)/95))
-    print("Average SBM: {}".format(np.array(averageSBM)/95))
+
+        labels = SBM.multiThreaded(X, pn=30, version=1)
+        accuracy_sbmv1 = calculateAccuracy('', 2, labels, y)
+        averageSBMv1 = np.add(averageSBMv1, accuracy_sbmv1)
+
+        allAccuracies = np.vstack((allAccuracies, np.insert(np.append(accuracy_kmeans, np.append(accuracy_dbscan, np.append(accuracy_sbmv2, accuracy_sbmv1)))*100, 0, i)))
+        #print(allAccuracies)
+    np.savetxt("PCA3D_accuracy.csv", allAccuracies, delimiter=',', header=header, fmt="%10.2f")
+    print("Average KMeans: {}".format(np.array(averageKMeans)/92))
+    print("Average DBSCAN: {}".format(np.array(averageDBSCAN)/92))
+    print("Average SBMv2: {}".format(np.array(averageSBMv2)/92))
+    print("Average SBMv1: {}".format(np.array(averageSBMv1)/92))
 
 
 getSimulationAverageAccuracy()
