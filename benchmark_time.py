@@ -9,7 +9,7 @@ sys.setrecursionlimit(100000)
 
 import SBM
 import SBM_functions as fs
-import scatter
+import scatter_plot
 import datasets as ds
 #
 # dataName = ["S1", "S2", "U", "UO"]

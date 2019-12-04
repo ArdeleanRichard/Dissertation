@@ -11,9 +11,8 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import SBM
 import SBM_functions as fs
-import scatter
 import datasets as ds
-import scatter
+import scatter_plot
 
 algName = ["K-MEANS", "DBSCAN", "SBM"]
 files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
@@ -31,8 +30,14 @@ table = [algName]
 # datasetNumber = 3 => U
 # datasetNumber = 4 => UO
 # datasetNumber = 5 => Sim97
-
 def benchmark_dataset(datasetNumber, plot=False):
+    """
+    Benchmarks K-Means, DBSCAN and SBM on one of 5 selected datasets
+    :param datasetNumber: integer - the number that represents one of the datasets (0-4)
+    :param plot: boolean - optional, whether the plot function should be called or not (for ease of use)
+
+    :returns None
+    """
     print("DATASET: "+dataName[datasetNumber])
     datasetName = dataName[datasetNumber]
     if datasetNumber < 3:
@@ -50,7 +55,7 @@ def benchmark_dataset(datasetNumber, plot=False):
 
     kmeans = KMeans(n_clusters=kmeansValues[datasetNumber]).fit(X)
     labels = kmeans.labels_
-    scatter.plotFunction("K-MEANS on"+datasetName, X, labels, plot, marker='X')
+    scatter_plot.plotFunction("K-MEANS on"+datasetName, X, labels, plot, marker='X')
     plt.show()
     calculateAccuracy(datasetName, 0, labels, y, print=True)
 
@@ -61,12 +66,12 @@ def benchmark_dataset(datasetNumber, plot=False):
         min_samples = np.log(len(X))
     db = DBSCAN(eps=epsValues[datasetNumber], min_samples=min_samples).fit(X)
     labels = db.labels_
-    scatter.plotFunction("DBSCAN on"+datasetName, X, labels, plot, marker='X')
+    scatter_plot.plotFunction("DBSCAN on"+datasetName, X, labels, plot, marker='X')
     plt.show()
     calculateAccuracy(datasetName, 1, labels, y, print=True)
 
     labels = SBM.multiThreaded(X, pn=25, version=2)
-    scatter.griddedPlotFunction("SBM on"+datasetName, X, labels, pn,  plot, marker='X')
+    scatter_plot.griddedPlotFunction("SBM on"+datasetName, X, labels, pn,  plot, marker='X')
     plt.show()
     calculateAccuracy(datasetName, 2, labels, y, print=True)
 
@@ -88,6 +93,17 @@ def benchmark_dataset(datasetNumber, plot=False):
         # print(results)
 
 def printAccuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI):
+    """
+    Print the accuracies of the algorithm on the dataset
+    :param datasetName: string - the name of the dataset for ease of view
+    :param algorithmNumber: integer - number of the algorithm (0 = K-Means, 1=DBSCAN, 2=SBM)
+    :param allARI: float - the accuracy of the selected algorithm on the ALL setting by the Adjusted Rand Index
+    :param allAMI: float - the accuracy of the selected algorithm on the ALL setting by the Adjusted Mutual Information
+    :param nnpARI: float - the accuracy of the selected algorithm on the NNP setting by the Adjusted Rand Index
+    :param nnpAMI: float - the accuracy of the selected algorithm on the NNP setting by the Adjusted Mutual Information
+
+    :returns None
+    """
     print('ALL SETTING')
     print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(allARI))
     print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(allAMI))
@@ -97,7 +113,16 @@ def printAccuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI):
     print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(nnpAMI))
 
 def calculateAccuracy(datasetName, algorithmNumber, labels, y, print = False):
+    """
+    Calculate the accuracies of the algorithm on the dataset
+    :param datasetName: string - the name of the dataset for ease of view
+    :param algorithmNumber: integer - number of the algorithm (0 = K-Means, 1=DBSCAN, 2=SBM)
+    :param labels: vector - the labels that have resulted from the algorithm
+    :param y: vector - the ground_truth labels
+    :param print: boolean - whether to print the accuracies
 
+    :return np.array: list - the 4 accuracies of the algorithm of the selected dataset
+    """
     allARI = metrics.adjusted_rand_score(y, labels)
     allAMI = metrics.adjusted_mutual_info_score(labels, y)
 
@@ -118,6 +143,14 @@ def calculateAccuracy(datasetName, algorithmNumber, labels, y, print = False):
     return np.array([allARI, allAMI, nnpARI, nnpAMI])
 
 def getSimulationAverageAccuracy():
+    """
+    Iterate through all 95 simulation calculate the accuracy for each and then make an average
+    :param None
+
+    :return None
+    """
+    # f = open("filename", "a") - append mode
+    # f.write to write to it
     averageKMeans = np.array([0,0,0,0])
     averageDBSCAN = np.array([0,0,0,0])
     averageSBMv2 = np.array([0,0,0,0])

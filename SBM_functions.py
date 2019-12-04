@@ -166,6 +166,17 @@ def expand(array, start, labels, currentLabel, clusterCenters, version=1):  # TO
     return labels
 
 def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCenter2, version):
+    """
+    Disambiguation of the cluster of a chunk based on the parameters
+    :param array: matrix - an array of the values in each chunk
+    :param questionPoint: tuple - the coordinates of the chunk toward which the expansion is going
+    :param expansionPoint: tuple - the coordinates of the chunk from which the expansion is going
+    :param clusterCenter1: tuple - the coordinates of the chunk of the first cluster center
+    :param clusterCenter2: tuple - the coordinates of the chunk of the second cluster center
+    :param version: integer - the version of SBM (0-original version, 1=license, 2=modified with less noise)
+
+    :returns : integer - representing the approach to disambiguation
+    """
     # CHOOSE CLUSTER FOR ALREADY ASSIGNED POINT
     # usually wont get to this
     if (clusterCenter1 == questionPoint) or (clusterCenter2 == questionPoint):
@@ -226,6 +237,13 @@ def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCe
 
 
 def chunkify(X, pn):
+    """
+    Transforms the points into a matrix of integers by gridding the dataset and counting the points in each item of the grid
+    :param X: matrix - the points of the dataset
+    :param pn: integer - the number of partitions on columns and rows
+
+    :returns nArray: matrix - each entry is a an integer that contains the number of points in a square-like partition
+    """
     nrDim = np.shape(X)[1]
     nArray = np.zeros((pn,) * nrDim, dtype=int)
 
@@ -240,6 +258,14 @@ def chunkify(X, pn):
 
 
 def chunkifyMT(X, pn, nrThreads=num_cores):
+    """
+    Multi-threaded version of the chunkify function
+    :param X: matrix - the points of the dataset
+    :param pn: integer - the number of partitions on columns and rows
+    :param nrThreads: integer - optional, the number of threads the chunkification runs on
+
+    :returns finalArray: matrix - each entry is a an integer that contains the number of points in a square-like partition
+    """
     splittedX = np.array_split(X, nrThreads)
 
     results = Parallel(n_jobs=nrThreads)(delayed(chunkify)(x, pn) for x in splittedX)
@@ -250,6 +276,14 @@ def chunkifyMT(X, pn, nrThreads=num_cores):
 
 
 def dechunkifyMT(X, labelsArray, pn, nrThreads=num_cores):
+    """
+    Multi-threaded version of the dechunkify function
+    :param X: matrix - the points of the dataset
+    :param labelsArray: matrix - contains the labels of each of the partitions/chunks
+    :param pn: integer - the number of partitions on columns and rows
+
+    :returns finalLabels: vector - the labels of the points
+    """
     splittedX = np.array_split(X, nrThreads)
 
     results = Parallel(n_jobs=nrThreads)(delayed(dechunkify)(x, labelsArray, pn) for x in splittedX)
@@ -258,8 +292,15 @@ def dechunkifyMT(X, labelsArray, pn, nrThreads=num_cores):
     return finalLabels
 
 
-"""return array of "number of points" length with the label for each point"""
 def dechunkify(X, labelsArray, pn):
+    """
+    Transforms the labels of the chunks into the labels of each of the points
+    :param X: matrix - the points of the dataset
+    :param labelsArray: matrix - contains the labels of each of the partitions/chunks
+    :param pn: integer - the number of partitions on columns and rows
+
+    :returns finalLabels: vector - the labels of the points
+    """
     pointLabels = np.zeros(len(X), dtype=int)
 
     # import threading
