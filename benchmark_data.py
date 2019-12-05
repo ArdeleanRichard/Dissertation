@@ -163,7 +163,7 @@ def getSimulationAverageAccuracy():
 # getSimulationAverageAccuracy()
 # benchmark_dataset(4, plot=True)
 
-def getSimulationAccuracy(simNr, plot=False):
+def getSimulationAccuracy(simNr, show_plots=False, save_plots=False):
     resultKMeans = np.array([0, 0, 0, 0])
     resultDBSCAN = np.array([0, 0, 0, 0])
     resultSBMv2 = np.array([0, 0, 0, 0])
@@ -181,7 +181,7 @@ def getSimulationAccuracy(simNr, plot=False):
     resultKMeans = np.add(resultKMeans, accuracy_kmeans)
 
     min_samples = np.log(len(X))
-    db = DBSCAN(eps=0.5, min_samples=min_samples).fit(X)
+    db = DBSCAN(eps=0.1, min_samples=min_samples).fit(X)
     dbscan_labels = db.labels_
     accuracy_dbscan = calculateAccuracy('', 1, dbscan_labels, y)
     resultDBSCAN = np.add(resultDBSCAN, accuracy_dbscan)
@@ -198,23 +198,23 @@ def getSimulationAccuracy(simNr, plot=False):
         np.append(accuracy_kmeans, np.append(accuracy_dbscan, np.append(accuracy_sbmv2, accuracy_sbmv1))) * 100, 0,
         simNr)))
     # print(allAccuracies)
+
     np.savetxt("sim" + str(simNr) + "_PCA2D_accuracy.csv", allAccuracies, delimiter=',', header=header, fmt="%10.2f")
     print("KMeans: {}".format(np.array(resultKMeans)))
     print("DBSCAN: {}".format(np.array(resultDBSCAN)))
     print("SBMv2: {}".format(np.array(resultSBMv2)))
     print("SBMv1: {}".format(np.array(resultSBMv1)))
 
-    if plot:
-        scatter.plotFunction("Ground truth on sim" + str(simNr), X, y, plot, marker='o')
-        plt.show()
-        scatter.plotFunction("K-MEANS on sim" + str(simNr), X, kmeans_labels, plot, marker='o')
-        plt.show()
-        scatter.plotFunction("DBSCAN on sim" + str(simNr), X, dbscan_labels, plot, marker='o')
-        plt.show()
-        scatter.plotFunction("SBMv2 on sim" + str(simNr), X, sbmv2_labels, plot, marker='o')
-        plt.show()
-        scatter.plotFunction("SBMv1 on sim" + str(simNr), X, sbmv1_labels, plot, marker='o')
-        plt.show()
+    plot_names = ["ground", "kmeans", "dbscan", "sbmv2", "sbmv1"]
+    plot_data = [y, kmeans_labels, dbscan_labels, sbmv2_labels, sbmv1_labels]
+
+    for i in range(len(plot_names)):
+        if show_plots or save_plots:
+            scatter.plotFunction(plot_names[i] + " on sim" + str(simNr), X, plot_data[i], show_plots, marker='o')
+            if show_plots:
+                plt.savefig('./figures/aligned_sim' + str(simNr) + '_' + plot_names[i])
+            if save_plots:
+                plt.show()
 
 
-# getSimulationAccuracy(23, plot=True)
+getSimulationAccuracy(22, show_plots=True, save_plots=True)
