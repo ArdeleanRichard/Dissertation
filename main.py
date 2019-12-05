@@ -5,13 +5,13 @@ from sklearn import metrics
 
 import SBM
 import SBM_functions as fs
-import scatter
+import scatter_plot
 import datasets as ds
 
 def main():
     #data = ds.getTINSData()
-    # data, y = ds.getGenData()
-    data, y = ds.getDatasetSimulationPCA2D(simNr=79)
+    #data, y = ds.getGenData()
+    data, y = ds.getDatasetSimulationPCA2D(simNr=79, align_to_peak=0)
 
     pn = 25
     start = time.time()
@@ -19,11 +19,11 @@ def main():
     end = time.time()
     print('SBM: ' + str(end - start))
 
-    scatter.griddedPlotFunction('SBM' + str(len(data)), data, labels, pn, marker='o')
+    scatter_plot.griddedPlotFunction('SBM' + str(len(data)), data, pn, labels, marker='o')
     # plt.show()
-    plt.savefig('./figures/SBMv2_gen')
+    plt.savefig('./figures/SBMv2_sim79')
 
-    scatter.griddedPlotFunction('SBM' + str(len(data)), data, y, pn, marker='o')
+    scatter_plot.griddedPlotFunction('SBM' + str(len(data)), data, pn, y, marker='o')
     # plt.show()
     plt.savefig('./figures/ground_truth')
 
