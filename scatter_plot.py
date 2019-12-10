@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from sklearn import preprocessing
 import math
 
 LABEL_COLOR_MAP = {-1: 'gray',
@@ -43,8 +42,7 @@ LABEL_COLOR_MAP = {-1: 'gray',
                    }
 
 
-
-def plotFunction(title, X, labels=None, plot=True, marker='o'):
+def plot(title, X, labels=None, plot=True, marker='o'):
     """
     Plots the dataset with or without labels
     :param title: string - the title of the plot
@@ -65,8 +63,7 @@ def plotFunction(title, X, labels=None, plot=True, marker='o'):
             plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
 
 
-
-def plotCenters(title, X, clusterCenters, pn, plot=True, marker='o'):
+def plot_centers(title, X, clusterCenters, pn, plot=True, marker='o'):
     """
     Plots the dataset with the cluster centers highlighted in red (the others white)
     :param title: string - the title of the plot
@@ -94,7 +91,7 @@ def plotCenters(title, X, clusterCenters, pn, plot=True, marker='o'):
         plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
 
 
-def griddedPlotFunction(title, X,  pn, labels=None, plot=True, marker='o'):
+def plot_grid(title, X, pn, labels=None, plot=True, marker='o'):
     """
     Plots the dataset with grid
     :param title: string - the title of the plot

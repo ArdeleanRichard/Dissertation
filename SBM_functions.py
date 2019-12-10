@@ -1,45 +1,32 @@
-import sys
 import math
-import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
 from joblib import Parallel, delayed
+import sys
 sys.setrecursionlimit(1000000)
 
 import multiprocessing
 num_cores = multiprocessing.cpu_count() - 2
 
 
-def adjust(x):
-    if x < 0:
-        x = np.floor(x)
-        x = np.floor(x / 5)
-    else:
-        x = np.ceil(x)
-        x = np.ceil(x / 5)
-    x = 5 * x
-    return x
-
-
-def pad_with(vector, pad_width, kwargs):
-    pad_value = kwargs.get('padder', 10)
-    vector[:pad_width[0]] = pad_value
-    vector[-pad_width[1]:] = pad_value
-    return vector
-
-
 # TODO
-def isValidCenter(value):
+def valid_center(value):
     return True  # TODO set the min value acceptable
 
 
-def getNeighbours(p, shape):
-    ndim = len(p)
+def get_neighbours(point, shape):
+    """
+    Get all the coordinates of the neighbours of a point
+    :param point: vector - the coordinates of the chunk we are looking at
+    :param shape: tuple - shape of the array of chunks so that we do not look outside boundaries
+
+    :returns neighbours: array - vector of coordinates of the neighbours
+    """
+    ndim = len(point)
     offsetIndexes = np.indices((3,) * ndim).reshape(ndim, -1).T
     offsets = np.r_[-1, 0, 1].take(offsetIndexes)
     offsets = offsets[np.any(offsets, 1)]
 
-    neighbours = p + offsets
+    neighbours = point + offsets
 
     valid = np.all((neighbours < np.array(shape)) & (neighbours >= 0), axis=1)
     neighbours = neighbours[valid]
@@ -47,29 +34,39 @@ def getNeighbours(p, shape):
     return neighbours
 
 
-def isMaxima(array, point):
-    neighbours = getNeighbours(point, np.shape(array))
+def check_maxima(array, point):
+    """
+    Check whether the chunk with the coordinates "point" is bigger than all its neighbours
+    :param array: matrix - an array of the values in each chunk
+    :param point: vector - the coordinates of the chunk we are looking at
+
+    :returns : boolean - whether or not it is a maxima
+    """
+    neighbours = get_neighbours(point, np.shape(array))
     for neighbour in neighbours:
         if array[tuple(neighbour)] > array[point]:
             return False
-    #print('CENTER {} VALUE {} NEIGHBOURS {}'.format(point, array[point], [array[tuple(n)] for n in neighbours]))
     return True
 
 
-def findClusterCenters(array, threshold=5):
+def find_cluster_centers(array, threshold=5):
+    """
+    Search through the matrix of chunks to find the cluster centers
+    :param array: matrix - an array of the values in each chunk
+    :param threshold: integer - cluster center threshold, minimum amount needed for a chunk to be considered a possible cluster center
+
+    :returns clusterCenters: vector - a vector of the coordinates of the chunks that are cluster centers
+    """
     clusterCenters = []
 
-    # print('\n'.join([''.join(['{:10}'.format(item) for item in row]) for row in array]))
-
     for index, value in np.ndenumerate(array):
-        if value >= threshold and isMaxima(array, index):  # TODO exclude neighbour centers
+        if value >= threshold and check_maxima(array, index):  # TODO exclude neighbour centers
             clusterCenters.append(index)
     return clusterCenters
 
 
-# noinspection SpellCheckingInspection
-def getDropoff(ndArray, location):
-    neighbours = getNeighbours(location, np.shape(ndArray))
+def get_dropoff(ndArray, location):
+    neighbours = get_neighbours(location, np.shape(ndArray))
     dropoff = 0
     for neighbour in neighbours:
         neighbourLocation = tuple(neighbour)
@@ -79,17 +76,28 @@ def getDropoff(ndArray, location):
     return 0
 
 
-def getStrength(ndArray, clusterCenter, questionPoint, expansionPoint):
+def get_strength(ndArray, clusterCenter, questionPoint, expansionPoint):
     dist = distance(clusterCenter, questionPoint)
     #strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
 
-    #BEST FOR NOW
+    #TODO
     strength = ndArray[questionPoint] / dist / ndArray[clusterCenter]
 
     return strength
 
 
-def expand(array, start, labels, currentLabel, clusterCenters, version=1):  # TODO
+def expand_cluster_center(array, start, labels, currentLabel, clusterCenters, version=1):  # TODO
+    """
+    Expansion
+    :param array: matrix - an array of the values in each chunk
+    :param start: tuple - the coordinates of the chunk where the expansion starts (current cluster center)
+    :param labels: matrix - the labels array
+    :param currentLabel: integer - the label of the current cluster center
+    :param clusterCenters: vector - vector of all the cluster centers, each containing n-dimensions
+    :param version: integer - the version of SBM (0-original version, 1=license, 2=modified with less noise)
+
+    :returns labels: matrix - updated matrix of labels after expansion and conflict solve
+    """
     visited = np.zeros_like(array, dtype=bool)
     expansionQueue = []
     if labels[start] == 0:
@@ -114,18 +122,17 @@ def expand(array, start, labels, currentLabel, clusterCenters, version=1):  # TO
 
     visited[start] = True
 
-    dropoff = getDropoff(array, start)
+    dropoff = get_dropoff(array, start)
 
     while expansionQueue:
         point = expansionQueue.pop(0)
-        neighbours = getNeighbours(point, np.shape(array))
+        neighbours = get_neighbours(point, np.shape(array))
         for neighbour in neighbours:
             location = tuple(neighbour)
             if version == 1:
                 number = dropoff * math.sqrt(distance(start, location))
             elif version == 2:
                 number = math.floor(math.sqrt(dropoff * distance(start, location)))
-            # print(number)
             if array[location] == 0:
                 pass
             if (not visited[location]) and (number < array[location] <= array[point]):
@@ -146,7 +153,6 @@ def expand(array, start, labels, currentLabel, clusterCenters, version=1):  # TO
                                               clusterCenters[currentLabel - 1],
                                               clusterCenters[oldLabel - 1],
                                               version)
-                        # print("choice"+str(disRez))
                         if disRez == 1:
                             labels[location] = currentLabel
                             expansionQueue.append(location)
@@ -202,13 +208,13 @@ def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCe
         distanceToC2 = distance(questionPoint, clusterCenter2)
         pointStrength = array[questionPoint]
 
-        c1Strength = array[clusterCenter1] / pointStrength - getDropoff(array, clusterCenter1) * distanceToC1
-        c2Strength = array[clusterCenter2] / pointStrength - getDropoff(array, clusterCenter2) * distanceToC2
+        c1Strength = array[clusterCenter1] / pointStrength - get_dropoff(array, clusterCenter1) * distanceToC1
+        c2Strength = array[clusterCenter2] / pointStrength - get_dropoff(array, clusterCenter2) * distanceToC2
 
     # RICI
     elif version == 2:
-        c1Strength = getStrength(array, clusterCenter1, questionPoint, expansionPoint)
-        c2Strength = getStrength(array, clusterCenter2, questionPoint, expansionPoint)
+        c1Strength = get_strength(array, clusterCenter1, questionPoint, expansionPoint)
+        c2Strength = get_strength(array, clusterCenter2, questionPoint, expansionPoint)
 
 
     # RICI VERSION
@@ -236,7 +242,7 @@ def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCe
         return 2
 
 
-def chunkify(X, pn):
+def chunkify_sequential(X, pn):
     """
     Transforms the points into a matrix of integers by gridding the dataset and counting the points in each item of the grid
     :param X: matrix - the points of the dataset
@@ -257,7 +263,7 @@ def chunkify(X, pn):
     return nArray
 
 
-def chunkifyMT(X, pn, nrThreads=num_cores):
+def chunkify_parallel(X, pn, nrThreads=num_cores):
     """
     Multi-threaded version of the chunkify function
     :param X: matrix - the points of the dataset
@@ -268,14 +274,14 @@ def chunkifyMT(X, pn, nrThreads=num_cores):
     """
     splittedX = np.array_split(X, nrThreads)
 
-    results = Parallel(n_jobs=nrThreads)(delayed(chunkify)(x, pn) for x in splittedX)
+    results = Parallel(n_jobs=nrThreads)(delayed(chunkify_sequential)(x, pn) for x in splittedX)
 
     finalArray = sum(results)
 
     return finalArray
 
 
-def dechunkifyMT(X, labelsArray, pn, nrThreads=num_cores):
+def dechunkify_parallel(X, labelsArray, pn, nrThreads=num_cores):
     """
     Multi-threaded version of the dechunkify function
     :param X: matrix - the points of the dataset
@@ -286,13 +292,13 @@ def dechunkifyMT(X, labelsArray, pn, nrThreads=num_cores):
     """
     splittedX = np.array_split(X, nrThreads)
 
-    results = Parallel(n_jobs=nrThreads)(delayed(dechunkify)(x, labelsArray, pn) for x in splittedX)
+    results = Parallel(n_jobs=nrThreads)(delayed(dechunkify_sequential)(x, labelsArray, pn) for x in splittedX)
 
     finalLabels = np.concatenate(results, axis=0)
     return finalLabels
 
 
-def dechunkify(X, labelsArray, pn):
+def dechunkify_sequential(X, labelsArray, pn):
     """
     Transforms the labels of the chunks into the labels of each of the points
     :param X: matrix - the points of the dataset
@@ -318,9 +324,46 @@ def dechunkify(X, labelsArray, pn):
 
 
 def distance(pointA, pointB):
-    sum = 0
-    for i in range(0, len(pointA)):
-        sum += (pointA[i] - pointB[i]) ** 2
-    return math.sqrt(sum)
+    """
+    Calculates the euclidean distance between 2 points (L2 norm/distance) for n-dimensional points
+    :param pointA: vector - vector containing all the dimensions of a point A
+    :param pointB: vector - vector containing all the dimensions of a point B
+
+    :returns dist: float - the distance between the 2 points
+    """
+    difference = np.subtract(pointA, pointB)
+    squared = np.square(difference)
+    dist = math.sqrt(np.sum(squared))
+    return dist
 
 
+def rotateMatrix(mat):
+    """
+    Rotates a matrix by 90 degrees
+    :param mat: matrix - the initial matrix that will be rotated
+
+    :returns mat: matrix - the rotated matrix
+    """
+    # Consider all squares one by one
+    N = len(mat)
+    for x in range(0, int(N / 2)):
+
+        # Consider elements in group
+        # of 4 in current square
+        for y in range(x, N - x - 1):
+            # store current cell in temp variable
+            temp = mat[x][y]
+
+            # move values from right to top
+            mat[x][y] = mat[y][N - 1 - x]
+
+            # move values from bottom to right
+            mat[y][N - 1 - x] = mat[N - 1 - x][N - 1 - y]
+
+            # move values from left to bottom
+            mat[N - 1 - x][N - 1 - y] = mat[N - 1 - y][x]
+
+            # assign temp to left
+            mat[N - 1 - y][x] = temp
+
+    return mat
