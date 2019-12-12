@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import math
+from sklearn import preprocessing
 
 LABEL_COLOR_MAP = {-1: 'gray',
                    0: 'white',
@@ -75,6 +76,7 @@ def plot_centers(title, X, clusterCenters, pn, plot=True, marker='o'):
 
     :returns None
     """
+
     if plot:
         fig = plt.figure()
         plt.title(title)
@@ -103,6 +105,7 @@ def plot_grid(title, X, pn, labels=None, plot=True, marker='o'):
 
     :returns None
     """
+    X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
     if plot:
         nrDim = len(X[0])
         label_color = [LABEL_COLOR_MAP[l] for l in labels]

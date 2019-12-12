@@ -57,7 +57,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
 
         # re-extract spikes with new alignment
         spikes = spike_extract(signal, spike_start, spike_length)
-    if align_to_peak == 2:
+    elif align_to_peak == 2:
         # peak_ind is a vector that contains the index (0->78 / 79 points for each spike) of the maximum of each spike
         peak_ind = np.argmax(spikes, axis=1)
         # avg_peak is the avg of all the peaks

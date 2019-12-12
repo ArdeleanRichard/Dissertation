@@ -19,10 +19,10 @@ def main():
     end = time.time()
     print('SBM: ' + str(end - start))
 
-    scatter_plot.plot('SBM' + str(len(data)), data, labels, marker='o')
+    scatter_plot.plot_grid('SBM' + str(len(data)), data, pn, labels, marker='o')
     plt.savefig('./figures/SBMv2_sim79')
 
-    scatter_plot.plot('SBM' + str(len(data)), data, y, marker='o')
+    scatter_plot.plot_grid('SBM' + str(len(data)), data, pn, y, marker='o')
     # plt.show()
     plt.savefig('./figures/ground_truth')
 

@@ -21,13 +21,22 @@ def get_neighbours(point, shape):
 
     :returns neighbours: array - vector of coordinates of the neighbours
     """
+    # ndim = the number of dimensions of a point=chunk
     ndim = len(point)
-    offsetIndexes = np.indices((3,) * ndim).reshape(ndim, -1).T
-    offsets = np.r_[-1, 0, 1].take(offsetIndexes)
-    offsets = offsets[np.any(offsets, 1)]
 
+    #offsetIndexes gives all the possible neighbours ( (0,0)...(2,2) ) of an unknown point in n-dimensions
+    offsetIndexes = np.indices((3,) * ndim).reshape(ndim, -1).T
+
+    # np.r_ does row-wise merging (basically concatenate), this instructions is equivalent to offsets=np.array([-1, 0, 1]).take(offsetIndexes)
+    offsets = np.r_[-1, 0, 1].take(offsetIndexes)
+
+    #remove the point itself (0,0) from the offsets (np.any will give False only for the point that contains only 0 on all dimensions)
+    offsets = offsets[np.any(offsets, axis=1)]
+
+    # calculate the coordinates of the neighbours of the point using the offsets
     neighbours = point + offsets
 
+    # validate the neighbours so they do not go out of the array
     valid = np.all((neighbours < np.array(shape)) & (neighbours >= 0), axis=1)
     neighbours = neighbours[valid]
 

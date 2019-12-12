@@ -186,7 +186,7 @@ def simulations_average_accuracy():
 
         allAccuracies = np.vstack((allAccuracies, np.insert(np.append(accuracy_kmeans, np.append(accuracy_dbscan, np.append(accuracy_sbmv2, accuracy_sbmv1)))*100, 0, i)))
         #print(allAccuracies)
-    np.savetxt("PCA3D_accuracy.csv", allAccuracies, delimiter=',', header=header, fmt="%10.2f")
+    np.savetxt("PCA3D_accuracy_align2.csv", allAccuracies, delimiter=',', header=header, fmt="%10.2f")
     print("Average KMeans: {}".format(np.array(averageKMeans)/92))
     print("Average DBSCAN: {}".format(np.array(averageDBSCAN)/92))
     print("Average SBMv2: {}".format(np.array(averageSBMv2)/92))
