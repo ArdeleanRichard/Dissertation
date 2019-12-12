@@ -5,12 +5,18 @@ import sys
 sys.setrecursionlimit(100000)
 
 import SBM_functions as fs
+import scatter_plot
 
-# X = dataset
-# pn = partioning number, number of segments for each dimension
-# version = no need to know
-# ccThreshold = cluster center threshold, minimum count the cluster center needs to be valid
-def sequential(X, pn, version=1, ccThreshold = 5):
+def sequential(X, pn, version=2, ccThreshold = 5):
+    """
+    Sequential version of SBM
+    :param X: matrix - the points of the dataset
+    :param pn: integer - the number of partitions on columns and rows
+    :param version: integer - the version of SBM (0-original version, 1=license, 2=modified with less noise)
+    :param ccThreshold: integer - the minimum number of points needed in a partition/chunk for it to be considered a possible cluster center
+
+    :returns labels: vector -  the vector of labels for each point of dataset X
+    """
     X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
     ndArray = fs.chunkify(X, pn)
 
@@ -40,7 +46,16 @@ def sequential(X, pn, version=1, ccThreshold = 5):
     return labels
 
 
-def multiThreaded(X, pn, version=1,  ccThreshold = 5):
+def multiThreaded(X, pn, version=2, ccThreshold = 5):
+    """
+    Multi-threaded version of SBM
+    :param X: matrix - the points of the dataset
+    :param pn: integer - the number of partitions on columns and rows
+    :param version: integer - the version of SBM (1=license, 2=modified with less noise)
+    :param ccThreshold: integer - the minimum number of points needed in a partition/chunk for it to be considered a possible cluster center
+
+    :returns labels: vector -  the vector of labels for each point of dataset X
+    """
     # 1. normalization of the dataset to bring it to 0-pn on all axes
     X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
 
@@ -49,7 +64,8 @@ def multiThreaded(X, pn, version=1,  ccThreshold = 5):
     # returns an array of pn for each dimension
     start = time.time()
     ndArray = fs.chunkifyMT(X, pn)
-    ndArray = np.asarray(ndArray, dtype=int)
+    #rotated = rotateMatrix(np.copy(ndArray))
+    #np.savetxt("csf.txt", rotated, fmt="%i", delimiter="\t")
     end = time.time()
     #print('CHUNKIFY: ' + str(end - start))
 
@@ -74,7 +90,7 @@ def multiThreaded(X, pn, version=1,  ccThreshold = 5):
 
 
 
-    #scatter.plotCenters("centers", X, clusterCenters, pn, plot=True, marker='.')
+    # scatter_plot.plotCenters("centers", X, clusterCenters, pn, plot=True, marker='.')
 
     start = time.time()
     # 5. inverse of chunkification, from the labels array we get the label of each points
@@ -85,3 +101,29 @@ def multiThreaded(X, pn, version=1,  ccThreshold = 5):
     #print("number of actual clusters: ", nrClust)
 
     return labels
+
+
+def rotateMatrix(mat):
+    # Consider all squares one by one
+    N = len(mat)
+    for x in range(0, int(N / 2)):
+
+        # Consider elements in group
+        # of 4 in current square
+        for y in range(x, N - x - 1):
+            # store current cell in temp variable
+            temp = mat[x][y]
+
+            # move values from right to top
+            mat[x][y] = mat[y][N - 1 - x]
+
+            # move values from bottom to right
+            mat[y][N - 1 - x] = mat[N - 1 - x][N - 1 - y]
+
+            # move values from left to bottom
+            mat[N - 1 - x][N - 1 - y] = mat[N - 1 - y][x]
+
+            # assign temp to left
+            mat[N - 1 - y][x] = temp
+
+    return mat
