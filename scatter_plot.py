@@ -1,8 +1,8 @@
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-from sklearn import preprocessing
 import math
+
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 
 LABEL_COLOR_MAP = {-1: 'gray',
                    0: 'white',
@@ -43,7 +43,6 @@ LABEL_COLOR_MAP = {-1: 'gray',
                    }
 
 
-
 def plotFunction(title, X, labels=None, plot=True, marker='o'):
     """
     Plots the dataset with or without labels
@@ -65,7 +64,6 @@ def plotFunction(title, X, labels=None, plot=True, marker='o'):
             plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
 
 
-
 def plotCenters(title, X, clusterCenters, pn, plot=True, marker='o'):
     """
     Plots the dataset with the cluster centers highlighted in red (the others white)
@@ -84,7 +82,7 @@ def plotCenters(title, X, clusterCenters, pn, plot=True, marker='o'):
         labels = np.zeros(len(X))
         for i in range(len(X)):
             for c in range(len(clusterCenters)):
-                if math.floor(X[i, 0]) == clusterCenters[c][0] and math.floor(X[i,1]) == clusterCenters[c][1]:
+                if math.floor(X[i, 0]) == clusterCenters[c][0] and math.floor(X[i, 1]) == clusterCenters[c][1]:
                     labels[i] = 1
         label_color = [LABEL_COLOR_MAP[l] for l in labels]
         ax = fig.gca()
@@ -94,7 +92,7 @@ def plotCenters(title, X, clusterCenters, pn, plot=True, marker='o'):
         plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
 
 
-def griddedPlotFunction(title, X,  pn, labels=None, plot=True, marker='o'):
+def griddedPlotFunction(title, X, pn, labels=None, plot=True, marker='o'):
     """
     Plots the dataset with grid
     :param title: string - the title of the plot
@@ -127,3 +125,10 @@ def griddedPlotFunction(title, X,  pn, labels=None, plot=True, marker='o'):
             # ax.set_yticks(np.arange(0, pn, 1))
             ax.scatter(X[:, 0], X[:, 1], X[:, 2], marker=marker, c=label_color, s=25, )
             # plt.grid(True)
+
+
+def plot_spikes(spikes, title=""):
+    for i in range(0, len(spikes), 300):
+        plt.plot(np.arange(79), spikes[i])
+    plt.title(title)
+    plt.show()
