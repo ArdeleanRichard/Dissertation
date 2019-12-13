@@ -57,7 +57,7 @@ import datasets as ds
 
 import time
 
-def getSimulationAverageTime():
+def get_simulation_average_time():
     averageKMeansTime = 0
     averageDBSCANTime = 0
     averageSBMv2Time = 0
@@ -68,7 +68,7 @@ def getSimulationAverageTime():
         print(i)
         if i==24 or i==25 or i==44:
             continue
-        X, y = ds.getDatasetSimulationPCA3D(simNr=i)
+        X, y = ds.get_dataset_simulation_pca_3d(simNr=i)
 
         kmeansTime = 0
         for j in range(0, 5):
@@ -118,4 +118,4 @@ def getSimulationAverageTime():
     print("Average SBM Time: {}".format(np.array(averageSBMv2Time)/92))
     print("Average SBM Time: {}".format(np.array(averageSBMv1Time)/92))
 
-getSimulationAverageTime()
+get_simulation_average_time()

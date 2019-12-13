@@ -59,9 +59,10 @@ def benchmark_dataset(datasetNumber, plot=False):
 
     kmeans = KMeans(n_clusters=kmeansValues[datasetNumber]).fit(X)
     labels = kmeans.labels_
-    scatter_plot.plotFunction("K-MEANS on" + datasetName, X, labels, plot, marker='X')
+    scatter_plot.plot("K-MEANS on" + datasetName, X, labels, plot, marker='X')
+    scatter_plot.plot("K-MEANS on" + datasetName, X, labels, plot, marker='X')
     plt.show()
-    calculateAccuracy(datasetName, 0, labels, y, print=True)
+    calculate_accuracy(datasetName, 0, labels, y, print=True)
 
     if datasetNumber == 1:
         min_samples = np.log(len(X)) * 10
@@ -69,14 +70,14 @@ def benchmark_dataset(datasetNumber, plot=False):
         min_samples = np.log(len(X))
     db = DBSCAN(eps=epsValues[datasetNumber], min_samples=min_samples).fit(X)
     labels = db.labels_
-    scatter_plot.plotFunction("DBSCAN on" + datasetName, X, labels, plot, marker='X')
+    scatter_plot.plot("DBSCAN on" + datasetName, X, labels, plot, marker='X')
     plt.show()
-    calculateAccuracy(datasetName, 1, labels, y, print=True)
+    calculate_accuracy(datasetName, 1, labels, y, print=True)
 
-    labels = SBM.multiThreaded(X, pn=25, version=2)
-    scatter_plot.griddedPlotFunction("SBM on" + datasetName, X, labels, pn, plot, marker='X')
+    labels = SBM.parallel(X, pn=25, version=2)
+    scatter_plot.plot_grid("SBM on" + datasetName, X, labels, pn, plot, marker='X')
     plt.show()
-    calculateAccuracy(datasetName, 2, labels, y, print=True)
+    calculate_accuracy(datasetName, 2, labels, y, print=True)
 
     # results = []
     # results.append(metrics.adjusted_rand_score(y, labels))
@@ -94,7 +95,7 @@ def benchmark_dataset(datasetNumber, plot=False):
     # print(results)
 
 
-def printAccuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI):
+def print_accuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI):
     """
     Print the accuracies of the algorithm on the dataset
     :param datasetName: string - the name of the dataset for ease of view
@@ -115,7 +116,7 @@ def printAccuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI):
     print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(nnpAMI))
 
 
-def calculateAccuracy(datasetName, algorithmNumber, labels, y, print=False):
+def calculate_accuracy(datasetName, algorithmNumber, labels, y, print=False):
     """
     Calculate the accuracies of the algorithm on the dataset
     :param datasetName: string - the name of the dataset for ease of view
@@ -140,12 +141,12 @@ def calculateAccuracy(datasetName, algorithmNumber, labels, y, print=False):
     nnpAMI = metrics.adjusted_mutual_info_score(labelsNN, yNN)
 
     if print == True:
-        printAccuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI)
+        print_accuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI)
 
     return np.array([allARI, allAMI, nnpARI, nnpAMI])
 
 
-def getSimulationAverageAccuracy():
+def simulations_average_accuracy():
     """
     Iterate through all 95 simulation calculate the accuracy for each and then make an average
     :param None
@@ -164,42 +165,46 @@ def getSimulationAverageAccuracy():
         print(i)
         if i == 24 or i == 25 or i == 44:
             continue
-        X, y = ds.getDatasetSimulationPCA2D(simNr=i)
+        X, y = ds.get_dataset_simulation_pca_2d(simNr=i)
 
         kmeans = KMeans(n_clusters=np.amax(y)).fit(X)
         labels = kmeans.labels_
-        accuracy_kmeans = calculateAccuracy('', 0, labels, y)
+        accuracy_kmeans = calculate_accuracy('', 0, labels, y)
         averageKMeans = np.add(averageKMeans, accuracy_kmeans)
 
         min_samples = np.log(len(X))
         db = DBSCAN(eps=1, min_samples=min_samples).fit(X)
         labels = db.labels_
-        accuracy_dbscan = calculateAccuracy('', 1, labels, y)
+        accuracy_dbscan = calculate_accuracy('', 1, labels, y)
         averageDBSCAN = np.add(averageDBSCAN, accuracy_dbscan)
 
-        labels = SBM.multiThreaded(X, pn=30, version=2)
-        accuracy_sbmv2 = calculateAccuracy('', 2, labels, y)
+        labels = SBM.parallel(X, pn=30, version=2)
+        accuracy_sbmv2 = calculate_accuracy('', 2, labels, y)
         averageSBMv2 = np.add(averageSBMv2, accuracy_sbmv2)
 
-        labels = SBM.multiThreaded(X, pn=30, version=1)
-        accuracy_sbmv1 = calculateAccuracy('', 2, labels, y)
+        labels = SBM.parallel(X, pn=30, version=1)
+        accuracy_sbmv1 = calculate_accuracy('', 2, labels, y)
         averageSBMv1 = np.add(averageSBMv1, accuracy_sbmv1)
 
         allAccuracies = np.vstack((allAccuracies, np.insert(
             np.append(accuracy_kmeans, np.append(accuracy_dbscan, np.append(accuracy_sbmv2, accuracy_sbmv1))) * 100, 0,
             i)))
         # print(allAccuracies)
-    np.savetxt("PCA3D_accuracy.csv", allAccuracies, delimiter=',', header=header, fmt="%10.2f")
+    np.savetxt("PCA3D_accuracy_align2.csv", allAccuracies, delimiter=',', header=header, fmt="%10.2f")
     print("Average KMeans: {}".format(np.array(averageKMeans) / 92))
     print("Average DBSCAN: {}".format(np.array(averageDBSCAN) / 92))
     print("Average SBMv2: {}".format(np.array(averageSBMv2) / 92))
     print("Average SBMv1: {}".format(np.array(averageSBMv1) / 92))
 
 
+# simulations_average_accuracy()
+
+
+# benchmark_dataset(4, plot=True)
 # getSimulationAverageAccuracy()
 # benchmark_dataset(4, plot=True)
 
-def getSimulationAccuracy(simNr, plot=False):
+def simulation_accuracy(simNr, plot=False):
     resultKMeans = np.array([0, 0, 0, 0])
     resultDBSCAN = np.array([0, 0, 0, 0])
     resultSBMv2 = np.array([0, 0, 0, 0])
@@ -209,25 +214,25 @@ def getSimulationAccuracy(simNr, plot=False):
     if simNr == 24 or simNr == 25 or simNr == 44:
         print("This simulation has anomalies.")
         return
-    X, y = ds.getDatasetSimulationPCA2D(simNr=simNr, align_to_peak=2)
+    X, y = ds.get_dataset_simulation_pca_2d(simNr=simNr, align_to_peak=2)
 
     kmeans = KMeans(n_clusters=np.amax(y)).fit(X)
     kmeans_labels = kmeans.labels_
-    accuracy_kmeans = calculateAccuracy('', 0, kmeans_labels, y)
+    accuracy_kmeans = calculate_accuracy('', 0, kmeans_labels, y)
     resultKMeans = np.add(resultKMeans, accuracy_kmeans)
 
     min_samples = np.log(len(X))
     db = DBSCAN(eps=0.1, min_samples=min_samples).fit(X)
     dbscan_labels = db.labels_
-    accuracy_dbscan = calculateAccuracy('', 1, dbscan_labels, y)
+    accuracy_dbscan = calculate_accuracy('', 1, dbscan_labels, y)
     resultDBSCAN = np.add(resultDBSCAN, accuracy_dbscan)
 
-    sbmv2_labels = SBM.multiThreaded(X, pn=30, version=2)
-    accuracy_sbmv2 = calculateAccuracy('', 2, sbmv2_labels, y)
+    sbmv2_labels = SBM.parallel(X, pn=30, version=2)
+    accuracy_sbmv2 = calculate_accuracy('', 2, sbmv2_labels, y)
     resultSBMv2 = np.add(resultSBMv2, accuracy_sbmv2)
 
-    sbmv1_labels = SBM.multiThreaded(X, pn=30, version=1)
-    accuracy_sbmv1 = calculateAccuracy('', 2, sbmv1_labels, y)
+    sbmv1_labels = SBM.parallel(X, pn=30, version=1)
+    accuracy_sbmv1 = calculate_accuracy('', 2, sbmv1_labels, y)
     resultSBMv1 = np.add(resultSBMv1, accuracy_sbmv1)
 
     allAccuracies = np.vstack((allAccuracies, np.insert(
@@ -251,12 +256,12 @@ def getSimulationAccuracy(simNr, plot=False):
                                     color=plot_data[index])
                 fig.show()
             else:
-                scatter_plot.plotFunction(plot_names[index] + " on sim" + str(simNr), X, plot_data[index], plot,
+                scatter_plot.plot(plot_names[index] + " on sim" + str(simNr), X, plot_data[index], plot,
                                           marker='o')
                 # plt.savefig('./figures/sim' + str(simNr) + '_' + plot_names[index] + "_fsde6")
                 plt.show()
 
 
 # for i in range(23, 30):
-#     getSimulationAccuracy(i, True)
-getSimulationAccuracy(26, True)
+#     simulation_accuracy(i, True)
+simulation_accuracy(26, True)

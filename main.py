@@ -11,19 +11,18 @@ import datasets as ds
 def main():
     #data = ds.getTINSData()
     #data, y = ds.getGenData()
-    data, y = ds.getDatasetSimulationPCA2D(simNr=79, align_to_peak=0)
+    data, y = ds.get_dataset_simulation_pca_2d(simNr=79, align_to_peak=0)
 
     pn = 25
     start = time.time()
-    labels = SBM.multiThreaded(data, pn, ccThreshold=5, version=2)
+    labels = SBM.sequential(data, pn, ccThreshold=5, version=2)
     end = time.time()
     print('SBM: ' + str(end - start))
 
-    scatter_plot.griddedPlotFunction('SBM' + str(len(data)), data, pn, labels, marker='o')
-    # plt.show()
+    scatter_plot.plot_grid('SBM' + str(len(data)), data, pn, labels, marker='o')
     plt.savefig('./figures/SBMv2_sim79')
 
-    scatter_plot.griddedPlotFunction('SBM' + str(len(data)), data, pn, y, marker='o')
+    scatter_plot.plot_grid('SBM' + str(len(data)), data, pn, y, marker='o')
     # plt.show()
     plt.savefig('./figures/ground_truth')
 
