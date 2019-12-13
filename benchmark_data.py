@@ -2,6 +2,7 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.express as px
 from sklearn import metrics
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import KMeans
@@ -208,7 +209,7 @@ def getSimulationAccuracy(simNr, plot=False):
     if simNr == 24 or simNr == 25 or simNr == 44:
         print("This simulation has anomalies.")
         return
-    X, y = ds.getDatasetSimulationPCA2D(simNr=simNr)
+    X, y = ds.getDatasetSimulationPCA2D(simNr=simNr, align_to_peak=2)
 
     kmeans = KMeans(n_clusters=np.amax(y)).fit(X)
     kmeans_labels = kmeans.labels_
@@ -245,6 +246,17 @@ def getSimulationAccuracy(simNr, plot=False):
 
     if plot:
         for index in range(len(plot_names)):
-            scatter_plot.plotFunction(plot_names[index] + " on sim" + str(simNr), X, plot_data[index], plot, marker='o')
-            plt.savefig('./figures/sim' + str(simNr) + '_' + plot_names[index])
-            plt.show()
+            if len(X[0]) == 3:
+                fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2],
+                                    color=plot_data[index])
+                fig.show()
+            else:
+                scatter_plot.plotFunction(plot_names[index] + " on sim" + str(simNr), X, plot_data[index], plot,
+                                          marker='o')
+                # plt.savefig('./figures/sim' + str(simNr) + '_' + plot_names[index] + "_fsde6")
+                plt.show()
+
+
+# for i in range(23, 30):
+#     getSimulationAccuracy(i, True)
+getSimulationAccuracy(26, True)
