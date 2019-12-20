@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-import math
 from sklearn import preprocessing
+import math
 
 LABEL_COLOR_MAP = {-1: 'gray',
                    0: 'white',
@@ -105,6 +105,7 @@ def plot_grid(title, X, pn, labels=None, plot=True, marker='o'):
 
     :returns None
     """
+
     X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
     if plot:
         nrDim = len(X[0])
