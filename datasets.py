@@ -1,13 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import plotly.express as px
-import scatter as my_scatter
 
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
 
 import scatter_plot
+
 
 def spike_extract(signal, spike_start, spike_length):
     """
@@ -15,7 +14,6 @@ def spike_extract(signal, spike_start, spike_length):
     :param signal: matrix - height for each point of the spikes
     :param spike_start: vector - each entry represents the first point of a spike
     :param spike_length: integer - constant, 79
-
     :returns spikes: matrix - each row contains 79 points of one spike
     """
     spikes = np.zeros([len(spike_start), spike_length])
@@ -27,6 +25,16 @@ def spike_extract(signal, spike_start, spike_length):
 
 
 def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize_spikes, spike_label):
+    """
+    Extract the spikes from the signal knowing where the spikes start and their length
+    :param signal: matrix - height for each point of the spikes
+    :param spike_start: vector - each entry represents the first point of a spike
+    :param spike_length: integer - constant, 79
+    :param align_to_peak: boolean - whether to align the spikes
+    :param normalize_spikes: boolean - whether to normalize the spikes
+    :param spike_label: vector - the ground_truth of each spike
+    :returns spikes: matrix - each row contains 79 points of one spike
+    """
     spikes = spike_extract(signal, spike_start, spike_length)
 
     # align to max
@@ -43,7 +51,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
             ##### shift start times to max
             # peak_ind contains the index of the peak of the label
             peak_ind = np.argmax(avg_spike)
-            #print(np.argmax(avg_spike))
+            # print(np.argmax(avg_spike))
             spike_start[ind] = spike_start[ind] + peak_ind - 20
 
         # re-extract spikes with new alignment
@@ -59,7 +67,6 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
         # the spikes are re-extracted using the new spike_start
         spikes = spike_extract(signal, spike_start, spike_length)
 
-
     # normalize spikes using Z-score: (value - mean)/ standard deviation
     if normalize_spikes:
         normalized_spikes = [(spike - np.mean(spike)) / np.std(spike) for spike in spikes]
@@ -74,8 +81,7 @@ def getDatasetSimulationPCA2D(simNr, spike_length=79, align_to_peak=2, normalize
     :param spike_length: integer - length of spikes in number of samples
     :param align_to_peak: integer - aligns each spike to it's maximum value
     :param normalize_spike: boolean - applies z-scoring normalization to each spike
-
-    :returns spikes_pca_3d: matrix - the 2-dimensional points resulted
+    :returns spikes_pca_2d: matrix - the 2-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
     spikes, labels = getDatasetSimulation(simNr, spike_length, align_to_peak, normalize_spike)
@@ -84,13 +90,14 @@ def getDatasetSimulationPCA2D(simNr, spike_length=79, align_to_peak=2, normalize
     pca_2d = PCA(n_components=2)
     spikes_pca_2d = pca_2d.fit_transform(spikes)
 
-    #getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
+    # getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
     # np.save('79_ground_truth', label)
     # np.save('79_x', spikes_reduced[:, 0])
     # np.save('79_y', spikes_reduced[:, 1])
 
     return spikes_pca_2d, labels
+
 
 # spike extraction options
 # original sampling rate 96KHz, with each waveform at 316 points(dimensions/features)
@@ -102,7 +109,6 @@ def getDatasetSimulationPCA3D(simNr, spike_length=79, align_to_peak=2, normalize
     :param spike_length: integer - length of spikes in number of samples
     :param align_to_peak: integer - aligns each spike to it's maximum value
     :param normalize_spike: boolean - applies z-scoring normalization to each spike
-
     :returns spikes_pca_3d: matrix - the 3-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
@@ -118,13 +124,9 @@ def getDatasetSimulation(simNr, spike_length, align_to_peak, normalize_spike):
     """
     Load the dataset
     :param simNr: integer - the number of the wanted simulation
-
     :returns spikes: matrix - the 79-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
-    simulation_dictionary = loadmat('./datasets/simulation_'+str(simNr)+'.mat')
-
-def getDatasetSimulation(simNr):
     simulation_dictionary = loadmat('./datasets/simulation_' + str(simNr) + '.mat')
     ground_truth_dictionary = loadmat('./datasets/ground_truth.mat')
 
@@ -142,42 +144,15 @@ def getDatasetSim79():
     """
     Load the dataset Simulation79
     :param None
-
     :returns spikes_pca_2d: matrix - the points that have been taken through 2D PCA
     :returns labels: vector - the vector of labels for simulation79
     """
-    # plot scatter of pca in 2d
-    plt.scatter(spikes_pca_2d[:, 0], spikes_pca_2d[:, 1], c=labels, marker='x', cmap='brg')
-    my_scatter.plotFunction("Plotul lui peste prajit", spikes_pca_2d, labels=labels)
-    # plt.savefig('./figures/Sim' + str(simNr) + '_ground_truth')
-    # plt.show()
-
-    # plot scatter of pca in 3d
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(spikes_pca_3d[:, 0], spikes_pca_3d[:, 1], spikes_pca_3d[:, 2], c=labels, marker='.', cmap='brg')
-    # plt.show()
-
-    # 3D interactive Plot On ground truth
-    fig = px.scatter_3d(spikes_pca_3d, x=spikes_pca_3d[:, 0], y=spikes_pca_3d[:, 1], z=spikes_pca_3d[:, 2],
-                        color=labels)
-    # fig.show()
-
-    print("Number of clusters: " + str(labels.max() + 1))
-    return spikes_pca_2d, labels
 
     # FOR SIMULATION 79
     # dataset.mat in key 'data' == simulation_79.mat in key 'data'
     # dataset.mat in key 'ground_truth' == ground_truth.mat in key 'spike_classes'[78]
     # dataset.mat in key 'start_spikes' == ground_truth.mat in key 'spike_first_sample'[78]
     # dataset.mat in key 'spike_wf' == ground_truth.mat in key 'su_waveforms'[78] (higher precision in GT)
-
-# FOR SIMULATION 79
-# dataset.mat in key 'data' == simulation_97.mat in key 'data'
-# dataset.mat in key 'ground_truth' == ground_truth.mat in key 'spike_classes'[78]
-# dataset.mat in key 'start_spikes' == ground_truth.mat in key 'spike_first_sample'[78]
-# dataset.mat in key 'spike_wf' == ground_truth.mat in key 'su_waveforms'[78] (higher precision in GT)
-def getDatasetSim79():
     dictionary = loadmat('./datasets/dataset.mat')
 
     # dataset file is a dictionary (the data has been extracted from ground_truth.mat and simulation_79.mat), containing following keys:
@@ -208,9 +183,8 @@ def getDatasetSim79():
 
     return spikes_pca_2d, labels
 
-def getDatasetSimulationPlots(spikes, spike_pca_2d, spikes_pca_3d, labels):
 
-def getDatasetSim97Plots(spikes, spike_pca_2d, spikes_pca_3d, labels):
+def getDatasetSimulationPlots(spikes, spike_pca_2d, spikes_pca_3d, labels):
     # plot some spikes
     ind = np.random.randint(0, len(labels), [20])
     plt.plot(np.transpose(spikes[ind, :]))
