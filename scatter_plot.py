@@ -127,3 +127,15 @@ def griddedPlotFunction(title, X,  pn, labels=None, plot=True, marker='o'):
             # ax.set_yticks(np.arange(0, pn, 1))
             ax.scatter(X[:, 0], X[:, 1], X[:, 2], marker=marker, c=label_color, s=25, )
             # plt.grid(True)
+
+
+def plot_spikes(spikes, title=""):
+    """"
+    Plots spikes from a simulation
+    :param spikes: matrix - the list of spikes in a simulation
+    :param title: string - the title of the plot
+    """
+    for i in range(0, len(spikes), 300):
+        plt.plot(np.arange(79), spikes[i])
+    plt.title(title)
+    plt.show()
