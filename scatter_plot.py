@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from sklearn import preprocessing
 import math
+from sklearn import preprocessing
 
 LABEL_COLOR_MAP = {-1: 'gray',
                    0: 'white',
@@ -43,8 +43,7 @@ LABEL_COLOR_MAP = {-1: 'gray',
                    }
 
 
-
-def plotFunction(title, X, labels=None, plot=True, marker='o'):
+def plot(title, X, labels=None, plot=True, marker='o'):
     """
     Plots the dataset with or without labels
     :param title: string - the title of the plot
@@ -52,7 +51,6 @@ def plotFunction(title, X, labels=None, plot=True, marker='o'):
     :param labels: vector - optional, contains the labels of the points/X (has the same length as X)
     :param plot: boolean - optional, whether the plot function should be called or not (for ease of use)
     :param marker: character - optional, the marker of the plot
-
     :returns None
     """
     if plot:
@@ -65,8 +63,7 @@ def plotFunction(title, X, labels=None, plot=True, marker='o'):
             plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
 
 
-
-def plotCenters(title, X, clusterCenters, pn, plot=True, marker='o'):
+def plot_centers(title, X, clusterCenters, pn, plot=True, marker='o'):
     """
     Plots the dataset with the cluster centers highlighted in red (the others white)
     :param title: string - the title of the plot
@@ -75,16 +72,16 @@ def plotCenters(title, X, clusterCenters, pn, plot=True, marker='o'):
     :param pn: integer - the number of partitions on columns and rows
     :param plot: boolean - optional, whether the plot function should be called or not (for ease of use)
     :param marker: character - optional, the marker of the plot
-
     :returns None
     """
+
     if plot:
         fig = plt.figure()
         plt.title(title)
         labels = np.zeros(len(X))
         for i in range(len(X)):
             for c in range(len(clusterCenters)):
-                if math.floor(X[i, 0]) == clusterCenters[c][0] and math.floor(X[i,1]) == clusterCenters[c][1]:
+                if math.floor(X[i, 0]) == clusterCenters[c][0] and math.floor(X[i, 1]) == clusterCenters[c][1]:
                     labels[i] = 1
         label_color = [LABEL_COLOR_MAP[l] for l in labels]
         ax = fig.gca()
@@ -94,7 +91,7 @@ def plotCenters(title, X, clusterCenters, pn, plot=True, marker='o'):
         plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
 
 
-def griddedPlotFunction(title, X,  pn, labels=None, plot=True, marker='o'):
+def plot_grid(title, X, pn, labels=None, plot=True, marker='o'):
     """
     Plots the dataset with grid
     :param title: string - the title of the plot
@@ -103,9 +100,9 @@ def griddedPlotFunction(title, X,  pn, labels=None, plot=True, marker='o'):
     :param labels: vector - optional, contains the labels of the points/X (has the same length as X)
     :param plot: boolean - optional, whether the plot function should be called or not (for ease of use)
     :param marker: character - optional, the marker of the plot
-
     :returns None
     """
+    X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
     if plot:
         nrDim = len(X[0])
         label_color = [LABEL_COLOR_MAP[l] for l in labels]
@@ -127,3 +124,15 @@ def griddedPlotFunction(title, X,  pn, labels=None, plot=True, marker='o'):
             # ax.set_yticks(np.arange(0, pn, 1))
             ax.scatter(X[:, 0], X[:, 1], X[:, 2], marker=marker, c=label_color, s=25, )
             # plt.grid(True)
+
+
+def plot_spikes(spikes, title=""):
+    """"
+    Plots spikes from a simulation
+    :param spikes: matrix - the list of spikes in a simulation
+    :param title: string - the title of the plot
+    """
+    for i in range(0, len(spikes), 300):
+        plt.plot(np.arange(79), spikes[i])
+    plt.title(title)
+    plt.show()
