@@ -1,19 +1,17 @@
-import sys
-
-import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
+import matplotlib.pyplot as plt
 from sklearn import metrics
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import KMeans
-
+import sys
 sys.setrecursionlimit(100000)
 
 import warnings
-
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import SBM
+import SBM_functions as fs
 import datasets as ds
 import scatter_plot
 
@@ -27,7 +25,6 @@ dataName = ["S1", "S2", "U", "UO", "Sim97"]
 algorithmNames = ["K-MEANS", "K-MEANS", "K-MEANS", "K-MEANS", "DBSCAN", "SBM", ]
 settings = ["ARI", "AMI", "ARI", "AMI", "NNP", "NNP"]
 table = [algName]
-
 
 # datasetNumber = 1 => S1
 # datasetNumber = 2 => S2
@@ -45,7 +42,7 @@ def benchmark_dataset(datasetNumber, plot=False):
     print("DATASET: " + dataName[datasetNumber])
     datasetName = dataName[datasetNumber]
     if datasetNumber < 3:
-        X = np.genfromtxt("./datasets/" + files[datasetNumber], delimiter=",")
+        X = np.genfromtxt("./datasets/"+files[datasetNumber], delimiter=",")
         X, y = X[:, [0, 1]], X[:, 2]
     elif datasetNumber == 3:
         X, y = ds.getGenData()
@@ -60,9 +57,9 @@ def benchmark_dataset(datasetNumber, plot=False):
     kmeans = KMeans(n_clusters=kmeansValues[datasetNumber]).fit(X)
     labels = kmeans.labels_
     scatter_plot.plot("K-MEANS on" + datasetName, X, labels, plot, marker='X')
-    scatter_plot.plot("K-MEANS on" + datasetName, X, labels, plot, marker='X')
     plt.show()
     calculate_accuracy(datasetName, 0, labels, y, print=True)
+
 
     if datasetNumber == 1:
         min_samples = np.log(len(X)) * 10
@@ -95,6 +92,21 @@ def benchmark_dataset(datasetNumber, plot=False):
     # print(results)
 
 
+        # results = []
+        # results.append(metrics.adjusted_rand_score(y, labels))
+        # results.append(metrics.adjusted_mutual_info_score(labels, y))
+        #
+        # # start of the NO-NOISE-POINTS (NNP) setting
+        # # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
+        # adj = labels > 0
+        # yNN = y[adj]
+        # labelsNN = labels[adj]
+        #
+        # results.append(metrics.adjusted_rand_score(yNN, labelsNN))
+        # results.append(metrics.adjusted_mutual_info_score(labelsNN, yNN))
+        #
+        # print(results)
+
 def print_accuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI):
     """
     Print the accuracies of the algorithm on the dataset
@@ -115,8 +127,7 @@ def print_accuracy(datasetName, algorithmNumber, allARI, allAMI, nnpARI, nnpAMI)
     print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:" + str(nnpARI))
     print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:" + str(nnpAMI))
 
-
-def calculate_accuracy(datasetName, algorithmNumber, labels, y, print=False):
+def calculate_accuracy(datasetName, algorithmNumber, labels, y, print = False):
     """
     Calculate the accuracies of the algorithm on the dataset
     :param datasetName: string - the name of the dataset for ease of view
@@ -129,6 +140,7 @@ def calculate_accuracy(datasetName, algorithmNumber, labels, y, print=False):
     """
     allARI = metrics.adjusted_rand_score(y, labels)
     allAMI = metrics.adjusted_mutual_info_score(labels, y)
+
 
     # start of the NO-NOISE-POINTS (NNP) setting
     # we calculate only the accuracy of points that have been clustered(labeled as non-noise)
@@ -160,10 +172,10 @@ def simulations_average_accuracy():
     averageSBMv2 = np.array([0, 0, 0, 0])
     averageSBMv1 = np.array([0, 0, 0, 0])
     header = "Dataset Number, KMEANS-ALL-ARI, KMEANS-ALL-AMI, KMEANS-NNP-ARI, KMEANS-NNP-AMI, DBSCAN-ALL-ARI, DBSCAN-ALL-AMI, DBSCAN-NNP-ARI, DBSCAN-NNP-AMI, SBM-V2-ALL-ARI, SBM-V2-ALL-AMI, SBM-V2-NNP-ARI, SBM-V2-NNP-AMI, SBM-V1-ALL-ARI, SBM-V1-ALL-AMI, SBM-V1-NNP-ARI, SBM-V1-NNP-AMI"
-    allAccuracies = np.empty((17,))
+    allAccuracies = np.empty((17, ))
     for i in range(1, 96):
         print(i)
-        if i == 24 or i == 25 or i == 44:
+        if i==24 or i==25 or i==44:
             continue
         X, y = ds.get_dataset_simulation_pca_2d(simNr=i)
 
@@ -265,3 +277,4 @@ def simulation_accuracy(simNr, plot=False):
 # for i in range(23, 30):
 #     simulation_accuracy(i, True)
 simulation_accuracy(29, True)
+
