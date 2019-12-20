@@ -167,7 +167,7 @@ def simulations_average_accuracy():
             continue
         X, y = ds.get_dataset_simulation_pca_2d(simNr=i)
 
-        kmeans = KMeans(n_clusters=np.amax(y)).fit(X)
+        kmeans = KMeans(n_clusters=np.amax(y) + 1).fit(X)
         labels = kmeans.labels_
         accuracy_kmeans = calculate_accuracy('', 0, labels, y)
         averageKMeans = np.add(averageKMeans, accuracy_kmeans)
@@ -216,7 +216,7 @@ def simulation_accuracy(simNr, plot=False):
         return
     X, y = ds.get_dataset_simulation_pca_2d(simNr=simNr, align_to_peak=2)
 
-    kmeans = KMeans(n_clusters=np.amax(y)).fit(X)
+    kmeans = KMeans(n_clusters=np.amax(y) + 1).fit(X)
     kmeans_labels = kmeans.labels_
     accuracy_kmeans = calculate_accuracy('', 0, kmeans_labels, y)
     resultKMeans = np.add(resultKMeans, accuracy_kmeans)
@@ -257,11 +257,11 @@ def simulation_accuracy(simNr, plot=False):
                 fig.show()
             else:
                 scatter_plot.plot(plot_names[index] + " on sim" + str(simNr), X, plot_data[index], plot,
-                                          marker='o')
+                                  marker='o')
                 # plt.savefig('./figures/sim' + str(simNr) + '_' + plot_names[index] + "_fsde6")
                 plt.show()
 
 
 # for i in range(23, 30):
 #     simulation_accuracy(i, True)
-simulation_accuracy(26, True)
+simulation_accuracy(29, True)
