@@ -12,18 +12,32 @@ import datasets as ds
 def main():
     #data = ds.getTINSData()
     #data, y = ds.getGenData()
+<<<<<<< HEAD
     data, y = ds.get_dataset_simulation_pca_2d(simNr=79, align_to_peak=0)
+=======
+    data, y = ds.getDatasetSimulation(simNr=29)
+    data, y = ds.getDatasetSimulationPCA2D(simNr=79, align_to_peak=0)
+>>>>>>> gui
 
     pn = 25
     start = time.time()
-    labels = SBM.parallel(data, pn, ccThreshold=5, version=2)
+    labels = SBM.sequential(data, pn, ccThreshold=5, version=2)
     end = time.time()
     print('SBM: ' + str(end - start))
 
+<<<<<<< HEAD
     scatter_plot.plot_grid('SBM' + str(len(data)), data, pn, labels, marker='o')
+=======
+    scatter.griddedPlotFunction('SBM' + str(len(data)), data, labels, pn, marker='o')
+    plt.show()
+    # plt.savefig('./figures/SBM_sim79')
+    scatter_plot.griddedPlotFunction('SBM' + str(len(data)), data, pn, labels, marker='o')
+    # plt.show()
+>>>>>>> gui
     plt.savefig('./figures/SBMv2_sim79')
 
     scatter_plot.plot_grid('SBM' + str(len(data)), data, pn, y, marker='o')
+    # plt.show()
     plt.savefig('./figures/ground_truth')
 
     unique, counts = np.unique(labels, return_counts=True)
