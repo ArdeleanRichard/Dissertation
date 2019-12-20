@@ -14,13 +14,14 @@ import SBM_functions as fs
 import datasets as ds
 import scatter_plot
 
+
 algName = ["K-MEANS", "DBSCAN", "SBM"]
 files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
 kmeansValues = [15, 15, 8, 6, 20]
 epsValues = [27000, 45000, 18000, 0.5, 0.1]
 pn = 25
 
-dataName = ["S1", "S2", "U", "UO", "Sim97"]
+dataName = ["S1", "S2", "U", "UO", "1"]
 algorithmNames = ["K-MEANS", "K-MEANS", "K-MEANS", "K-MEANS", "DBSCAN", "SBM", ]
 settings = ["ARI", "AMI", "ARI", "AMI", "NNP", "NNP"]
 table = [algName]
@@ -46,7 +47,8 @@ def benchmark_dataset(datasetNumber, plot=False):
     elif datasetNumber == 3:
         X, y = ds.getGenData()
     else:
-        X, y = ds.getDatasetSim79()
+        # X, y = ds.getDatasetSim79()
+        X, y = ds.getDatasetSimulation(simNr=10)
 
     # S2 has label problems
     if datasetNumber == 1:
@@ -55,9 +57,13 @@ def benchmark_dataset(datasetNumber, plot=False):
 
     kmeans = KMeans(n_clusters=kmeansValues[datasetNumber]).fit(X)
     labels = kmeans.labels_
-    scatter_plot.plotFunction("K-MEANS on"+datasetName, X, labels, plot, marker='X')
+
+    # scatter.plotFunction("K-MEANS on "+datasetName, X, labels, plot, marker='X')
+    # plt.savefig('./figures/Sim' + str(datasetName) + '_K-MEANS')
     plt.show()
     calculateAccuracy(datasetName, 0, labels, y, print=True)
+    calculateAccuracy(datasetName, 0, labels, y)
+    calculateAccuracyUnlabeledData(datasetName, 0, X, labels)
 
 
     if datasetNumber == 1:
@@ -66,15 +72,26 @@ def benchmark_dataset(datasetNumber, plot=False):
         min_samples = np.log(len(X))
     db = DBSCAN(eps=epsValues[datasetNumber], min_samples=min_samples).fit(X)
     labels = db.labels_
-    scatter_plot.plotFunction("DBSCAN on"+datasetName, X, labels, plot, marker='X')
+
+    # scatter.plotFunction("DBSCAN on "+datasetName, X, labels, plot, marker='X')
+    # plt.savefig('./figures/Sim' + str(datasetName) + '_DBSCAN')
     plt.show()
+    calculateAccuracy(datasetName, 1, labels, y)
+    calculateAccuracyUnlabeledData(datasetName, 1, X, labels)
     calculateAccuracy(datasetName, 1, labels, y, print=True)
 
+
+    labels = SBM.multiThreaded(X, pn)
+    # scatter.plotFunction("SBM on "+datasetName, X, labels, plot, marker='X')
+    # plt.savefig('./figures/Sim' + str(datasetName) + '_SBM')
     labels = SBM.multiThreaded(X, pn=25, version=2)
     scatter_plot.griddedPlotFunction("SBM on"+datasetName, X, labels, pn,  plot, marker='X')
     plt.show()
     calculateAccuracy(datasetName, 2, labels, y, print=True)
 
+        # calculare the shilouette for SBM
+    calculateAccuracyUnlabeledData(datasetName, 2, X, labels)
+    calculateAccuracyUnlabeledData(datasetName, 2, X, y)
 
 
         # results = []
@@ -134,6 +151,24 @@ def calculateAccuracy(datasetName, algorithmNumber, labels, y, print = False):
     yNN = y[adj]
     labelsNN = labels[adj]
 
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "ARI:"
+          + str(metrics.adjusted_rand_score(yNN, labelsNN)))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "AMI:"
+          + str(metrics.adjusted_mutual_info_score(labelsNN, yNN)))
+
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "Homogenity:"
+          + str(metrics.homogeneity_score(labelsNN, yNN)))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "Completeness:"
+          + str(metrics.completeness_score(labelsNN, yNN)))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "V :"
+          + str(metrics.v_measure_score(labelsNN, yNN)))
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "Fowlkes :"
+          + str(metrics.fowlkes_mallows_score(labelsNN, yNN)))
+
+
+def calculateAccuracyUnlabeledData(datasetName, algorithmNumber, X, labels):
+    print(datasetName + " - " + algName[algorithmNumber] + " - " + "Silhouette :"
+          + str(metrics.silhouette_score(X, labels)))
     nnpARI = metrics.adjusted_rand_score(yNN, labelsNN)
     nnpAMI = metrics.adjusted_mutual_info_score(labelsNN, yNN)
 

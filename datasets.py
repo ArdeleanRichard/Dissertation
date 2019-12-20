@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.express as px
+import scatter as my_scatter
 
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
@@ -25,17 +27,6 @@ def spike_extract(signal, spike_start, spike_length):
 
 
 def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize_spikes, spike_label):
-    """
-    Extract the spikes from the signal knowing where the spikes start and their length
-    :param signal: matrix - height for each point of the spikes
-    :param spike_start: vector - each entry represents the first point of a spike
-    :param spike_length: integer - constant, 79
-    :param align_to_peak: boolean - whether to align the spikes
-    :param normalize_spikes: boolean - whether to normalize the spikes
-    :param spike_label: vector - the ground_truth of each spike
-
-    :returns spikes: matrix - each row contains 79 points of one spike
-    """
     spikes = spike_extract(signal, spike_start, spike_length)
 
     # align to max
@@ -132,10 +123,13 @@ def getDatasetSimulation(simNr, spike_length, align_to_peak, normalize_spike):
     :returns labels: vector - the vector of labels for each point
     """
     simulation_dictionary = loadmat('./datasets/simulation_'+str(simNr)+'.mat')
+
+def getDatasetSimulation(simNr):
+    simulation_dictionary = loadmat('./datasets/simulation_' + str(simNr) + '.mat')
     ground_truth_dictionary = loadmat('./datasets/ground_truth.mat')
 
-    labels = ground_truth_dictionary['spike_classes'][0][simNr-1][0, :]
-    start = ground_truth_dictionary['spike_first_sample'][0][simNr-1][0, :]
+    labels = ground_truth_dictionary['spike_classes'][0][simNr - 1][0, :]
+    start = ground_truth_dictionary['spike_first_sample'][0][simNr - 1][0, :]
     data = simulation_dictionary['data'][0, :]
 
     # each spike will contain the first 79 points from the data after it has started
@@ -152,12 +146,38 @@ def getDatasetSim79():
     :returns spikes_pca_2d: matrix - the points that have been taken through 2D PCA
     :returns labels: vector - the vector of labels for simulation79
     """
+    # plot scatter of pca in 2d
+    plt.scatter(spikes_pca_2d[:, 0], spikes_pca_2d[:, 1], c=labels, marker='x', cmap='brg')
+    my_scatter.plotFunction("Plotul lui peste prajit", spikes_pca_2d, labels=labels)
+    # plt.savefig('./figures/Sim' + str(simNr) + '_ground_truth')
+    # plt.show()
+
+    # plot scatter of pca in 3d
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(spikes_pca_3d[:, 0], spikes_pca_3d[:, 1], spikes_pca_3d[:, 2], c=labels, marker='.', cmap='brg')
+    # plt.show()
+
+    # 3D interactive Plot On ground truth
+    fig = px.scatter_3d(spikes_pca_3d, x=spikes_pca_3d[:, 0], y=spikes_pca_3d[:, 1], z=spikes_pca_3d[:, 2],
+                        color=labels)
+    # fig.show()
+
+    print("Number of clusters: " + str(labels.max() + 1))
+    return spikes_pca_2d, labels
 
     # FOR SIMULATION 79
     # dataset.mat in key 'data' == simulation_79.mat in key 'data'
     # dataset.mat in key 'ground_truth' == ground_truth.mat in key 'spike_classes'[78]
     # dataset.mat in key 'start_spikes' == ground_truth.mat in key 'spike_first_sample'[78]
     # dataset.mat in key 'spike_wf' == ground_truth.mat in key 'su_waveforms'[78] (higher precision in GT)
+
+# FOR SIMULATION 79
+# dataset.mat in key 'data' == simulation_97.mat in key 'data'
+# dataset.mat in key 'ground_truth' == ground_truth.mat in key 'spike_classes'[78]
+# dataset.mat in key 'start_spikes' == ground_truth.mat in key 'spike_first_sample'[78]
+# dataset.mat in key 'spike_wf' == ground_truth.mat in key 'su_waveforms'[78] (higher precision in GT)
+def getDatasetSim79():
     dictionary = loadmat('./datasets/dataset.mat')
 
     # dataset file is a dictionary (the data has been extracted from ground_truth.mat and simulation_79.mat), containing following keys:
@@ -189,6 +209,8 @@ def getDatasetSim79():
     return spikes_pca_2d, labels
 
 def getDatasetSimulationPlots(spikes, spike_pca_2d, spikes_pca_3d, labels):
+
+def getDatasetSim97Plots(spikes, spike_pca_2d, spikes_pca_3d, labels):
     # plot some spikes
     ind = np.random.randint(0, len(labels), [20])
     plt.plot(np.transpose(spikes[ind, :]))
@@ -243,10 +265,11 @@ def getTINSDataChance():
 
     X = np.hstack((c1, c2, c3))
     chanceKeep = 1
-    keep = np.random.choice(2, len(X), p=[1-chanceKeep, chanceKeep])
+    keep = np.random.choice(2, len(X), p=[1 - chanceKeep, chanceKeep])
     keep = keep == 1
     X = X[keep]
     return X
+
 
 def getTINSData():
     # Importing the dataset
@@ -313,15 +336,18 @@ def getGenData(plotFig=False):
     y = np.hstack((c1Labels, c2Labels, c3Labels, c4Labels, c5Labels, c6Labels))
     return X, y
 
+
 def getDatasetS1():
     X = np.genfromtxt("./datasets/s1_labeled.csv", delimiter=",")
     X, y = X[:, [0, 1]], X[:, 2]
     return X, y
 
+
 def getDatasetS2():
     X = np.genfromtxt("./datasets/s2_labeled.csv", delimiter=",")
     X, y = X[:, [0, 1]], X[:, 2]
     return X, y
+
 
 def getDatasetU():
     X = np.genfromtxt("./datasets/unbalance.csv", delimiter=",")

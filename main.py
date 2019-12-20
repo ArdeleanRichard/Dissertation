@@ -11,6 +11,7 @@ import datasets as ds
 def main():
     #data = ds.getTINSData()
     #data, y = ds.getGenData()
+    data, y = ds.getDatasetSimulation(simNr=29)
     data, y = ds.getDatasetSimulationPCA2D(simNr=79, align_to_peak=0)
 
     pn = 25
@@ -19,6 +20,9 @@ def main():
     end = time.time()
     print('SBM: ' + str(end - start))
 
+    scatter.griddedPlotFunction('SBM' + str(len(data)), data, labels, pn, marker='o')
+    plt.show()
+    # plt.savefig('./figures/SBM_sim79')
     scatter_plot.griddedPlotFunction('SBM' + str(len(data)), data, pn, labels, marker='o')
     # plt.show()
     plt.savefig('./figures/SBMv2_sim79')
