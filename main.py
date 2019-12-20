@@ -8,6 +8,7 @@ import SBM_functions as fs
 import scatter_plot
 import datasets as ds
 
+
 def main():
     #data = ds.getTINSData()
     #data, y = ds.getGenData()
