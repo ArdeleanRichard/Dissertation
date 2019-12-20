@@ -57,7 +57,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
 
         # re-extract spikes with new alignment
         spikes = spike_extract(signal, spike_start, spike_length)
-    if align_to_peak == 2:
+    elif align_to_peak == 2:
         # peak_ind is a vector that contains the index (0->78 / 79 points for each spike) of the maximum of each spike
         peak_ind = np.argmax(spikes, axis=1)
         # avg_peak is the avg of all the peaks
@@ -76,7 +76,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     return spikes
 
 
-def getDatasetSimulationPCA2D(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
+def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
     """
     Load the dataset after PCA on 2 dimensions
     :param simNr: integer - the number of the wanted simulation
@@ -87,7 +87,7 @@ def getDatasetSimulationPCA2D(simNr, spike_length=79, align_to_peak=2, normalize
     :returns spikes_pca_3d: matrix - the 2-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
-    spikes, labels = getDatasetSimulation(simNr, spike_length, align_to_peak, normalize_spike)
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
 
     # apply pca
     pca_2d = PCA(n_components=2)
@@ -104,7 +104,7 @@ def getDatasetSimulationPCA2D(simNr, spike_length=79, align_to_peak=2, normalize
 # spike extraction options
 # original sampling rate 96KHz, with each waveform at 316 points(dimensions/features)
 # downsampled to 24KHz, (regula-3-simpla) => 79 points (de aici vine 79 de mai jos)
-def getDatasetSimulationPCA3D(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
+def get_dataset_simulation_pca_3d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
     """
     Load the dataset after PCA on 3 dimensions
     :param simNr: integer - the number of the wanted simulation
@@ -115,7 +115,7 @@ def getDatasetSimulationPCA3D(simNr, spike_length=79, align_to_peak=2, normalize
     :returns spikes_pca_3d: matrix - the 3-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
-    spikes, labels = getDatasetSimulation(simNr, spike_length, align_to_peak, normalize_spike)
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
     # apply pca
     pca_3d = PCA(n_components=3)
     spikes_pca_3d = pca_3d.fit_transform(spikes)
@@ -123,7 +123,7 @@ def getDatasetSimulationPCA3D(simNr, spike_length=79, align_to_peak=2, normalize
     return spikes_pca_3d, labels
 
 
-def getDatasetSimulation(simNr, spike_length, align_to_peak, normalize_spike):
+def get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike):
     """
     Load the dataset
     :param simNr: integer - the number of the wanted simulation
@@ -214,7 +214,7 @@ def plotSimulation_PCA2D(spike_pca_2d, labels):
 
 def plotSimulation_PCA2D_grid(spike_pca_2d, labels):
     # plot scatter of pca
-    scatter_plot.griddedPlotFunction('Sim97Gridded', spike_pca_2d, labels + 1, 25, marker='x')
+    scatter_plot.plot_grid('Sim97Gridded', spike_pca_2d, labels + 1, 25, marker='x')
     plt.show()
 
 
