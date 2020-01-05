@@ -66,6 +66,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
         return normalized_spikes
     return spikes
 
+
 def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, normalize_spike=False):
     """
     Load the dataset with 2 chosen features (amplitude and distance between min peaks)
@@ -79,9 +80,6 @@ def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, nor
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
     spikes_features = np.empty((len(spikes), 2))
-    # plt.figure()
-    # plt.plot(spikes[5231])
-    # plt.savefig("./figures/FirstSpike")
 
     for i in range(len(spikes)):
         # print(i)
@@ -94,18 +92,30 @@ def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, nor
         amplitude_position = max_peaks[amplitude_information][0]
         spike_amplitude = max_peaks[amplitude_information][1]
 
+
         spike_distance = 0
 
-        for j in range(0, len(min_peaks)):
-            if j+1 >= len(min_peaks):
-                spike_distance = 79 - min_peaks[j][0]
-                break
-            else:
-                if min_peaks[j][0] < amplitude_position < min_peaks[j + 1][0]:
-                    spike_distance = min_peaks[j + 1][0] - min_peaks[j][0]
+        if amplitude_position < min_peaks[0][0]:
+            spike_distance = min_peaks[0][0] - 0
+        else:
+            for j in range(0, len(min_peaks)):
+                if j+1 >= len(min_peaks):
+                    spike_distance = 79 - min_peaks[j][0]
+                    # plt.figure()
+                    # plt.plot(spikes[i])
+                    # plt.savefig(f"./figures/FirstSpike{i}")
                     break
+                else:
+                    if min_peaks[j][0] < amplitude_position < min_peaks[j + 1][0]:
+                        spike_distance = min_peaks[j + 1][0] - min_peaks[j][0]
+                        break
 
         spikes_features[i] = [spike_amplitude, spike_distance]
+
+        if spike_amplitude < 0.5:
+            plt.figure()
+            plt.plot(spikes[i])
+            plt.savefig(f"./figures/Noise{i},{spike_distance}")
 
     return spikes_features, labels
 
