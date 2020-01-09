@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
+from peakdetect import peakdetect
 
 
 def spike_extract(signal, spike_start, spike_length):
@@ -66,6 +67,58 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     return spikes
 
 
+def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, normalize_spike=False):
+    """
+    Load the dataset with 2 chosen features (amplitude and distance between min peaks)
+    :param simNr: integer - the number of the wanted simulation
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
+
+    :returns spikes_features: matrix - the 2-dimensional points resulted
+    :returns labels: vector - the vector of labels for each point
+    """
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+    spikes_features = np.empty((len(spikes), 2))
+
+    for i in range(len(spikes)):
+        # print(i)
+        max_peaks, min_peaks = peakdetect(spikes[i], range(spike_length), lookahead=1)
+        # print(max_peaks)
+        # print(min_peaks)
+        max_peaks = np.array(max_peaks)
+
+        amplitude_information = np.argmax(max_peaks[:, 1])
+        amplitude_position = max_peaks[amplitude_information][0]
+        spike_amplitude = max_peaks[amplitude_information][1]
+
+
+        spike_distance = 0
+
+        if amplitude_position < min_peaks[0][0]:
+            spike_distance = min_peaks[0][0] - 0
+        else:
+            for j in range(0, len(min_peaks)):
+                if j+1 >= len(min_peaks):
+                    spike_distance = 79 - min_peaks[j][0]
+                    # plt.figure()
+                    # plt.plot(spikes[i])
+                    # plt.savefig(f"./figures/FirstSpike{i}")
+                    break
+                else:
+                    if min_peaks[j][0] < amplitude_position < min_peaks[j + 1][0]:
+                        spike_distance = min_peaks[j + 1][0] - min_peaks[j][0]
+                        break
+
+        spikes_features[i] = [spike_amplitude, spike_distance]
+
+        if spike_amplitude < 0.5:
+            plt.figure()
+            plt.plot(spikes[i])
+            plt.savefig(f"./figures/Noise{i},{spike_distance}")
+
+    return spikes_features, labels
+
 def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
     """
     Load the dataset after PCA on 2 dimensions
@@ -74,7 +127,7 @@ def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, norma
     :param align_to_peak: integer - aligns each spike to it's maximum value
     :param normalize_spike: boolean - applies z-scoring normalization to each spike
 
-    :returns spikes_pca_3d: matrix - the 2-dimensional points resulted
+    :returns spikes_pca_2d: matrix - the 2-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
@@ -203,7 +256,7 @@ def plotSimulation_PCA2D(spike_pca_2d, labels):
 
 def plotSimulation_PCA2D_grid(spike_pca_2d, labels):
     # plot scatter of pca
-    scatter_plot.plot_grid('Sim97Gridded', spike_pca_2d, labels + 1, 25, marker='x')
+    scatter_plot.plot_grid('Sim79Gridded', spike_pca_2d, labels + 1, 25, marker='x')
     plt.show()
 
 

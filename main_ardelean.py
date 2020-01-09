@@ -8,11 +8,12 @@ import SBM_functions as fs
 import scatter_plot
 import datasets as ds
 
-
 def main():
     #data = ds.getTINSData()
     #data, y = ds.getGenData()
-    data, y = ds.get_dataset_simulation_pca_2d(simNr=79, align_to_peak=0)
+    data, y = ds.get_dataset_simulation_features(simNr=45, align_to_peak=2)
+
+    print(data)
 
     pn = 25
     start = time.time()
@@ -23,7 +24,7 @@ def main():
     scatter_plot.plot_grid('SBM' + str(len(data)), data, pn, labels, marker='o')
     plt.savefig('./figures/SBMv2_sim79')
 
-    scatter_plot.plot_grid('SBM' + str(len(data)), data, pn, y, marker='o')
+    scatter_plot.plot('GT' + str(len(data)), data, y, marker='o')
     plt.savefig('./figures/ground_truth')
 
     unique, counts = np.unique(labels, return_counts=True)
