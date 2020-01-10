@@ -1,6 +1,5 @@
 import numpy as np
-from scipy.ndimage import gaussian_filter, gaussian_filter1d, laplace, gaussian_laplace
-from scipy.signal import savgol_filter
+from scipy.ndimage import gaussian_filter1d
 
 
 def compute_fdmethod(spikes):
@@ -12,10 +11,10 @@ def compute_fdmethod(spikes):
 
     for x in spikes:
         first_derivative = compute_derivative5stencil(x)
-        f_min_pos = compute_min_pos(first_derivative)
-        f_max_pos = compute_max_pos(first_derivative)
+        f_min = min(first_derivative)
+        f_max = max(first_derivative)
         result = []
-        result.append(x[f_max_pos] - x[f_min_pos])
+        result.append(f_max - f_min)
         result.append(max(x))
         final_result.append(result)
 
@@ -154,15 +153,19 @@ def compute_derivative5stencil(function):
     :param function: vector of values representing the function
     """
     first_derivative = []
-
+    i = 2
+    x = (-function[i + 2] + 8 * function[i + 1] - 8 * function[i - 1] + function[i - 2]) / 12
+    first_derivative.append(x)
+    first_derivative.append(x)
     for i in range(2, len(function) - 3):
         x = (-function[i + 2] + 8 * function[i + 1] - 8 * function[i - 1] + function[i - 2]) / 12
         first_derivative.append(x)
 
-    first_derivative.append(0)
-    first_derivative.append(0)
-    first_derivative.append(0)
-    first_derivative.append(0)
-    first_derivative.append(0)
+    i = len(function) - 3
+    x = (-function[i + 2] + 8 * function[i + 1] - 8 * function[i - 1] + function[i - 2]) / 12
+
+    first_derivative.append(x)
+    first_derivative.append(x)
+    first_derivative.append(x)
 
     return first_derivative
