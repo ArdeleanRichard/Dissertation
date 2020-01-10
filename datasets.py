@@ -1,12 +1,14 @@
-import scatter_plot
-
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-import plotly.express as px
+from peakdetect import peakdetect
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
-from peakdetect import peakdetect
+
+import scatter_plot
+
+dataName = ["S1", "S2", "U", "UO", "Simulation"]
+files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
 
 
 def spike_extract(signal, spike_start, spike_length):
@@ -373,3 +375,45 @@ def getDatasetU():
     X = np.genfromtxt("./datasets/unbalance.csv", delimiter=",")
     X, y = X[:, [0, 1]], X[:, 2]
     return X, y
+
+
+def apply_feature_extraction_method(sim_nr, method_nr):
+    if method_nr == 0:
+        X, y = get_dataset_simulation_pca_2d(sim_nr, align_to_peak=2)
+    else:
+        # if method_nr == 1:
+        X, y = get_dataset_simulation_pca_3d(sim_nr, align_to_peak=2)
+    # else:
+
+    return X, y
+
+# datasetNumber = 1 => S1
+# datasetNumber = 2 => S2
+# datasetNumber = 3 => U
+# datasetNumber = 4 => UO
+# datasetNumber = 5 => Sim97
+def load_particular_dataset(datasetNumber):
+    """
+    Benchmarks K-Means, DBSCAN and SBM on one of 5 selected datasets
+    :param datasetNumber: integer - the number that represents one of the datasets (0-4)
+    :param plot: boolean - optional, whether the plot function should be called or not (for ease of use)
+
+    :returns None
+    """
+    print("DATASET: " + dataName[datasetNumber])
+    datasetName = dataName[datasetNumber]
+    simulation_number = 10
+    if datasetNumber < 3:
+        X = np.genfromtxt("./datasets/" + files[datasetNumber], delimiter=",")
+        X, y = X[:, [0, 1]], X[:, 2]
+    elif datasetNumber == 3:
+        X, y = getGenData()
+    else:
+        # X, y = ds.getDatasetSim79()
+        X, y = get_dataset_simulation_pca_2d(simNr=10)
+
+    # S2 has label problems
+    if datasetNumber == 1:
+        for k in range(len(X)):
+            y[k] = y[k] - 1
+

@@ -11,7 +11,7 @@ import datasets as ds
 def main():
     #data = ds.getTINSData()
     #data, y = ds.getGenData()
-    data, y = ds.get_dataset_simulation_features(simNr=45, align_to_peak=2)
+    data, y = ds.get_dataset_simulation_features(simNr=79, align_to_peak=2)
 
     print(data)
 
