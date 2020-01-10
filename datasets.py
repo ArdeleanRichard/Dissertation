@@ -4,6 +4,8 @@ import pandas as pd
 from peakdetect import peakdetect
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
+import derivatives as deriv
+import wavelets as wlt
 
 import scatter_plot
 
@@ -45,7 +47,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
             ##### shift start times to max
             # peak_ind contains the index of the peak of the label
             peak_ind = np.argmax(avg_spike)
-            #print(np.argmax(avg_spike))
+            # print(np.argmax(avg_spike))
             spike_start[ind] = spike_start[ind] + peak_ind - 20
 
         # re-extract spikes with new alignment
@@ -60,7 +62,6 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
         spike_start = spike_start.astype(int)
         # the spikes are re-extracted using the new spike_start
         spikes = spike_extract(signal, spike_start, spike_length)
-
 
     # normalize spikes using Z-score: (value - mean)/ standard deviation
     if normalize_spikes:
@@ -133,18 +134,42 @@ def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, norma
     :returns labels: vector - the vector of labels for each point
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
-
+    new_spikes = wlt.compute_haar(spikes)
     # apply pca
     pca_2d = PCA(n_components=2)
-    spikes_pca_2d = pca_2d.fit_transform(spikes)
-
-    #getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
+    spikes_pca_2d = pca_2d.fit_transform(new_spikes)
+    # getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
     # np.save('79_ground_truth', label)
     # np.save('79_x', spikes_reduced[:, 0])
     # np.save('79_y', spikes_reduced[:, 1])
 
     return spikes_pca_2d, labels
+
+
+def get_dataset_simulation_derivatives(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
+    """
+    Load the dataset after derivatives on 2 dimensions
+    :param simNr: integer - the number of the wanted simulation
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
+
+    :returns spikes_pca_3d: matrix - the 2-dimensional points resulted
+    :returns labels: vector - the vector of labels for each point
+    """
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+
+    result_spikes = deriv.compute_fdmethod(spikes)
+
+    # getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
+
+    # np.save('79_ground_truth', label)
+    # np.save('79_x', spikes_reduced[:, 0])
+    # np.save('79_y', spikes_reduced[:, 1])
+
+    return result_spikes, labels
+
 
 # spike extraction options
 # original sampling rate 96KHz, with each waveform at 316 points(dimensions/features)
@@ -166,6 +191,23 @@ def get_dataset_simulation_pca_3d(simNr, spike_length=79, align_to_peak=2, norma
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
     return spikes_pca_3d, labels
+
+def get_dataset_simulation_derivatives_3d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
+    """
+    Load the dataset after PCA on 3 dimensions
+    :param simNr: integer - the number of the wanted simulation
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
+
+    :returns spikes_pca_3d: matrix - the 3-dimensional points resulted
+    :returns labels: vector - the vector of labels for each point
+    """
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+
+    result_spikes = deriv.compute_fdmethod3d(spikes)
+
+    return result_spikes, labels
 
 
 def get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike):
@@ -231,6 +273,7 @@ def getDatasetSim79():
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
     return spikes_pca_2d, labels
+
 
 def getDatasetSim97Plots(spikes, spike_pca_2d, spikes_pca_3d, labels):
     # plot some spikes
