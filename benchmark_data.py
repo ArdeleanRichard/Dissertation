@@ -243,7 +243,7 @@ def simulation_accuracy(simNr, plot=False):
     if simNr == 24 or simNr == 25 or simNr == 44:
         print("This simulation has anomalies.")
         return
-    X, y = ds.get_dataset_simulation_derivatives_3d(simNr=simNr, align_to_peak=2)
+    X, y = ds.get_dataset_simulation_pca_2d(simNr=simNr, align_to_peak=2)
 
     kmeans = KMeans(n_clusters=np.amax(y) + 1).fit(X)
     kmeans_labels = kmeans.labels_
@@ -538,6 +538,6 @@ def benchmark_simulation(datasetNumber, simulation_number=79, plot=False, labele
 
 
 #for i in range(11, 20):
-#    benchmark_simulation(4, i, plot=True, labeled_data=True)
+#benchmark_simulation(4, 17, plot=True, labeled_data=True)
 
-simulation_accuracy(79, True)
+simulation_accuracy(14, True)

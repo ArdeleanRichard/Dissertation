@@ -7,6 +7,8 @@ import plotly.express as px
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
 import derivatives as deriv
+import wavelets as wlt
+
 
 def spike_extract(signal, spike_start, spike_length):
     """
@@ -77,11 +79,10 @@ def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, norma
     :returns labels: vector - the vector of labels for each point
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
-
+    new_spikes = wlt.compute_haar(spikes)
     # apply pca
     pca_2d = PCA(n_components=2)
-    spikes_pca_2d = pca_2d.fit_transform(spikes)
-
+    spikes_pca_2d = pca_2d.fit_transform(new_spikes)
     # getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
     # np.save('79_ground_truth', label)
