@@ -114,10 +114,10 @@ def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, nor
 
         spikes_features[i] = [spike_amplitude, spike_distance]
 
-        if spike_amplitude < 0.5:
-            plt.figure()
-            plt.plot(spikes[i])
-            plt.savefig(f"./figures/Noise{i},{spike_distance}")
+        # if spike_amplitude < 0.5:
+        #     plt.figure()
+        #     plt.plot(spikes[i])
+        #     plt.savefig(f"./figures/Noise{i},{spike_distance}")
 
     return spikes_features, labels
 
