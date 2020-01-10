@@ -23,7 +23,7 @@ perf_eval_unlabeled_data_results = ["Silhouette", "Calinski_Harabasz", "Davies_B
 def gui():
     # get data
     simulation_nr = 79
-    feature_extract_method = 0
+    feature_extract_method = 1
 
     X, y = apply_feature_extraction_method(simulation_nr, feature_extract_method)
     if feature_space_dimensions[feature_extract_method] == 2:
