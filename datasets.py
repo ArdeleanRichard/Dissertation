@@ -58,7 +58,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
         # avg_peak is the avg of all the peaks
         avg_peak = np.floor(np.mean(peak_ind))
         # spike_start is reinitialized so that the spikes are aligned
-        spike_start = spike_start + (avg_peak - peak_ind)
+        spike_start = spike_start - (avg_peak - peak_ind)
         spike_start = spike_start.astype(int)
         # the spikes are re-extracted using the new spike_start
         spikes = spike_extract(signal, spike_start, spike_length)
@@ -95,14 +95,13 @@ def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, nor
         amplitude_position = max_peaks[amplitude_information][0]
         spike_amplitude = max_peaks[amplitude_information][1]
 
-
         spike_distance = 0
 
         if amplitude_position < min_peaks[0][0]:
             spike_distance = min_peaks[0][0] - 0
         else:
             for j in range(0, len(min_peaks)):
-                if j+1 >= len(min_peaks):
+                if j + 1 >= len(min_peaks):
                     spike_distance = 79 - min_peaks[j][0]
                     # plt.figure()
                     # plt.plot(spikes[i])
@@ -122,6 +121,7 @@ def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, nor
 
     return spikes_features, labels
 
+
 def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
     """
     Load the dataset after PCA on 2 dimensions
@@ -134,10 +134,10 @@ def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, norma
     :returns labels: vector - the vector of labels for each point
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
-    new_spikes = wlt.compute_haar(spikes)
+    # new_spikes = wlt.compute_haar(spikes)
     # apply pca
     pca_2d = PCA(n_components=2)
-    spikes_pca_2d = pca_2d.fit_transform(new_spikes)
+    spikes_pca_2d = pca_2d.fit_transform(spikes)
     # getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
     # np.save('79_ground_truth', label)
@@ -160,14 +160,10 @@ def get_dataset_simulation_derivatives(simNr, spike_length=79, align_to_peak=2, 
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
 
-    result_spikes = deriv.compute_fdmethod(spikes)
-
-    # getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
-
-    # np.save('79_ground_truth', label)
-    # np.save('79_x', spikes_reduced[:, 0])
-    # np.save('79_y', spikes_reduced[:, 1])
-
+    # result_spikes = deriv.compute_fdmethod(spikes)
+    result_spikes1 = wlt.compute_haar(spikes)
+    pca_2d = PCA(n_components=2)
+    result_spikes = pca_2d.fit_transform(result_spikes1)
     return result_spikes, labels
 
 
@@ -191,6 +187,7 @@ def get_dataset_simulation_pca_3d(simNr, spike_length=79, align_to_peak=2, norma
     spikes_pca_3d = pca_3d.fit_transform(spikes)
 
     return spikes_pca_3d, labels
+
 
 def get_dataset_simulation_derivatives_3d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
     """
@@ -424,11 +421,13 @@ def apply_feature_extraction_method(sim_nr, method_nr):
     if method_nr == 0:
         X, y = get_dataset_simulation_pca_2d(sim_nr, align_to_peak=2)
     else:
-        # if method_nr == 1:
-        X, y = get_dataset_simulation_pca_3d(sim_nr, align_to_peak=2)
-    # else:
+        if method_nr == 1:
+            X, y = get_dataset_simulation_pca_3d(sim_nr, align_to_peak=2)
+        else:
+            X, y = get_dataset_simulation_derivatives(sim_nr, align_to_peak=2)
 
     return X, y
+
 
 # datasetNumber = 1 => S1
 # datasetNumber = 2 => S2
@@ -459,4 +458,3 @@ def load_particular_dataset(datasetNumber):
     if datasetNumber == 1:
         for k in range(len(X)):
             y[k] = y[k] - 1
-
