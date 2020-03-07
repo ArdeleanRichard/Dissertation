@@ -4,6 +4,7 @@ import pandas as pd
 from peakdetect import peakdetect
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 import derivatives as deriv
 import wavelets as wlt
 
@@ -136,15 +137,22 @@ def get_dataset_simulation_derivatives(simNr, spike_length=79, align_to_peak=Tru
     :param align_to_peak: integer - aligns each spike to it's maximum value
     :param normalize_spike: boolean - applies z-scoring normalization to each spike
 
-    :returns spikes_pca_3d: matrix - the 2-dimensional points resulted
+    :returns result_spikes: matrix - the 2-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+    # scatter_plot.plot_spikes(spikes)
 
     # result_spikes = deriv.compute_fdmethod(spikes)
-    result_spikes1 = wlt.compute_haar(spikes)
+
+    result_spikes1 = wlt.fd_wavelets(spikes)
+    scaler = StandardScaler()
+    result_spikes1 = scaler.fit_transform(result_spikes1)
     pca_2d = PCA(n_components=2)
     result_spikes = pca_2d.fit_transform(result_spikes1)
+
+    # result_spikes = wlt.wavelet_coeff_height(spikes)
+
     return result_spikes, labels
 
 
