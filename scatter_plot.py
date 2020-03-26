@@ -105,3 +105,5 @@ def plot_spikes(spikes, title=""):
         plt.plot(np.arange(79), spikes[i])
     plt.title(title)
     plt.show()
+
+

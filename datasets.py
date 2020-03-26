@@ -58,7 +58,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
         # avg_peak is the avg of all the peaks
         avg_peak = np.floor(np.mean(peak_ind))
         # spike_start is reinitialized so that the spikes are aligned
-        spike_start = spike_start + (avg_peak - peak_ind)
+        spike_start = spike_start - (avg_peak - peak_ind)
         spike_start = spike_start.astype(int)
         # the spikes are re-extracted using the new spike_start
         spikes = spike_extract(signal, spike_start, spike_length)
@@ -134,10 +134,9 @@ def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, norma
     :returns labels: vector - the vector of labels for each point
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
-    new_spikes = wlt.compute_haar(spikes)
     # apply pca
     pca_2d = PCA(n_components=2)
-    spikes_pca_2d = pca_2d.fit_transform(new_spikes)
+    spikes_pca_2d = pca_2d.fit_transform(spikes)
     # getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
 
     # np.save('79_ground_truth', label)
