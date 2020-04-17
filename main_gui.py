@@ -2,23 +2,43 @@ import benchmark_data as bd
 
 import datasets as ds
 import matplotlib.pyplot as plt
-from scipy.fftpack import fft, fft2, fftshift
-from scipy.signal import stft
+from scipy.fftpack import fft
 import scatter_plot as sp
 import numpy as np
 from sklearn.decomposition import PCA
 import constants as cs
 import plotly.express as px
 from constants import LABEL_COLOR_MAP
+import csv
 
 
 def gui():
-    bd.accuracy_all_algorithms_on_simulation(simulation_nr=4,
+    bd.accuracy_all_algorithms_on_simulation(simulation_nr=79,
                                              feature_extract_method=0,
-                                             plot=False,
+                                             plot=True,
                                              pe_labeled_data=True,
-                                             pe_unlabeled_data=False,
+                                             pe_unlabeled_data=True,
                                              pe_extra=False)
+
+
+def fourier_understanding():
+    sim_nr = 79
+    spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
+    # sp.plot("Ground truth" + str(sim_nr), spikes, labels, marker='o')
+    # print(labels)
+    # sp.plot_spikes(spikes)
+    # print(spikes[0])
+
+    # fft_signal = fft(spikes)
+    # print("A[0]:")
+    # print(fft_signal[0:10, 0])
+
+    for i in range(np.amax(labels) + 1):
+        spikes_by_color = spikes[labels == i]
+        fft_signal = fft(spikes_by_color)
+        print("A[0] for cluster %d:" % i)
+        print(fft_signal[0:10, 0])
+        # sp.plot_spikes(spikes_by_color, "Cluster %d Sim_%d" % (i, sim_nr))
 
 
 def fourier_feature_extract():
@@ -30,6 +50,8 @@ def fourier_feature_extract():
     # print(spikes[0])
 
     fft_signal = fft(spikes)
+    # print("A[0]:")
+    # print(fft_signal[0][0])
 
     X = [x.real for x in fft_signal[:, 0:40]]
     # print(np.array(X).shape)
@@ -209,78 +231,6 @@ def fourier_feature_extract_3d():
     # plt.show()
 
 
-def short_time_fourier_feature_extraction():
-    sim_nr = 67
-    spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
-    stft_result = stft(spikes, window='boxcar', nperseg=79)
-    sampled_frequencies = stft_result[0]
-    time_segments = stft_result[1]
-    stft_signal = stft_result[2]
-    print(time_segments)
-
-    X = [x.real for x in stft_signal]
-    X = np.array(X)
-    Y = [x.imag for x in stft_signal]
-    Y = np.array(Y)
-
-    amplitude = np.sqrt(np.add(np.multiply(X, X), np.multiply(Y, Y)))
-    phase = np.arctan2(Y, X)
-    power = np.power(amplitude, 2)
-
-    pca_2d = PCA(n_components=2)
-
-    sp.plot(title="GT on Sim_" + str(sim_nr), X=pca_2d.fit_transform(spikes), labels=labels, marker='o')
-    plt.show()
-
-    for i in range(0, 3):
-        level_stft = phase[:, :, i]
-        signal_pca = pca_2d.fit_transform(level_stft)
-        sp.plot(title="GT on STFT_%d boxcar phase coeff on Sim_" % i + str(sim_nr), X=signal_pca, labels=labels,
-                marker='o')
-        plt.show()
-
-    # signal_pca = pca_2d.fit_transform(Y[:, :, 0])
-    # # signal_pca = pca_2d.fit_transform(spikes)
-    # sbm_labels = bd.apply_algorithm(signal_pca, labels, 2)
-    # sp.plot(title="SBM on STFT img_1 bartlett on Sim_" + str(sim_nr), X=signal_pca, labels=sbm_labels, marker='o')
-    # plt.show()
-    #
-    # sbm_results = bd.benchmark_algorithm_labeled_data(sbm_labels, labels)
-    # print("Img_1")
-    # bd.print_benchmark_labeled_data(sim_nr, 2, sbm_results)
-
-
-import scipy.signal as signal
-
-
-def plot_stft():
-    sim_nr = 84
-    spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
-    f, t, Zxx = signal.stft(spikes, window='bartlett', nperseg=25)
-    print(f)
-    print(t)
-    print(Zxx.shape)
-    print(Zxx)
-    # sample_rate, samples = wav.read(filename)
-    # f, t, Zxx = signal.stft(samples, fs=sample_rate)
-
-    # for i in range(1, 10):
-    #     im = plt.pcolormesh(t, f, np.abs(Zxx)[i], cmap="jet")
-    #     # print((np.abs(Zxx)[i]).shape)
-    #     plt.colorbar(im)
-    #     plt.show()
-
-    for i in range(np.amax(labels) + 1):
-        spikes_by_color = Zxx[labels == i]
-        print(spikes_by_color.shape)
-        for j in range(5):
-            im = plt.pcolormesh(t, f, np.abs(spikes_by_color)[j], cmap="jet")
-            plt.colorbar(im)
-            plt.title("Cluster %d spike %d " % (i, j))
-            # plt.savefig('./figures/bartlett_40/ft_cluster_%d_spike_%d' % (i, j))
-            plt.show()
-
-
 def plot_all_ground_truths():
     pca_2d = PCA(n_components=2)
     for sim_nr in range(95, 96):
@@ -294,7 +244,7 @@ def plot_all_ground_truths():
 
 
 def spikes_per_cluster():
-    sim_nr = 67
+    sim_nr = 15
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
     print(spikes.shape)
 
@@ -308,13 +258,75 @@ def spikes_per_cluster():
         # sp.plot(title="GT with PCA Sim_%d" % sim_nr, X=cluster_pca, marker='o')
         plt.scatter(cluster_pca[:, 0], cluster_pca[:, 1], c=LABEL_COLOR_MAP[i], marker='o', edgecolors='k')
         plt.title("Cluster %d Sim_%d" % (i, sim_nr))
+        plt.savefig('figures/spikes_on_cluster/Sim_%d_Cluster_%d' % (sim_nr, i))
         plt.show()
         # print(cluster_pca)
 
 
+def csf_db():
+    pca_2d = PCA(n_components=2)
+    alg_labels = [[], [], []]
+    pe_labeled_data_results = [[], [], []]
+
+    header_labeled_data = ['Simulation', 'Clusters', 'Algorithm', 'Index', 'Value']
+    # with open('./results/PCA_2d_DBD.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file, delimiter=',')
+    #     writer.writerows(header_labeled_data)
+
+    for sim_nr in range(95, 96):
+        spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
+        signal_pca = pca_2d.fit_transform(spikes)
+
+        for alg_nr in range(0, 3):
+            alg_labels[alg_nr] = bd.apply_algorithm(signal_pca, labels, alg_nr)
+            pe_labeled_data_results[alg_nr] = bd.benchmark_algorithm_labeled_data(labels, alg_labels[alg_nr])
+
+        formatted_kmeans = ["%.3f" % number for number in pe_labeled_data_results[0]]
+        formatted_dbscan = ["%.3f" % number for number in pe_labeled_data_results[1]]
+        formatted_sbm = ["%.3f" % number for number in pe_labeled_data_results[2]]
+        row1 = [sim_nr, max(labels), 'K-means', "ari_all", formatted_kmeans[0]]
+        row2 = [sim_nr, max(labels), 'K-means', "ami_all", formatted_kmeans[1]]
+        row3 = [sim_nr, max(labels), 'K-means', "ari_nnp", formatted_kmeans[2]]
+        row4 = [sim_nr, max(labels), 'K-means', "ami_nnp", formatted_kmeans[3]]
+        row5 = [sim_nr, max(labels), 'SBM', "ari_all", formatted_sbm[0]]
+        row6 = [sim_nr, max(labels), 'SBM', "ami_all", formatted_sbm[1]]
+        row7 = [sim_nr, max(labels), 'SBM', "ari_nnp", formatted_sbm[2]]
+        row8 = [sim_nr, max(labels), 'SBM', "ami_nnp", formatted_sbm[3]]
+        row9 = [sim_nr, max(labels), 'DBSCAN', "ari_all", formatted_dbscan[0]]
+        row10 = [sim_nr, max(labels), 'DBSCAN', "ami_all", formatted_dbscan[1]]
+        row11 = [sim_nr, max(labels), 'DBSCAN', "ari_nnp", formatted_dbscan[2]]
+        row12 = [sim_nr, max(labels), 'DBSCAN', "ami_nnp", formatted_dbscan[3]]
+        row_list = [row1, row2, row3, row4, row5, row6, row7, row8, row9, row10, row11, row12]
+        with open('./results/PCA_2d_DBD.csv', 'a+', newline='') as file:
+            writer = csv.writer(file, delimiter=',')
+            writer.writerows(row_list)
+
+
+def sim_details():
+    for sim_nr in range(45, 96):
+        spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
+        row = [sim_nr, max(labels), spikes.shape[0]]
+        with open('./results/simulaton_details.csv', 'a+', newline='') as file:
+            writer = csv.writer(file, delimiter=',')
+            writer.writerow(row)
+
+
+def plot_single_spike():
+    sim_nr = 15
+    spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
+    spike = spikes[0]
+    print(spike)
+    plt.plot(np.arange(79), spike)
+    plt.show()
+    for i in range(1, 79):
+        print('f(%d,%d)=1' % (i, spike[i]))
+
+
 # gui()
 # fourier_feature_extract()
-# short_time_fourier_feature_extraction()
 # plot_all_ground_truths()
 # spikes_per_cluster()
-plot_stft()
+# fourier_understanding()
+# csf_db()
+# sim_details()
+plot_single_spike()

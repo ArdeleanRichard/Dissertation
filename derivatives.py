@@ -158,7 +158,7 @@ def compute_derivative5stencil(function):
     :param function: vector of values representing the function
     """
     first_derivative = []
-    i=2
+    i = 2
     x = (-function[i + 2] + 8 * function[i + 1] - 8 * function[i - 1] + function[i - 2]) / 12
     first_derivative.append(x)
     first_derivative.append(x)
@@ -174,3 +174,13 @@ def compute_derivative5stencil(function):
     first_derivative.append(x)
 
     return first_derivative
+
+
+def compute_fdmethod_1spike(spike):
+    first_derivative = compute_derivative5stencil(spike)
+    f_min = min(first_derivative)
+    f_max = max(first_derivative)
+    result = []
+    result.append(f_max - f_min)
+    result.append(max(spike))
+    return np.array(result)

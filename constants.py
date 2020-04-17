@@ -1,4 +1,5 @@
-feature_extraction_methods = ["pca_2d", "pca_3d", "derivatives_2d"]
+feature_extraction_methods = ["pca_2d", "pca_3d", "derivatives_2d", "stft_real", "stft_img", "stft_amplitude",
+                              "stft_phase", "stft_power"]
 feature_space_dimensions = [2, 3, 2]
 algorithms = ["K-Means", "DBSCAN", "SBM"]
 perf_eval_labeled_data_results = ["Adjusted_Rand_Index", "Adjusted_Mutual_Info", "Fowlkes_Msllows"]
@@ -47,4 +48,3 @@ LABEL_COLOR_MAP = {-1: 'gray',
                    33: 'turquoise',
                    34: 'wheat',
                    }
-
