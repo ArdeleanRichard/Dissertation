@@ -271,6 +271,17 @@ def chunkify_sequential(X, pn):
             pass
     return nArray
 
+def chunkify_sequential2(X, pn):
+    nrDim = np.shape(X)[1]
+    nArray = np.zeros((pn,) * nrDim, dtype=int)
+
+    R = np.floor(X).astype(int)
+
+    R = R[np.all(R < pn, axis=1)]
+
+    for point in R:
+        nArray[tuple(point)] += 1
+    return nArray
 
 def chunkify_parallel(X, pn, nrThreads=num_cores):
     """
@@ -283,7 +294,7 @@ def chunkify_parallel(X, pn, nrThreads=num_cores):
     """
     splittedX = np.array_split(X, nrThreads)
 
-    results = Parallel(n_jobs=nrThreads)(delayed(chunkify_sequential)(x, pn) for x in splittedX)
+    results = Parallel(n_jobs=nrThreads)(delayed(chunkify_sequential2)(x, pn) for x in splittedX)
 
     finalArray = sum(results)
 
@@ -301,11 +312,22 @@ def dechunkify_parallel(X, labelsArray, pn, nrThreads=num_cores):
     """
     splittedX = np.array_split(X, nrThreads)
 
-    results = Parallel(n_jobs=nrThreads)(delayed(dechunkify_sequential)(x, labelsArray, pn) for x in splittedX)
+    results = Parallel(n_jobs=nrThreads)(delayed(dechunkify_sequential2)(x, labelsArray, pn) for x in splittedX)
 
     finalLabels = np.concatenate(results, axis=0)
     return finalLabels
 
+def dechunkify_sequential2(X, labelsArray, pn):
+    pointLabels = np.zeros(len(X), dtype=int)
+
+    R = np.floor(X).astype(int)
+
+    R = R[np.all(R < pn, axis=1)]
+
+    for index in range(0, len(R)):
+        pointLabels[index] = labelsArray[tuple(R[index])]
+
+    return pointLabels
 
 def dechunkify_sequential(X, labelsArray, pn):
     """
