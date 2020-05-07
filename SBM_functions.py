@@ -7,6 +7,8 @@ sys.setrecursionlimit(1000000)
 import multiprocessing
 num_cores = multiprocessing.cpu_count() - 2
 
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # TODO
 def valid_center(value):
@@ -279,8 +281,10 @@ def chunkify_sequential2(X, pn):
 
     R = R[np.all(R < pn, axis=1)]
 
-    for point in R:
-        nArray[tuple(point)] += 1
+    #TODO FutureWarning R will have to be tuple
+    R = np.transpose(R).tolist()
+    np.add.at(nArray, R, 1)
+
     return nArray
 
 def chunkify_parallel(X, pn, nrThreads=num_cores):
@@ -318,14 +322,16 @@ def dechunkify_parallel(X, labelsArray, pn, nrThreads=num_cores):
     return finalLabels
 
 def dechunkify_sequential2(X, labelsArray, pn):
-    pointLabels = np.zeros(len(X), dtype=int)
+    #pointLabels = np.zeros(len(X), dtype=int)
+    pointLabels = np.full(len(X), -1, dtype=int)
 
     R = np.floor(X).astype(int)
 
     R = R[np.all(R < pn, axis=1)]
 
-    for index in range(0, len(R)):
-        pointLabels[index] = labelsArray[tuple(R[index])]
+    #TODO FutureWarning R will have to be tuple
+    Q = np.transpose(R).tolist()
+    pointLabels[0:len(R)] = labelsArray[Q]
 
     return pointLabels
 
