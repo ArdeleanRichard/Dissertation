@@ -273,15 +273,20 @@ def chunkify_sequential(X, pn):
             pass
     return nArray
 
-def chunkify_sequential2(X, pn):
+def chunkify_numpy(X, pn):
     nrDim = np.shape(X)[1]
     nArray = np.zeros((pn,) * nrDim, dtype=int)
 
+    # floor is done before the iteration over a for because it will be faster using numpy
     R = np.floor(X).astype(int)
 
+    # represents the if from before, instead applied on the whole nd-array
+    # (this way removing outliers, points that contain pn <- unavoidable by normalization)
     R = R[np.all(R < pn, axis=1)]
 
     #TODO FutureWarning R will have to be tuple
+
+    # adding (the counts) in the nArray using the coordinates of R
     R = np.transpose(R).tolist()
     np.add.at(nArray, R, 1)
 
@@ -298,7 +303,7 @@ def chunkify_parallel(X, pn, nrThreads=num_cores):
     """
     splittedX = np.array_split(X, nrThreads)
 
-    results = Parallel(n_jobs=nrThreads)(delayed(chunkify_sequential2)(x, pn) for x in splittedX)
+    results = Parallel(n_jobs=nrThreads)(delayed(chunkify_sequential)(x, pn) for x in splittedX)
 
     finalArray = sum(results)
 
@@ -316,22 +321,24 @@ def dechunkify_parallel(X, labelsArray, pn, nrThreads=num_cores):
     """
     splittedX = np.array_split(X, nrThreads)
 
-    results = Parallel(n_jobs=nrThreads)(delayed(dechunkify_sequential2)(x, labelsArray, pn) for x in splittedX)
+    results = Parallel(n_jobs=nrThreads)(delayed(dechunkify_sequential)(x, labelsArray, pn) for x in splittedX)
 
     finalLabels = np.concatenate(results, axis=0)
     return finalLabels
 
-def dechunkify_sequential2(X, labelsArray, pn):
-    #pointLabels = np.zeros(len(X), dtype=int)
-    pointLabels = np.full(len(X), -1, dtype=int)
-
+def dechunkify_numpy(X, labelsArray, pn):
+    # floor is done before the iteration over a for because it will be faster using numpy
     R = np.floor(X).astype(int)
 
-    R = R[np.all(R < pn, axis=1)]
+    # (this way removing outliers, points that contain pn <- unavoidable by normalization)
+    R[R >= pn] = pn-1
 
     #TODO FutureWarning R will have to be tuple
+
+    # get the coordinates in the nArray (of all points) in Q and use that to set the labels of all the points in the dataset
     Q = np.transpose(R).tolist()
-    pointLabels[0:len(R)] = labelsArray[Q]
+    pointLabels = labelsArray[Q]
+
 
     return pointLabels
 
