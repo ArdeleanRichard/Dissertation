@@ -253,3 +253,40 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
         for a in range(0, 3):
             pe_extra_results[a] = benchmark_algorithm_extra(y, labels[a])
             print_benchmark_extra(simulation_nr, a, pe_extra_results[a])
+
+
+def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method=0):
+    """
+    :param l_sim: lower bound simulation number
+    :param r_sim: upper bound simulation number
+    :param feature_extract_method: feature extraction method (see constants.py)
+    :return: array of means of the metrics
+    """
+    simulations_results = []
+    for sim in range(l_sim, r_sim + 1):
+        if (sim == 25) or (sim == 44):
+            continue
+        print("Running sim", sim)
+        X, y = ds.apply_feature_extraction_method(sim, feature_extract_method)
+        scatter_plot.plot("Ground truth for Sim_" + str(sim), X, y, marker='o')
+        plt.savefig("GT_sim" + str(sim) + "_" + cs.feature_extraction_methods[feature_extract_method])
+        plt.show()
+        # apply algorithm(s) and save clustering labels
+        labels = [[], [], []]
+        for alg in range(0, 3):
+            labels[alg] = apply_algorithm(X, y, alg)
+            scatter_plot.plot(cs.algorithms[alg] + " on Sim_" + str(sim), X, labels[alg], marker='o')
+            plt.savefig(cs.algorithms[alg] + "_sim" + str(sim) + "_" + cs.feature_extraction_methods[
+                feature_extract_method])
+            plt.show()
+
+        pe_labeled_data_results = [[], [], []]
+        for alg in range(0, 3):
+            pe_labeled_data_results[alg] = benchmark_algorithm_labeled_data(y, labels[alg])
+            write_benchmark_labeled_data(sim, cs.feature_extraction_methods[feature_extract_method],
+                                         pe_labeled_data_results)
+        simulations_results.append(pe_labeled_data_results)
+    average_accuracy = np.mean(np.array(simulations_results), axis=0)
+    [print_benchmark_labeled_data(str(l_sim) + "-" + str(r_sim), alg, average_accuracy[alg]) for alg in range(0, 3)]
+
+    return average_accuracy

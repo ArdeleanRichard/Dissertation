@@ -3,6 +3,16 @@ from scipy.ndimage import gaussian_filter, gaussian_filter1d, laplace, gaussian_
 from scipy.signal import savgol_filter
 
 
+def compute_fdmethod_1spike(spike):
+    first_derivative = compute_derivative5stencil(spike)
+    f_min = min(first_derivative)
+    f_max = max(first_derivative)
+    result = []
+    result.append(f_max - f_min)
+    result.append(max(spike))
+    return np.array(result)
+
+
 def compute_fdmethod(spikes):
     """
     2D Dimensionality reduction method using the range of the first derivative, and the peak of the spikes as dimensions
@@ -84,18 +94,28 @@ def compute_first_second_derivative(spikes):
     for x in spikes:
         first_derivative = compute_derivative5stencil(x)
 
-        f_min_pos = compute_min_pos(first_derivative)
-        f_max_pos = compute_max_pos(first_derivative)
+        # f_min_pos = compute_min_pos(first_derivative)
+        # f_max_pos = compute_max_pos(first_derivative)
+        fmin = min(first_derivative)
+        fmax = max(first_derivative)
 
         second_derivative = compute_derivative5stencil(first_derivative)
 
-        s_min_pos = compute_min_pos(second_derivative)
-        s_max_pos = compute_max_pos(second_derivative)
+        # s_min_pos = compute_min_pos(second_derivative)
+        # s_max_pos = compute_max_pos(second_derivative)
+        smin = min(second_derivative)
+        smax = max(second_derivative)
 
         result = []
-        f_pos, s_pos = method6(x[f_min_pos], x[f_max_pos], x[s_min_pos], x[s_max_pos])
-        result.append(f_pos)
-        result.append(s_pos)
+        # f_pos, s_pos = method6(x[f_min_pos], x[f_max_pos], x[s_min_pos], x[s_max_pos])
+        # f_pos, s_pos = method6(fmin, fmax,smin,smax)
+
+        result.append(fmin)
+        result.append(fmax)
+        result.append(smax)
+        result.append(smin)
+        # result.append(f_pos)
+        # result.append(s_pos)
         final_result.append(result)
 
     return np.array(final_result)
@@ -158,7 +178,7 @@ def compute_derivative5stencil(function):
     :param function: vector of values representing the function
     """
     first_derivative = []
-    i=2
+    i = 2
     x = (-function[i + 2] + 8 * function[i + 1] - 8 * function[i - 1] + function[i - 2]) / 12
     first_derivative.append(x)
     first_derivative.append(x)

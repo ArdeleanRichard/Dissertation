@@ -6,8 +6,6 @@ import math
 import constants as cs
 
 
-
-
 def plot(title, X, labels=None, plot=True, marker='o'):
     """
     Plots the dataset with or without labels
@@ -25,7 +23,11 @@ def plot(title, X, labels=None, plot=True, marker='o'):
         if labels is None:
             plt.scatter(X[:, 0], X[:, 1], marker=marker, edgecolors='k')
         else:
-            label_color = [cs.LABEL_COLOR_MAP[l] for l in labels]
+            try:
+                label_color = [cs.LABEL_COLOR_MAP[l] for l in labels]
+            except KeyError:
+                print('Too many labels! Using default colors...\n')
+                label_color = [l for l in labels]
             plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
 
 
