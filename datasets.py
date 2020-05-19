@@ -4,9 +4,8 @@ import pandas as pd
 from peakdetect import peakdetect
 from scipy.io import loadmat
 from sklearn.decomposition import PCA
-import derivatives as deriv
-import wavelets as wlt
 
+import derivatives as deriv
 import scatter_plot
 
 dataName = ["S1", "S2", "U", "UO", "Simulation"]
@@ -34,25 +33,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     spikes = spike_extract(signal, spike_start, spike_length)
 
     # align to max
-    if align_to_peak == 1:
-        # iterate through each of the unique labels (0->20)
-        for unit in np.unique(spike_label):
-            #### compute average waveform
-            # find the indexes of the spikes of label unit
-            ind = np.squeeze(np.argwhere(spike_label == unit))
-            # spikes[ind, :] is a matrix each row contains the 79 of the spikes from that index
-            # avg_spike is a vector, each entry containing the average of the corresponding row in spikes[ind, :]
-            avg_spike = np.mean(spikes[ind, :], 0)
-
-            ##### shift start times to max
-            # peak_ind contains the index of the peak of the label
-            peak_ind = np.argmax(avg_spike)
-            # print(np.argmax(avg_spike))
-            spike_start[ind] = spike_start[ind] + peak_ind - 20
-
-        # re-extract spikes with new alignment
-        spikes = spike_extract(signal, spike_start, spike_length)
-    elif align_to_peak == 2:
+    if align_to_peak:
         # peak_ind is a vector that contains the index (0->78 / 79 points for each spike) of the maximum of each spike
         peak_ind = np.argmax(spikes, axis=1)
         # avg_peak is the avg of all the peaks
@@ -70,7 +51,7 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     return spikes
 
 
-def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, normalize_spike=False):
+def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
     """
     Load the dataset with 2 chosen features (amplitude and distance between min peaks)
     :param simNr: integer - the number of the wanted simulation
@@ -95,14 +76,13 @@ def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, nor
         amplitude_position = max_peaks[amplitude_information][0]
         spike_amplitude = max_peaks[amplitude_information][1]
 
-
         spike_distance = 0
 
         if amplitude_position < min_peaks[0][0]:
             spike_distance = min_peaks[0][0] - 0
         else:
             for j in range(0, len(min_peaks)):
-                if j+1 >= len(min_peaks):
+                if j + 1 >= len(min_peaks):
                     spike_distance = 79 - min_peaks[j][0]
                     # plt.figure()
                     # plt.plot(spikes[i])
@@ -122,7 +102,8 @@ def get_dataset_simulation_features(simNr, spike_length=79, align_to_peak=0, nor
 
     return spikes_features, labels
 
-def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
+
+def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
     """
     Load the dataset after PCA on 2 dimensions
     :param simNr: integer - the number of the wanted simulation
@@ -146,7 +127,7 @@ def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=2, norma
     return spikes_pca_2d, labels
 
 
-def get_dataset_simulation_derivatives(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
+def get_dataset_simulation_derivatives(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
     """
     Load the dataset after derivatives on 2 dimensions
     :param simNr: integer - the number of the wanted simulation
@@ -173,7 +154,7 @@ def get_dataset_simulation_derivatives(simNr, spike_length=79, align_to_peak=2, 
 # spike extraction options
 # original sampling rate 96KHz, with each waveform at 316 points(dimensions/features)
 # downsampled to 24KHz, (regula-3-simpla) => 79 points (de aici vine 79 de mai jos)
-def get_dataset_simulation_pca_3d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
+def get_dataset_simulation_pca_3d(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
     """
     Load the dataset after PCA on 3 dimensions
     :param simNr: integer - the number of the wanted simulation
@@ -191,7 +172,8 @@ def get_dataset_simulation_pca_3d(simNr, spike_length=79, align_to_peak=2, norma
 
     return spikes_pca_3d, labels
 
-def get_dataset_simulation_derivatives_3d(simNr, spike_length=79, align_to_peak=2, normalize_spike=False):
+
+def get_dataset_simulation_derivatives_3d(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
     """
     Load the dataset after PCA on 3 dimensions
     :param simNr: integer - the number of the wanted simulation
@@ -209,9 +191,12 @@ def get_dataset_simulation_derivatives_3d(simNr, spike_length=79, align_to_peak=
     return result_spikes, labels
 
 
-def get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike):
+def get_dataset_simulation(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
     """
     Load the dataset
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
     :param simNr: integer - the number of the wanted simulation
 
     :returns spikes: matrix - the 79-dimensional points resulted
@@ -421,13 +406,14 @@ def getDatasetU():
 
 def apply_feature_extraction_method(sim_nr, method_nr):
     if method_nr == 0:
-        X, y = get_dataset_simulation_pca_2d(sim_nr, align_to_peak=2)
+        X, y = get_dataset_simulation_pca_2d(sim_nr, align_to_peak=True)
     else:
         # if method_nr == 1:
-        X, y = get_dataset_simulation_pca_3d(sim_nr, align_to_peak=2)
+        X, y = get_dataset_simulation_pca_3d(sim_nr, align_to_peak=True)
     # else:
 
     return X, y
+
 
 # datasetNumber = 1 => S1
 # datasetNumber = 2 => S2
@@ -458,4 +444,3 @@ def load_particular_dataset(datasetNumber):
     if datasetNumber == 1:
         for k in range(len(X)):
             y[k] = y[k] - 1
-

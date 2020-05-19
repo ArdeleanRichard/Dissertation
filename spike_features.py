@@ -90,15 +90,15 @@ def get_features(spikes):
         # plt.axvline(x=spike_max_index)
         # plt.show()
 
-        features.append([fd_max, fd_min])
+        features.append([fd_min, fd_max])
     # exit()
 
-    pca_2d = PCA(n_components=2)
-    waveform_pca2d = pca_2d.fit_transform(spikes)
+    # pca_2d = PCA(n_components=2)
+    # waveform_pca2d = pca_2d.fit_transform(spikes)
     # pca_2d_features = pca_2d.fit_transform(features)
 
-    return np.array(np.concatenate((waveform_pca2d, np.array(features)), axis=1))
-    # return np.array(features)
+    # return np.array(np.concatenate((waveform_pca2d, np.array(features)), axis=1))
+    return np.array(features)
 
 
 def get_derivative_features(spikes):
