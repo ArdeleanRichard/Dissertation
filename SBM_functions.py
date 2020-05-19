@@ -7,6 +7,8 @@ sys.setrecursionlimit(1000000)
 import multiprocessing
 num_cores = multiprocessing.cpu_count() - 2
 
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # TODO
 def valid_center(value):
@@ -271,6 +273,24 @@ def chunkify_sequential(X, pn):
             pass
     return nArray
 
+def chunkify_numpy(X, pn):
+    nrDim = np.shape(X)[1]
+    nArray = np.zeros((pn,) * nrDim, dtype=int)
+
+    # floor is done before the iteration over a for because it will be faster using numpy
+    R = np.floor(X).astype(int)
+
+    # represents the if from before, instead applied on the whole nd-array
+    # (this way removing outliers, points that contain pn <- unavoidable by normalization)
+    R = R[np.all(R < pn, axis=1)]
+
+    #TODO FutureWarning R will have to be tuple
+
+    # adding (the counts) in the nArray using the coordinates of R
+    R = np.transpose(R).tolist()
+    np.add.at(nArray, R, 1)
+
+    return nArray
 
 def chunkify_parallel(X, pn, nrThreads=num_cores):
     """
@@ -306,6 +326,21 @@ def dechunkify_parallel(X, labelsArray, pn, nrThreads=num_cores):
     finalLabels = np.concatenate(results, axis=0)
     return finalLabels
 
+def dechunkify_numpy(X, labelsArray, pn):
+    # floor is done before the iteration over a for because it will be faster using numpy
+    R = np.floor(X).astype(int)
+
+    # (this way removing outliers, points that contain pn <- unavoidable by normalization)
+    R[R >= pn] = pn-1
+
+    #TODO FutureWarning R will have to be tuple
+
+    # get the coordinates in the nArray (of all points) in Q and use that to set the labels of all the points in the dataset
+    Q = np.transpose(R).tolist()
+    pointLabels = labelsArray[Q]
+
+
+    return pointLabels
 
 def dechunkify_sequential(X, labelsArray, pn):
     """

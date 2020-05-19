@@ -7,10 +7,13 @@ from peakdetect import peakdetect
 from scipy.io import loadmat
 from scipy.signal import hilbert
 from sklearn.decomposition import PCA
-
+from sklearn.preprocessing import StandardScaler
 import derivatives as deriv
+import wavelets as wlt
+import superlets as slt
 import scatter_plot
 import spike_features
+import discretewlt as dwt
 
 dataName = ["S1", "S2", "U", "UO", "Simulation"]
 files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
@@ -131,6 +134,91 @@ def get_dataset_simulation_pca_2d(simNr, spike_length=79, align_to_peak=True, no
     return spikes_pca_2d, labels
 
 
+def get_dataset_simulation_wavelets(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
+    """
+    Load the dataset after wavelets on 2 dimensions
+    :param simNr: integer - the number of the wanted simulation
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
+
+    :returns result_spikes: matrix - the 2-dimensional points resulted
+    :returns labels: vector - the vector of labels for each point
+    """
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+
+    result_spikes1 = wlt.fd_wavelets(spikes)
+    scaler = StandardScaler()
+    result_spikes1 = scaler.fit_transform(result_spikes1)
+    pca_2d = PCA(n_components=2)
+    result_spikes = pca_2d.fit_transform(result_spikes1)
+    return result_spikes, labels
+
+
+def get_dataset_simulation_wavelets_3d(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
+    """
+    Load the dataset after derivatives on 2 dimensions
+    :param simNr: integer - the number of the wanted simulation
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
+
+    :returns result_spikes: matrix - the 2-dimensional points resulted
+    :returns labels: vector - the vector of labels for each point
+    """
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+
+    result_spikes1 = wlt.fd_wavelets(spikes)
+    scaler = StandardScaler()
+    result_spikes1 = scaler.fit_transform(result_spikes1)
+    pca_3d = PCA(n_components=3)
+    result_spikes = pca_3d.fit_transform(result_spikes1)
+    return result_spikes, labels
+
+
+def get_dataset_simulation_superlets_2d(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
+    """
+    Load the dataset after derivatives on 2 dimensions
+    :param simNr: integer - the number of the wanted simulation
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
+
+    :returns result_spikes: matrix - the 2-dimensional points resulted
+    :returns labels: vector - the vector of labels for each point
+    """
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+
+    result_spikes1 = slt.slt(spikes, 2, 1.1)
+    # result_spikes1 = slt.slt2(spikes, 5, 1.5)
+    scaler = StandardScaler()
+    result_spikes1 = scaler.fit_transform(result_spikes1)
+    pca_2d = PCA(n_components=2)
+    result_spikes = pca_2d.fit_transform(result_spikes1)
+    return result_spikes, labels
+
+
+def get_dataset_simulation_superlets_3d(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
+    """
+    Load the dataset after derivatives on 2 dimensions
+    :param simNr: integer - the number of the wanted simulation
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
+
+    :returns result_spikes: matrix - the 2-dimensional points resulted
+    :returns labels: vector - the vector of labels for each point
+    """
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+
+    result_spikes1 = slt.slt(spikes, 2, 1.1)
+    scaler = StandardScaler()
+    result_spikes1 = scaler.fit_transform(result_spikes1)
+    pca_3d = PCA(n_components=3)
+    result_spikes = pca_3d.fit_transform(result_spikes1)
+    return result_spikes, labels
+
+
 def get_dataset_simulation_derivatives(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
     """
     Load the dataset after derivatives on 2 dimensions
@@ -139,20 +227,39 @@ def get_dataset_simulation_derivatives(simNr, spike_length=79, align_to_peak=Tru
     :param align_to_peak: integer - aligns each spike to it's maximum value
     :param normalize_spike: boolean - applies z-scoring normalization to each spike
 
-    :returns spikes_pca_3d: matrix - the 2-dimensional points resulted
+    :returns result_spikes: matrix - the 2-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
     spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
 
-    result_spikes = deriv.compute_fdmethod(spikes)
-
-    # getDatasetSimulationPlots(spikes, spikes_pca_2d, spikes_pca_3d, labels)
-
-    # np.save('79_ground_truth', label)
-    # np.save('79_x', spikes_reduced[:, 0])
-    # np.save('79_y', spikes_reduced[:, 1])
+    result_spikes1 = deriv.compute_fdmethod(spikes)
+    scaler = StandardScaler()
+    result_spikes1 = scaler.fit_transform(result_spikes1)
+    pca_2d = PCA(n_components=2)
+    result_spikes = pca_2d.fit_transform(result_spikes1)
+    # result_spikes = result_spikes1
 
     return result_spikes, labels
+
+
+def get_dataset_simulation_dwt2d(simNr, spike_length=79, align_to_peak=True, normalize_spike=False):
+    """
+    Load the dataset after dwt on 2 dimensions
+    :param simNr: integer - the number of the wanted simulation
+    :param spike_length: integer - length of spikes in number of samples
+    :param align_to_peak: integer - aligns each spike to it's maximum value
+    :param normalize_spike: boolean - applies z-scoring normalization to each spike
+
+    :returns result_spikes: matrix - the 2-dimensional points resulted
+    :returns labels: vector - the vector of labels for each point
+    """
+    spikes, labels = get_dataset_simulation(simNr, spike_length, align_to_peak, normalize_spike)
+
+    result_spikes1 = dwt.dwt_fd_method(spikes)
+    scaler = StandardScaler()
+    result_spikes1 = scaler.fit_transform(result_spikes1)
+    pca_2d = PCA(n_components=2)
+    result_spikes = pca_2d.fit_transform(result_spikes1)
 
 
 # spike extraction options
@@ -552,10 +659,22 @@ def apply_feature_extraction_method(sim_nr, method_nr):
     elif method_nr == 2:
         X, y = get_dataset_simulation_derivatives(sim_nr, align_to_peak=True)
     elif method_nr == 3:
+        X, y = get_dataset_simulation_superlets_2d(sim_nr, align_to_peak=True)
+    elif method_nr == 4:
+        X, y = get_dataset_simulation_superlets_3d(sim_nr, align_to_peak=True)
+    elif method_nr == 5:
+        X, y = get_dataset_simulation_wavelets(sim_nr, align_to_peak=True)
+    elif method_nr == 6:
+        X, y = get_dataset_simulation_wavelets_3d(sim_nr, align_to_peak=True)
+    elif method_nr == 7:
+        X, y = get_dataset_simulation_dwt2d(sim_nr, align_to_peak=True)
+    elif method_nr == 8:
         X, y = get_hilbert_features(sim_nr, align_to_peak=True)
+    elif method_nr == 8:
+        # X, y = EMD, TODO
+        X, y = get_dataset_simulation_pca_2d(sim_nr, align_to_peak=True)
     else:
-        X, y = (None, None)
-
+        X, y = get_dataset_simulation_pca_2d(sim_nr, align_to_peak=True)
     return X, y
 
 

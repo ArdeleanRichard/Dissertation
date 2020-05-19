@@ -1,12 +1,12 @@
-import math
-
 import matplotlib.pyplot as plt
-import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
 
 import constants as cs
+
+
 
 
 def plot(title, X, labels=None, plot=True, marker='o'):
@@ -106,11 +106,12 @@ def plot_spikes(spikes, title=""):
     :param spikes: matrix - the list of spikes in a simulation
     :param title: string - the title of the plot
     """
-    for i in range(0, len(spikes), 300):
+    for i in range(0, len(spikes), 60):
         plt.plot(np.arange(79), spikes[i])
     plt.xlabel('Time')
     plt.ylabel('Magnitude')
     plt.title(title)
+    # plt.savefig('./figures/spikes_on_cluster/'+title)
     plt.show()
 
 
