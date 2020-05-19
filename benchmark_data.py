@@ -32,7 +32,7 @@ def apply_algorithm(X, y, alg_number):
     else:
         if alg_number == 1:
             min_samples = np.log(len(X))
-            db = DBSCAN(eps=0.1, min_samples=min_samples).fit(X)
+            db = DBSCAN(eps=0.02, min_samples=min_samples).fit(X)
             labels = db.labels_
         else:
             labels = SBM.parallel(X, pn=25, version=2)
@@ -45,7 +45,7 @@ def benchmark_algorithm_labeled_data(y, labels):
         Evaluate the performance of the clustering by using ARI, AMI and Fowlkes_Mallows.
         Specific to labeled data.
         :param labels: the result of the algorithm
-        :param x: the coordinates of the data
+        :param y: the ground truth labels
         :returns np.array: list - the result of the performance evaluation
     """
     all_ari = metrics.adjusted_rand_score(y, labels)
@@ -75,13 +75,13 @@ def print_benchmark_labeled_data(sim_nr, algorithm_number, pe_results):
             pe_results[1]))
     print(
         "Sim" + str(sim_nr) + " - " + cs.algorithms[algorithm_number] + " - " + 'ARI-NNP: {: .3f}'.format(
-            pe_results[3]))
+            pe_results[2]))
     print(
         "Sim" + str(sim_nr) + " - " + cs.algorithms[algorithm_number] + " - " + 'AMI-NNP: {: .3f}'.format(
-            pe_results[4]))
+            pe_results[3]))
     print(
         "Sim" + str(sim_nr) + " - " + cs.algorithms[algorithm_number] + " - " + 'FMI: {: .3f}'.format(
-            pe_results[2]))
+            pe_results[4]))
 
 
 def write_benchmark_labeled_data(simulation_number, feature_extr_method, pe_values):
@@ -99,7 +99,7 @@ def write_benchmark_labeled_data(simulation_number, feature_extr_method, pe_valu
     header_labeled_data = ['Algor', 'ARI-a', 'AMI-a', 'ARI-n', 'AMI-n', 'FMI-a']
     row_list = [header_labeled_data, formatted_kmeans, formatted_dbscan, formatted_sbm]
     with open('./results/Sim_%s_labeled_%s.csv' % (simulation_number, feature_extr_method), 'w', newline='') as file:
-        writer = csv.writer(file, delimiter='\t')
+        writer = csv.writer(file, delimiter=',')
         writer.writerows(row_list)
 
 

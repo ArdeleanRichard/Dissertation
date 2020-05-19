@@ -194,3 +194,13 @@ def compute_derivative5stencil(function):
     first_derivative.append(x)
 
     return first_derivative
+
+
+def compute_fdmethod_1spike(spike):
+    first_derivative = compute_derivative5stencil(spike)
+    f_min = min(first_derivative)
+    f_max = max(first_derivative)
+    result = []
+    result.append(f_max - f_min)
+    result.append(max(spike))
+    return np.array(result)
