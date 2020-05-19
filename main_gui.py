@@ -1,16 +1,14 @@
-import benchmark_data as bd
+import csv
 
-import datasets as ds
 import matplotlib.pyplot as plt
-from sklearn import metrics
-import scatter_plot as sp
 import numpy as np
 from sklearn.decomposition import PCA
+
+import benchmark_data as bd
 import constants as cs
-import plotly.express as px
+import datasets as ds
+import scatter_plot as sp
 from constants import LABEL_COLOR_MAP
-import csv
-import derivatives
 
 
 def gui():

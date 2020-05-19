@@ -8,12 +8,13 @@ from scipy.io import loadmat
 from scipy.signal import hilbert
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+
 import derivatives as deriv
-import wavelets as wlt
-import superlets as slt
+import discretewlt as dwt
 import scatter_plot
 import spike_features
-import discretewlt as dwt
+import superlets as slt
+import wavelets as wlt
 
 dataName = ["S1", "S2", "U", "UO", "Simulation"]
 files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]

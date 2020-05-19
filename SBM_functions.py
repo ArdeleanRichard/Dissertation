@@ -1,14 +1,19 @@
 import math
+import sys
+
 import numpy as np
 from joblib import Parallel, delayed
-import sys
+
 sys.setrecursionlimit(1000000)
 
 import multiprocessing
+
 num_cores = multiprocessing.cpu_count() - 2
 
 import warnings
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
+
 
 # TODO
 def valid_center(value):
@@ -26,13 +31,13 @@ def get_neighbours(point, shape):
     # ndim = the number of dimensions of a point=chunk
     ndim = len(point)
 
-    #offsetIndexes gives all the possible neighbours ( (0,0)...(2,2) ) of an unknown point in n-dimensions
+    # offsetIndexes gives all the possible neighbours ( (0,0)...(2,2) ) of an unknown point in n-dimensions
     offsetIndexes = np.indices((3,) * ndim).reshape(ndim, -1).T
 
     # np.r_ does row-wise merging (basically concatenate), this instructions is equivalent to offsets=np.array([-1, 0, 1]).take(offsetIndexes)
     offsets = np.r_[-1, 0, 1].take(offsetIndexes)
 
-    #remove the point itself (0,0) from the offsets (np.any will give False only for the point that contains only 0 on all dimensions)
+    # remove the point itself (0,0) from the offsets (np.any will give False only for the point that contains only 0 on all dimensions)
     offsets = offsets[np.any(offsets, axis=1)]
 
     # calculate the coordinates of the neighbours of the point using the offsets
@@ -89,9 +94,9 @@ def get_dropoff(ndArray, location):
 
 def get_strength(ndArray, clusterCenter, questionPoint, expansionPoint):
     dist = distance(clusterCenter, questionPoint)
-    #strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
+    # strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
 
-    #TODO
+    # TODO
     strength = ndArray[questionPoint] / dist / ndArray[clusterCenter]
 
     return strength
@@ -182,6 +187,7 @@ def expand_cluster_center(array, start, labels, currentLabel, clusterCenters, ve
 
     return labels
 
+
 def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCenter2, version):
     """
     Disambiguation of the cluster of a chunk based on the parameters
@@ -226,7 +232,6 @@ def disambiguate(array, questionPoint, expansionPoint, clusterCenter1, clusterCe
     elif version == 2:
         c1Strength = get_strength(array, clusterCenter1, questionPoint, expansionPoint)
         c2Strength = get_strength(array, clusterCenter2, questionPoint, expansionPoint)
-
 
     # RICI VERSION
     # neighbours = getNeighbours(questionPoint, np.shape(array))
@@ -273,6 +278,7 @@ def chunkify_sequential(X, pn):
             pass
     return nArray
 
+
 def chunkify_numpy(X, pn):
     nrDim = np.shape(X)[1]
     nArray = np.zeros((pn,) * nrDim, dtype=int)
@@ -284,13 +290,14 @@ def chunkify_numpy(X, pn):
     # (this way removing outliers, points that contain pn <- unavoidable by normalization)
     R = R[np.all(R < pn, axis=1)]
 
-    #TODO FutureWarning R will have to be tuple
+    # TODO FutureWarning R will have to be tuple
 
     # adding (the counts) in the nArray using the coordinates of R
     R = np.transpose(R).tolist()
     np.add.at(nArray, R, 1)
 
     return nArray
+
 
 def chunkify_parallel(X, pn, nrThreads=num_cores):
     """
@@ -326,21 +333,22 @@ def dechunkify_parallel(X, labelsArray, pn, nrThreads=num_cores):
     finalLabels = np.concatenate(results, axis=0)
     return finalLabels
 
+
 def dechunkify_numpy(X, labelsArray, pn):
     # floor is done before the iteration over a for because it will be faster using numpy
     R = np.floor(X).astype(int)
 
     # (this way removing outliers, points that contain pn <- unavoidable by normalization)
-    R[R >= pn] = pn-1
+    R[R >= pn] = pn - 1
 
-    #TODO FutureWarning R will have to be tuple
+    # TODO FutureWarning R will have to be tuple
 
     # get the coordinates in the nArray (of all points) in Q and use that to set the labels of all the points in the dataset
     Q = np.transpose(R).tolist()
     pointLabels = labelsArray[Q]
 
-
     return pointLabels
+
 
 def dechunkify_sequential(X, labelsArray, pn):
     """

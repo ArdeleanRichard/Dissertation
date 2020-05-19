@@ -1,15 +1,16 @@
-import benchmark_data as bd
-
-import datasets as ds
-import matplotlib.pyplot as plt
-from scipy.fftpack import fft
-import scatter_plot as sp
-import numpy as np
-from sklearn.decomposition import PCA
-import constants as cs
-import plotly.express as px
 import csv
+
+import matplotlib.pyplot as plt
+import numpy as np
+import plotly.express as px
+from scipy.fftpack import fft
+from sklearn.decomposition import PCA
+
+import benchmark_data as bd
+import constants as cs
+import datasets as ds
 import derivatives
+import scatter_plot as sp
 
 
 def fourier_understanding():

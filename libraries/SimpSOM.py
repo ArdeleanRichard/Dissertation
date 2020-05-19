@@ -370,14 +370,16 @@ class somNet:
                     printName = os.path.join(path, 'projection_difference.png')
                     self.diff_graph(False, False, False)
                     plt.scatter([pos[0] - 0.125 + np.random.rand() * 0.25 for pos in bmuList],
-                                [pos[1] - 0.125 + np.random.rand() * 0.25 for pos in bmuList], c=cls, cmap=cm.get_cmap('magma'),
+                                [pos[1] - 0.125 + np.random.rand() * 0.25 for pos in bmuList], c=cls,
+                                cmap=cm.get_cmap('magma'),
                                 s=400, linewidth=0, zorder=10)
                     plt.title('Datapoints Projection on Nodes Difference', size=80)
                 else:
                     printName = os.path.join(path, 'projection_feature' + str(colnum) + '.png')
                     self.nodes_graph(colnum, False, False)
                     plt.scatter([pos[0] - 0.125 + np.random.rand() * 0.25 for pos in bmuList],
-                                [pos[1] - 0.125 + np.random.rand() * 0.25 for pos in bmuList], c=cls, cmap=cm.get_cmap('magma'),
+                                [pos[1] - 0.125 + np.random.rand() * 0.25 for pos in bmuList], c=cls,
+                                cmap=cm.get_cmap('magma'),
                                 s=400, edgecolor='#ffffff', linewidth=4, zorder=10)
                     plt.title('Datapoints Projection #' + str(colnum), size=80)
 

@@ -1,23 +1,18 @@
-import benchmark_data as bd
-import datasets as ds
-import scatter_plot
+import functools
+
 import matplotlib.pyplot as plt
-import derivatives as deriv
-import wavelets as wt
-import pywt
 import numpy as np
-from sklearn.decomposition import PCA
-import plotly.express as px
-from multiprocessing.dummy import Pool as ThreadPool
-from sklearn.preprocessing import StandardScaler
-import superlets as slt
 from sklearn import metrics
-import discretewlt as dwt
-from sklearn.utils import check_X_y
-from sklearn.preprocessing import LabelEncoder
+from sklearn.decomposition import PCA
 from sklearn.metrics import pairwise_distances_chunked
 from sklearn.metrics.cluster.unsupervised import check_number_of_labels
-import functools
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.utils import check_X_y
+
+import datasets as ds
+import scatter_plot
+import superlets as slt
 
 
 def silhouette_samples2(X, labels, metric='euclidean', **kwds):
@@ -197,7 +192,6 @@ def remove_separated_clusters(spikes, labels, metric, threshold):
 
 
 def main():
-
     spikes, labels = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
                                                         [[10], [7], [6], [15], [2], [8], [13], [8], [2]], False)
     result_spikes1 = slt.slt(spikes, 5, 1.8)
@@ -207,5 +201,6 @@ def main():
     result_spikes = pca_2d.fit_transform(result_spikes1)
     scatter_plot.plot("Ground truth for Sim_generated", result_spikes, labels, marker='o')
     plt.show()
+
 
 main()

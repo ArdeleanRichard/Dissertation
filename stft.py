@@ -1,22 +1,21 @@
-import benchmark_data as bd
-
-from sklearn import metrics
-import datasets as ds
-import matplotlib.pyplot as plt
-import scatter_plot as sp
-import numpy as np
-from sklearn.decomposition import PCA
-import constants as cs
-import scipy.signal as signal
-import derivatives as deriv
 import csv
-import stft_dpss as dpss
-import scipy.spatial.distance as distance
-from sklearn.utils import check_X_y
-from sklearn.preprocessing import LabelEncoder
+import functools
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.signal as signal
+from sklearn.decomposition import PCA
 from sklearn.metrics import pairwise_distances_chunked
 from sklearn.metrics.cluster.unsupervised import check_number_of_labels
-import functools
+from sklearn.preprocessing import LabelEncoder
+from sklearn.utils import check_X_y
+
+import benchmark_data as bd
+import constants as cs
+import datasets as ds
+import derivatives as deriv
+import scatter_plot as sp
+import stft_dpss as dpss
 
 
 def short_time_fourier_feature_extraction():
@@ -571,7 +570,6 @@ def silhouette_reduce2(D_chunk, start, labels, label_freqs):
     clust_dists /= label_freqs
     inter_clust_dists = clust_dists.min(axis=1)
     return intra_clust_dists, inter_clust_dists
-
 
 # generate_dataset_from_simulations2([9], [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]], trial='sim9_pipeline_1')
 # generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17], [[10], [7], [6], [15], [2], [8], [13], [8], [2]],

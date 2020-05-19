@@ -1,12 +1,13 @@
 import csv
 import sys
 import warnings
+
+import matplotlib.pyplot as plt
 import numpy as np
+import plotly.express as px
 from sklearn import metrics
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import plotly.express as px
 
 import SBM
 import constants as cs

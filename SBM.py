@@ -1,12 +1,15 @@
+import sys
+import time
+
 import numpy as np
 from sklearn import preprocessing
-import time
-import sys
+
 sys.setrecursionlimit(100000)
 
 import SBM_functions as fs
 
-def sequential(X, pn, ccThreshold = 5, version=2):
+
+def sequential(X, pn, ccThreshold=5, version=2):
     """
     Sequential version of SBM
     :param X: matrix - the points of the dataset
@@ -26,23 +29,24 @@ def sequential(X, pn, ccThreshold = 5, version=2):
         point = clusterCenters[labelM1]
         if labelsMatrix[point] != 0:
             continue  # cluster was already discovered
-        labelsMatrix = fs.expand_cluster_center(ndArray, point, labelsMatrix, labelM1 + 1, clusterCenters, version=version)
+        labelsMatrix = fs.expand_cluster_center(ndArray, point, labelsMatrix, labelM1 + 1, clusterCenters,
+                                                version=version)
 
-    #bring cluster labels back to (-1) - ("nr of clusters"-2) range
+    # bring cluster labels back to (-1) - ("nr of clusters"-2) range
     uniqueClusterLabels = np.unique(labelsMatrix)
     nrClust = len(uniqueClusterLabels)
     for label in range(len(uniqueClusterLabels)):
-        if uniqueClusterLabels[label] == -1 or uniqueClusterLabels[label]==0: # don`t remark noise/ conflicta
-            nrClust -=1
+        if uniqueClusterLabels[label] == -1 or uniqueClusterLabels[label] == 0:  # don`t remark noise/ conflicta
+            nrClust -= 1
             continue
 
-    labels = fs.dechunkify_sequential(X, labelsMatrix, pn)#TODO 2
-    #print("number of actual clusters: ", nrClust)
+    labels = fs.dechunkify_sequential(X, labelsMatrix, pn)  # TODO 2
+    # print("number of actual clusters: ", nrClust)
 
     return labels
 
 
-def parallel(X, pn, ccThreshold = 5, version=2):
+def parallel(X, pn, ccThreshold=5, version=2):
     """
     Multi-threaded version of SBM
     :param X: matrix - the points of the dataset
@@ -55,22 +59,21 @@ def parallel(X, pn, ccThreshold = 5, version=2):
     # 1. normalization of the dataset to bring it to 0-pn on all axes
     X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
 
-
     # 2. chunkification of the dataset into a matrix of "squares"(for 2d)
     # returns an array of pn for each dimension
     start = time.time()
     ndArray = fs.chunkify_parallel(X, pn)
-    #rotated = rotateMatrix(np.copy(ndArray))
-    #np.savetxt("csf.txt", rotated, fmt="%i", delimiter="\t")
+    # rotated = rotateMatrix(np.copy(ndArray))
+    # np.savetxt("csf.txt", rotated, fmt="%i", delimiter="\t")
     end = time.time()
-    #print('CHUNKIFY: ' + str(end - start))
+    # print('CHUNKIFY: ' + str(end - start))
 
     # 3, search of cluster centers (based on a guassian distrubution of the clusters) (current > all neighbours)
     # returns a list of points that are the cluster centers
     start = time.time()
     clusterCenters = fs.find_cluster_centers(ndArray, ccThreshold)
     end = time.time()
-    #print('CC: ' + str(end - start))
+    # print('CC: ' + str(end - start))
 
     # 4. expansion of the cluster centers using BFS
     # returns an array of the same lengths as the chunkification containing the labels
@@ -80,22 +83,19 @@ def parallel(X, pn, ccThreshold = 5, version=2):
         point = clusterCenters[labelM1]
         if labelsMatrix[point] != 0:
             continue  # cluster was already discovered
-        labelsMatrix = fs.expand_cluster_center(ndArray, point, labelsMatrix, labelM1 + 1, clusterCenters, version=version)
+        labelsMatrix = fs.expand_cluster_center(ndArray, point, labelsMatrix, labelM1 + 1, clusterCenters,
+                                                version=version)
     end = time.time()
-    #print('EXPAND: ' + str(end - start))
-
+    # print('EXPAND: ' + str(end - start))
 
     # scatter_plot.plotCenters("centers", X, clusterCenters, pn, plot=True, marker='.')
 
     start = time.time()
     # 5. inverse of chunkification, from the labels array we get the label of each points
     # returns an array of the size of the initial dataset each containing the label for the corresponding point
-    labels = fs.dechunkify_parallel(X, labelsMatrix, pn)#TODO 2
+    labels = fs.dechunkify_parallel(X, labelsMatrix, pn)  # TODO 2
     end = time.time()
-    #print('DECHUNKIFY: ' + str(end - start))
-    #print("number of actual clusters: ", nrClust)
+    # print('DECHUNKIFY: ' + str(end - start))
+    # print("number of actual clusters: ", nrClust)
 
     return labels
-
-
-

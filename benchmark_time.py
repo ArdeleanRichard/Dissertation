@@ -1,15 +1,12 @@
-import numpy as np
 import sys
-from timeit import default_timer as timer
 
+import numpy as np
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import KMeans
+
 sys.setrecursionlimit(100000)
 
-
 import SBM
-import SBM_functions as fs
-import scatter_plot
 import datasets as ds
 #
 # dataName = ["S1", "S2", "U", "UO"]
@@ -57,16 +54,17 @@ import datasets as ds
 
 import time
 
+
 def get_simulation_average_time():
     averageKMeansTime = 0
     averageDBSCANTime = 0
     averageSBMv2Time = 0
     averageSBMv1Time = 0
     header = "Dataset Number, KMEANS, DBSCAN, SBM-V2, SBM-V1"
-    allTimes = np.empty((5, ))
+    allTimes = np.empty((5,))
     for i in range(1, 96):
         print(i)
-        if i==24 or i==25 or i==44:
+        if i == 24 or i == 25 or i == 44:
             continue
         X, y = ds.get_dataset_simulation_pca_3d(simNr=i)
 
@@ -91,7 +89,6 @@ def get_simulation_average_time():
         dbscanTime /= 5
         averageDBSCANTime += dbscanTime
 
-
         sbmv2Time = 0
         for j in range(0, 5):
             start = time.time()
@@ -100,7 +97,6 @@ def get_simulation_average_time():
             sbmv2Time += (end - start)
         sbmv2Time /= 5
         averageSBMv2Time += sbmv2Time
-
 
         sbmv1Time = 0
         for j in range(0, 5):
@@ -113,9 +109,10 @@ def get_simulation_average_time():
 
         allTimes = np.vstack((allTimes, [i, kmeansTime, dbscanTime, sbmv2Time, sbmv1Time]))
     np.savetxt("PCA3D_time.csv", allTimes, delimiter=',', header=header, fmt="%10.2f")
-    print("Average KMeans Time: {}".format(np.array(averageKMeansTime)/92))
-    print("Average DBSCAN Time: {}".format(np.array(averageDBSCANTime)/92))
-    print("Average SBM Time: {}".format(np.array(averageSBMv2Time)/92))
-    print("Average SBM Time: {}".format(np.array(averageSBMv1Time)/92))
+    print("Average KMeans Time: {}".format(np.array(averageKMeansTime) / 92))
+    print("Average DBSCAN Time: {}".format(np.array(averageDBSCANTime) / 92))
+    print("Average SBM Time: {}".format(np.array(averageSBMv2Time) / 92))
+    print("Average SBM Time: {}".format(np.array(averageSBMv1Time) / 92))
+
 
 get_simulation_average_time()

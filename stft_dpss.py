@@ -1,14 +1,15 @@
-import benchmark_data as bd
-
-import datasets as ds
-import matplotlib.pyplot as plt
-import scatter_plot as sp
-import numpy as np
-from sklearn.decomposition import PCA
-import constants as cs
-import scipy.signal as signal
-import derivatives as deriv
 import csv
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.signal as signal
+from sklearn.decomposition import PCA
+
+import benchmark_data as bd
+import constants as cs
+import datasets as ds
+import derivatives as deriv
+import scatter_plot as sp
 
 
 def generate_stft_windows(w_nr=4, plot=False):

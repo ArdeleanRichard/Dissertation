@@ -1,16 +1,16 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import time
-from sklearn import metrics
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 import SBM
-import SBM_functions as fs
-import scatter_plot
 import datasets as ds
+import scatter_plot
+
 
 def main():
-    #data = ds.getTINSData()
-    #data, y = ds.getGenData()
+    # data = ds.getTINSData()
+    # data, y = ds.getGenData()
     data, y = ds.get_dataset_simulation_features(simNr=3, align_to_peak=True)
 
     print(data)

@@ -1,7 +1,9 @@
-import ctypes, ctypes.util
-import struct
-import numpy as np
+import ctypes
+import ctypes.util
+
 import matplotlib.pyplot as plt
+import numpy as np
+
 import derivatives as deriv
 
 
@@ -75,7 +77,7 @@ def slt(spikes, ord, ncyc, derivatives=True):
             result_partial = []
 
             for j in np.arange(250):
-            # result2.append(np.ndarray.flatten(np.array(result[i])))
+                # result2.append(np.ndarray.flatten(np.array(result[i])))
                 result_partial.append(max(result[i][j]))
             max1 = max(result_partial)
             maxpos = result_partial.index(max1)
@@ -132,4 +134,3 @@ def slt_1spike(spike, spike_pos, label, ord, ncyc, freq_start, freq_end):
     plt.ylabel("Frequency - linear")
     plt.savefig("Sim" + str(2) + "_spike" + str(spike_pos) + "label" + str(label) + "_superlets")
     plt.show()
-

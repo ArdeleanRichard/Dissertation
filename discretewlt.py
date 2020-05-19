@@ -1,11 +1,8 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pywt
-import matplotlib.pyplot as plt
-from matplotlib import cm
-import scaleogram as scg
-import math
+
 import derivatives as deriv
-from scaleogram import CWT
 
 
 def dwt_fd_method(spikes):

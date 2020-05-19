@@ -1,4 +1,6 @@
-feature_extraction_methods = ["pca_2d", "pca_3d", "derivatives_2d", "superlets_2d", "superlets_3d", "wavelet_derivatives_2d","wavelet_derivatives_3d", "dwt_2d", "hilbert", "EMD_derivatives"]
+feature_extraction_methods = ["pca_2d", "pca_3d", "derivatives_2d", "superlets_2d", "superlets_3d",
+                              "wavelet_derivatives_2d", "wavelet_derivatives_3d", "dwt_2d", "hilbert",
+                              "EMD_derivatives"]
 feature_space_dimensions = [2, 3, 2, 2, 2, 2, 3, 2]
 algorithms = ["K-Means", "DBSCAN", "SBM"]
 perf_eval_labeled_data_results = ["Adjusted_Rand_Index", "Adjusted_Mutual_Info", "Fowlkes_Msllows"]
@@ -47,4 +49,3 @@ LABEL_COLOR_MAP = {-1: 'gray',
                    33: 'turquoise',
                    34: 'wheat',
                    }
-

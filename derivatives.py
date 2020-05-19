@@ -1,6 +1,5 @@
 import numpy as np
-from scipy.ndimage import gaussian_filter, gaussian_filter1d, laplace, gaussian_laplace
-from scipy.signal import savgol_filter
+from scipy.ndimage import gaussian_filter1d
 
 
 def compute_fdmethod_1spike(spike):

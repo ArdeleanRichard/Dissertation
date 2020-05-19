@@ -1,11 +1,10 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pywt
-import matplotlib.pyplot as plt
-from matplotlib import cm
-import scaleogram as scg
-import math
+
 import derivatives as deriv
-from scaleogram import CWT
+
+
 # from oct2py import octave, Oct2Py
 # from multiprocessing.dummy import Pool as ThreadPool
 
@@ -50,6 +49,7 @@ def plot_wavelet(spikes, spike_pos, sim_nr):
     plt.ylabel("Frequency - linear")
     plt.show()
 
+
 #
 # def superlet_1spike(spike):
 #     oct = Oct2Py()
@@ -88,7 +88,7 @@ def fd_wavelets(spikes):
     result = []
     # time = np.arange(len(spikes[0]))
     # scales = np.arange(1, min(len(time) / 10, 100))
-    scales = np.arange(10,100)
+    scales = np.arange(10, 100)
 
     # scales = np.arange(1, min(len(spikes) / 10, 100))
     for spike in spikes:
@@ -105,7 +105,7 @@ def wavelets(spikes):
     result = []
     # time = np.arange(len(spikes[0]))
     # scales = np.arange(1, min(len(time) / 10, 100))
-    scales = np.arange(10,100)
+    scales = np.arange(10, 100)
 
     scales = np.arange(1, min(len(spikes) / 10, 100))
     for spike in spikes:
