@@ -43,18 +43,17 @@ def fourier_feature_extract():
     fft_signal = fft(spikes)
 
     X = [x.real for x in fft_signal[:, 0:40]]
-    # print(np.array(X).shape)
-    # sp.plot_spikes(X, "Real")
     Y = [x.imag for x in fft_signal[:, 0:40]]
-    # sp.plot_spikes(Y, "Imaginary")
-
     amplitude = np.sqrt(np.add(np.multiply(X, X), np.multiply(Y, Y)))
     phase = np.arctan2(Y, X)
     power = np.power(amplitude, 2)
+    # sp.plot_spikes(X, "Real")
+    # sp.plot_spikes(Y, "Imaginary")
     # sp.plot_spikes(amplitude, "Amplitude")
     # sp.plot_spikes(phase, "Phase")
     # sp.plot_spikes(power, "Power")
 
+    # plot the real-imaginary and amplitude-phase values
     label_color = [cs.LABEL_COLOR_MAP[l] for l in labels]
     # for i in range(0, len(X)-1):
     #     plt.scatter(X[i], amplitude[i], color=label_color[i])
@@ -64,6 +63,7 @@ def fourier_feature_extract():
     # plt.title('Sim 79 with FFT real-amplitude values')
     # plt.show()
 
+    # plot the spikes in the same cluster
     # time = np.arange(40)
     # label_1 = np.array([5, 11, 22, 23, 25])
     # for i in label_1:
@@ -93,7 +93,7 @@ def fourier_feature_extract():
     title = "GT Fourier amplitude on Sim_" + str(sim_nr)
     sp.plot(title=title, X=amplitude_signal_pca, labels=labels,
             marker='o')
-    plt.savefig('figures/stft_plots/%s' % title)
+    # plt.savefig('figures/stft_plots/%s' % title)
     plt.show()
     sp.plot(title="GT on Fourier phase coeff on Sim_" + str(sim_nr), X=phase_signal_pca, labels=labels, marker='o')
     plt.show()

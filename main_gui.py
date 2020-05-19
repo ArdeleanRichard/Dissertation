@@ -2,7 +2,7 @@ import benchmark_data as bd
 
 import datasets as ds
 import matplotlib.pyplot as plt
-from scipy.fftpack import fft
+from sklearn import metrics
 import scatter_plot as sp
 import numpy as np
 from sklearn.decomposition import PCA
@@ -14,11 +14,11 @@ import derivatives
 
 
 def gui():
-    bd.accuracy_all_algorithms_on_simulation(simulation_nr=1,
-                                             feature_extract_method=0,
+    bd.accuracy_all_algorithms_on_simulation(simulation_nr=15,
+                                             feature_extract_method=1,
                                              plot=True,
                                              pe_labeled_data=False,
-                                             pe_unlabeled_data=True,
+                                             pe_unlabeled_data=False,
                                              pe_extra=False)
 
 
@@ -148,8 +148,7 @@ def plot_single_spike():
     for i in range(1, 79):
         print('f(%d,%d)=1' % (i, spike[i]))
 
-
-gui()
+# gui()
 # plot_all_ground_truths()
 # spikes_per_cluster(2)
 # all_spikes()

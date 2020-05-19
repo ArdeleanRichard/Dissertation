@@ -45,7 +45,7 @@ def benchmark_algorithm_labeled_data(y, labels):
         Evaluate the performance of the clustering by using ARI, AMI and Fowlkes_Mallows.
         Specific to labeled data.
         :param labels: the result of the algorithm
-        :param y: the coordinates of the data
+        :param y: the ground truth labels
         :returns np.array: list - the result of the performance evaluation
     """
     all_ari = metrics.adjusted_rand_score(y, labels)
