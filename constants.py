@@ -1,5 +1,5 @@
-feature_extraction_methods = ["pca_2d", "pca_3d", "derivatives_2d"]
-feature_space_dimensions = [2, 3, 2]
+feature_extraction_methods = ["pca_2d", "pca_3d", "derivatives_2d", "hilbert"]
+feature_space_dimensions = [2, 3, 2, 2]
 algorithms = ["K-Means", "DBSCAN", "SBM"]
 perf_eval_labeled_data_results = ["Adjusted_Rand_Index", "Adjusted_Mutual_Info", "Fowlkes_Msllows"]
 perf_eval_extra_labeled_data_results = ["Homogenity", "Completeness", "V-score"]
@@ -25,13 +25,13 @@ LABEL_COLOR_MAP = {-1: 'gray',
                    11: 'tab:pink',
                    12: 'lime',
                    13: 'orchid',
-                   14: 'fuchsia',
+                   14: 'khaki',
                    15: 'lightgreen',
                    16: 'orangered',
                    17: 'salmon',
                    18: 'silver',
                    19: 'yellowgreen',
-                   20: 'aqua',
+                   20: 'royalblue',
                    21: 'beige',
                    22: 'crimson',
                    23: 'indigo',
@@ -47,4 +47,3 @@ LABEL_COLOR_MAP = {-1: 'gray',
                    33: 'turquoise',
                    34: 'wheat',
                    }
-

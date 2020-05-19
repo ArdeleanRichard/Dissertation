@@ -1,11 +1,12 @@
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-from sklearn import preprocessing
 import math
+
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn import preprocessing
+from sklearn.decomposition import PCA
+
 import constants as cs
-
-
 
 
 def plot(title, X, labels=None, plot=True, marker='o'):
@@ -25,7 +26,11 @@ def plot(title, X, labels=None, plot=True, marker='o'):
         if labels is None:
             plt.scatter(X[:, 0], X[:, 1], marker=marker, edgecolors='k')
         else:
-            label_color = [cs.LABEL_COLOR_MAP[l] for l in labels]
+            try:
+                label_color = [cs.LABEL_COLOR_MAP[l] for l in labels]
+            except KeyError:
+                print('Too many labels! Using default colors...\n')
+                label_color = [l for l in labels]
             plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
 
 
@@ -103,5 +108,28 @@ def plot_spikes(spikes, title=""):
     """
     for i in range(0, len(spikes), 300):
         plt.plot(np.arange(79), spikes[i])
+    plt.xlabel('Time')
+    plt.ylabel('Magnitude')
     plt.title(title)
     plt.show()
+
+
+def spikes_per_cluster(spikes, labels, sim_nr):
+    print("Spikes:" + str(spikes.shape))
+
+    pca2d = PCA(n_components=2)
+
+    for i in range(np.amax(labels) + 1):
+        spikes_by_color = spikes[labels == i]
+        for j in range(0, len(spikes_by_color), 20):
+            plt.plot(np.arange(79), spikes_by_color[j])
+        plt.title("Cluster %d Sim_%d" % (i, sim_nr))
+        plt.savefig('figures/spikes_on_cluster/Sim_%d_Cluster_%d' % (sim_nr, i))
+        plt.show()
+        cluster_pca = pca2d.fit_transform(spikes_by_color)
+        # plot(title="GT with PCA Sim_%d" % sim_nr, X=cluster_pca, marker='o')
+        plt.scatter(cluster_pca[:, 0], cluster_pca[:, 1], c=cs.LABEL_COLOR_MAP[i], marker='o', edgecolors='k')
+        plt.title("Cluster %d Sim_%d" % (i, sim_nr))
+        plt.savefig('figures/spikes_on_cluster/Sim_%d_Cluster_%d_pca' % (sim_nr, i))
+        plt.show()
+        # print(cluster_pca)

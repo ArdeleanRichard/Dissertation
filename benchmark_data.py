@@ -1,12 +1,13 @@
 import csv
 import sys
 import warnings
+
+import matplotlib.pyplot as plt
 import numpy as np
+import plotly.express as px
 from sklearn import metrics
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import plotly.express as px
 
 import SBM
 import constants as cs
@@ -45,7 +46,7 @@ def benchmark_algorithm_labeled_data(y, labels):
         Evaluate the performance of the clustering by using ARI, AMI and Fowlkes_Mallows.
         Specific to labeled data.
         :param labels: the result of the algorithm
-        :param x: the coordinates of the data
+        :param y: the ground truth
         :returns np.array: list - the result of the performance evaluation
     """
     all_ari = metrics.adjusted_rand_score(y, labels)
@@ -75,13 +76,13 @@ def print_benchmark_labeled_data(sim_nr, algorithm_number, pe_results):
             pe_results[1]))
     print(
         "Sim" + str(sim_nr) + " - " + cs.algorithms[algorithm_number] + " - " + 'ARI-NNP: {: .3f}'.format(
-            pe_results[3]))
+            pe_results[2]))
     print(
         "Sim" + str(sim_nr) + " - " + cs.algorithms[algorithm_number] + " - " + 'AMI-NNP: {: .3f}'.format(
-            pe_results[4]))
+            pe_results[3]))
     print(
         "Sim" + str(sim_nr) + " - " + cs.algorithms[algorithm_number] + " - " + 'FMI: {: .3f}'.format(
-            pe_results[2]))
+            pe_results[4]))
 
 
 def write_benchmark_labeled_data(simulation_number, feature_extr_method, pe_values):
@@ -186,6 +187,8 @@ def benchmark_algorithm_extra(labels, y):
 def print_benchmark_extra(sim_nr, algorithm_number, pe_results):
     """
         Print the results of extra benchmarking for labeled data in the console
+        :param pe_results: results to print
+        :param sim_nr: simulation number
         :param algorithm_number: integer - number of the algorithm (0 = K-Means, 1=DBSCAN, 2=SBM)
         :returns None
     """
@@ -200,15 +203,20 @@ def print_benchmark_extra(sim_nr, algorithm_number, pe_results):
 
 
 def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method, plot=False,
-                                          pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False):
+                                          pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False,
+                                          save_folder="", title=""):
+    title_suffix = str(simulation_nr) + "_" + title
     # get data
     X, y = ds.apply_feature_extraction_method(simulation_nr, feature_extract_method)
-    if cs.feature_space_dimensions[feature_extract_method] == 2:
-        scatter_plot.plot("Ground truth for Sim_" + str(simulation_nr), X, y, marker='o')
+
+    if X.shape[1] == 2:
+        scatter_plot.plot("Ground truth for Sim_" + title_suffix, X, y, marker='o')
+        if save_folder != "":
+            plt.savefig('figures/' + save_folder + '/' + "sim" + title_suffix + "_0ground" + '.png')
         plt.show()
-    else:
+    elif X.shape[1] == 3:
         fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2], color=y)
-        fig.update_layout(title="Ground truth for Sim_" + str(simulation_nr))
+        fig.update_layout(title="Ground truth for Sim_" + title_suffix)
         fig.show()
 
     # apply algorithm(s) and save clustering labels
@@ -218,14 +226,17 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
 
     # plot algorithms labels
     if plot:
-        if cs.feature_space_dimensions[feature_extract_method] == 2:
+        if X.shape[1] == 2:
             for a in range(0, 3):
-                scatter_plot.plot(cs.algorithms[a] + " on Sim_" + str(simulation_nr), X, labels[a], marker='o')
+                scatter_plot.plot(cs.algorithms[a] + " on Sim_" + title_suffix, X, labels[a],
+                                  marker='o')
+                if save_folder != "":
+                    plt.savefig('figures/' + save_folder + '/' + "sim" + title_suffix + "_" + cs.algorithms[a] + '.png')
                 plt.show()
-        else:
+        elif X.shape[1] == 3:
             for a in range(0, 3):
                 fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2], color=labels[a])
-                fig.update_layout(title=cs.algorithms[a] + " for Sim_" + str(simulation_nr))
+                fig.update_layout(title=cs.algorithms[a] + " for Sim_" + title_suffix)
                 fig.show()
 
     # performance evaluation
@@ -253,3 +264,34 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
         for a in range(0, 3):
             pe_extra_results[a] = benchmark_algorithm_extra(y, labels[a])
             print_benchmark_extra(simulation_nr, a, pe_extra_results[a])
+
+
+def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method=3):
+    """
+    :param l_sim: lower bound simulation number
+    :param r_sim: upper bound simulation number
+    :param feature_extract_method: feature extraction method (see constants.py)
+    :return: array of means of the metrics
+    """
+    simulations_results = []
+    for sim in range(l_sim, r_sim + 1):
+        if sim == 25:
+            continue
+        print("Running sim", sim)
+        X, y = ds.apply_feature_extraction_method(sim, feature_extract_method)
+
+        # apply algorithm(s) and save clustering labels
+        labels = [[], [], []]
+        for alg in range(0, 3):
+            labels[alg] = apply_algorithm(X, y, alg)
+
+        pe_labeled_data_results = [[], [], []]
+        for alg in range(0, 3):
+            pe_labeled_data_results[alg] = benchmark_algorithm_labeled_data(y, labels[alg])
+            write_benchmark_labeled_data(sim, cs.feature_extraction_methods[feature_extract_method],
+                                         pe_labeled_data_results)
+        simulations_results.append(pe_labeled_data_results)
+    average_accuracy = np.mean(np.array(simulations_results), axis=0)
+    [print_benchmark_labeled_data(str(l_sim) + "-" + str(r_sim), alg, average_accuracy[alg]) for alg in range(0, 3)]
+
+    return average_accuracy
