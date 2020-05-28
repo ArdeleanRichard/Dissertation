@@ -12,7 +12,7 @@ import derivatives as deriv
 import scatter_plot as sp
 
 
-def generate_stft_windows(w_nr=4, plot=False):
+def generate_stft_windows(w_nr=4, plot=False, plot_s=False):
     M = 79  # 512
     NW = 2.5  # 2.5
     win, eigvals = signal.windows.dpss(M, NW, w_nr, return_ratios=True)
@@ -24,6 +24,17 @@ def generate_stft_windows(w_nr=4, plot=False):
         ax.legend(['win[%d] (%0.4f)' % (ii, ratio)
                    for ii, ratio in enumerate(eigvals)])
         fig.tight_layout()
+        plt.show()
+    if plot_s:
+        fig = plt.figure(figsize=(7, 10))
+        # fig = plt.figure(figsize=(5, 7))
+        axes = fig.subplots(w_nr)
+        for i, ax in enumerate(axes):
+            ax.set_title("DPSS window %d" % i)
+            ax.plot(win[i].T, linewidth=2.)
+            ax.set_xlabel("Time")
+            ax.set_ylabel("Magnitude")
+            plt.tight_layout()
         plt.show()
     return win
 
@@ -179,7 +190,8 @@ def loop_stft_dpss_concat():
         writer = csv.writer(file, delimiter=',')
         writer.writerow(average)
 
-# generate_stft_windows(w_nr=7, plot=True)
+
+# generate_stft_windows(w_nr=4, plot=True)
 # stft_with_dpss_windows(sim_nr=37, w_nr=0)
 # save_all_dpss()
 # plot_spike_dpss()

@@ -8,7 +8,10 @@ import derivatives as deriv
 
 
 def slt(spikes, ord, ncyc, derivatives=True):
-    superletsDLL = ctypes.WinDLL("superlets_wrapper.dll")
+
+    # superletsDLL = ctypes.WinDLL(r"D:\AC\Anul_4\Licenta\superlets_wrapper.dll")
+    superletsDLL = ctypes.WinDLL("D:\\AC\\Anul_4\\Licenta\\superlets_wrapper.dll")
+
     superletsDLL.asrwt_alloc.restype = ctypes.POINTER(ctypes.c_int)
     superletsDLL.asrwt_alloc.argtypes = [ctypes.c_int, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_int,
                                          ctypes.c_float, ctypes.c_int, ctypes.c_int, ctypes.c_bool]

@@ -229,7 +229,7 @@ def generate_dataset_from_simulations2(simulations, simulation_labels, save=Fals
 
 
 # bd.accuracy_all_algorithms_on_multiple_simulations(1, 20, feature_extract_method=3)
-# hilbert_emd(2)
+hilbert_emd(2)
 
 # spikes_, labels_ = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
 #                                                       [[10], [7], [6], [15], [2], [8], [13], [8], [2]], pca=True)
@@ -368,8 +368,8 @@ def test_silhouette_on_pca(sim_nr):
 # test_silhouette()
 
 
-for i in range(3, 4):
-    if i == 24 or i == 25 or i == 44:
-        continue
-    print("SIM", i)
-    test_silhouette_on_pca(i)
+# for i in range(3, 4):
+#     if i == 24 or i == 25 or i == 44:
+#         continue
+#     print("SIM", i)
+#     test_silhouette_on_pca(i)
