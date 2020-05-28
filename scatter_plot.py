@@ -1,5 +1,8 @@
+import math
+
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.express as px
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
@@ -30,6 +33,18 @@ def plot(title, X, labels=None, plot=True, marker='o'):
                 print('Too many labels! Using default colors...\n')
                 label_color = [l for l in labels]
             plt.scatter(X[:, 0], X[:, 1], c=label_color, marker=marker, edgecolors='k')
+
+
+def plot_clusters(spikes, labels=None, title="", save_folder=""):
+    if spikes.shape[1] == 2:
+        plot(title, spikes, labels)
+        if save_folder != "":
+            plt.savefig('./figures/' + save_folder + "/" + title)
+        plt.show()
+    elif spikes.shape[1] == 3:
+        fig = px.scatter_3d(spikes, x=spikes[:, 0], y=spikes[:, 1], z=spikes[:, 2], color=labels.astype(str))
+        fig.update_layout(title=title)
+        fig.show()
 
 
 def plot_centers(title, X, clusterCenters, pn, plot=True, marker='o'):
