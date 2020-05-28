@@ -30,7 +30,6 @@ def get_half_width(spike):
     right_width_index = 0
 
     spike_max, spike_max_index = get_max(spike)
-    spike_min, spike_min_index = get_min(spike)
 
     for index in range(spike_max_index, len(spike) - 1):
         if spike[index] > spike_max / 2 > spike[index + 1]:
@@ -41,7 +40,7 @@ def get_half_width(spike):
             left_width_index = get_closest_index(spike, index, spike_max)
             break
 
-    spike_half_width = abs(spike[right_width_index] - spike[left_width_index])
+    spike_half_width = right_width_index - left_width_index
     return spike_half_width, right_width_index, left_width_index
 
 
@@ -64,7 +63,7 @@ def get_valleys_near_peak(spike):
     return left_min_index, spike[left_min_index], right_min_index, spike[right_min_index]
 
 
-def get_shape_phase_distribution_features(spikes, plot=False):
+def get_shape_phase_distribution_features(spikes, plot=True):
     """
     :returns derivative based features
     P1	First zero-crossing of the FD before the action potential has been detected
@@ -137,20 +136,24 @@ def get_shape_phase_distribution_features(spikes, plot=False):
 
         if plot:
             plt.plot(np.arange(79), spike, label='spike')
-            plt.plot(np.arange(79), fd, '--', label='first derivative')
-            plt.plot(np.arange(79), sd, ':', label='second derivative')
-            plt.plot(spike_max_index, spike_max, marker='o', label='spike peak')
-            plt.plot(p1_fd_min_before_peak_index, fd[p1_fd_min_before_peak_index], marker='o',
-                     label='P1: FD valley before peak')
-            plt.plot(p2_argmin_fd, fd[p2_argmin_fd], marker='o', label='P2: FD valley')
-            plt.plot(p3_sd_max_index, f18_sd_max, marker='o', label='P3: SD peak')
-            plt.plot(p4_fd_max_index, fd[p4_fd_max_index], marker='o', label='P4: FD peak')
-            plt.plot(p5_sd_min_index, f19_sd_min, marker='o', label='SD valley')
-            plt.plot(p6_fd_min_after_p5_index, fd[p6_fd_min_after_p5_index], marker='o', label='P6: FD valley after P5')
-            plt.axvline(x=spike_max_index)
-            plt.plot([0, 80], [0, 0])
+            # plt.plot(np.arange(79), fd, '--', label='first derivative')
+            # plt.plot(np.arange(79), sd, ':', label='second derivative')
+            # plt.plot(spike_max_index, spike_max, marker='o', label='spike peak')
+            # plt.plot(p1_fd_min_before_peak_index, fd[p1_fd_min_before_peak_index], marker='o',
+            #          label='P1: FD valley before peak')
+            # plt.plot(p2_argmin_fd, fd[p2_argmin_fd], marker='o', label='P2: FD valley')
+            # plt.plot(p3_sd_max_index, f18_sd_max, marker='o', label='P3: SD peak')
+            # plt.plot(p4_fd_max_index, fd[p4_fd_max_index], marker='o', label='P4: FD peak')
+            # plt.plot(p5_sd_min_index, f19_sd_min, marker='o', label='SD valley')
+            # plt.plot(p6_fd_min_after_p5_index, fd[p6_fd_min_after_p5_index], marker='o', label='P6: FD valley after P5')
+            # plt.axvline(x=spike_max_index)
+            # plt.plot([0, 80], [0, 0])
+            # plt.title("Shape and Phase Features")
+            plt.plot(left_width_index + np.arange(spike_half_width),
+                     np.repeat((spike[left_width_index] + spike[right_width_index]) / 2, spike_half_width),
+                     label='Half-Width')
             plt.legend()
-            plt.title("Shape and Phase Features")
+            plt.title("Spike Half-Width")
             plt.xlabel("Time")
             plt.ylabel("Amplitude")
             plt.show()

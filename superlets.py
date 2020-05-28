@@ -61,7 +61,6 @@ def slt(spikes, ord, ncyc, derivatives=True):
 
     superletsDLL.asrwt_free(ptr)
 
-    print("done")
     result2 = []
     if derivatives:
         for i in np.arange(len(spikes)):
@@ -88,6 +87,7 @@ def slt(spikes, ord, ncyc, derivatives=True):
             fin.append(max1)
             fin.append(maxpos)
             result2.append(np.array(fin))
+    print("done")
     return result2
 
 
