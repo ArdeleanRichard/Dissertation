@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from PyEMD import EMD, Visualisation
+from PyEMD import EMD
+from sklearn import metrics
 from sklearn.decomposition import PCA
 from sklearn.metrics import pairwise_distances_chunked
 from sklearn.metrics.cluster.unsupervised import check_number_of_labels
@@ -16,16 +17,18 @@ from sklearn.utils import check_X_y
 import benchmark_data as bd
 import constants as cs
 import datasets as ds
+import feature_extraction as fe
 import libraries.SimpSOM as sps
 import libraries.som as som2
+import pipeline
 import scatter_plot
-import spike_features
+import shape_features
 
 
 def get_mutual_info(simulation_nr):
     spikes, labels = ds.get_dataset_simulation(simulation_nr)
     # features = spike_features.get_features(spikes)
-    features = spike_features.get_shape_phase_distribution_features(spikes)
+    features = shape_features.get_shape_phase_distribution_features(spikes)
     pca_2d = PCA(n_components=2)
     features = pca_2d.fit_transform(features)
     dims = ['fd_max', 'spike_max', 'fd_min']
@@ -105,42 +108,59 @@ def som_err_graph(simulation_nr, dim, start_learn_rate, epochs):
 # print("Mutual Info alg", a, " ", mutual_info_classif(X, labels[a], discrete_features="auto"))
 # get_mutual_info(21)
 
-def hilbert_emd(simulation_nr, visualisation=False, plot_spikes=False):
-    spikes, labels = ds.get_dataset_simulation(simulation_nr)
+def get_dataset_simulation_hht(spikes):
     emd = EMD()
-    time = np.arange(79)
-
-    for num, spike in enumerate(spikes):
+    spikes = np.array(spikes)
+    features = np.zeros((spikes.shape[0], 3))
+    for i, spike in enumerate(spikes):
         emd(spike)
         IMFs, res = emd.get_imfs_and_residue()
 
-        if visualisation:
-            vis = Visualisation()
-            vis.plot_imfs(imfs=IMFs, residue=res, t=time, include_residue=True)
-            # vis.plot_instant_freq(IMFs, imfs=IMFs)
-            vis.show()
+        hb = fe.hilbert(IMFs)
+        phase = np.unwrap(np.angle(hb))
+        inst_f = (np.diff(phase) / (2.0 * np.pi))
 
-        if plot_spikes:
-            fig = plt.figure()
-            ax0 = fig.add_subplot()
-            ax0.set_title("Sim" + str(simulation_nr) + "_Spike" + str(num))
-            ax0.plot(time, spike, label="spike")
-            imf_signal = spike - res
-            ax0.plot(time, imf_signal, label="no_res")
-            # ax0.plot(time, res, label=res)
-            # ax0.plot(time, IMFs[0], label="IMF[0]")
-            # ax0.plot(time, IMFs[1], label="IMF[1]")
-            # ax0.plot(time, IMFs[2], label="IMF[2]")
-            ax0.legend()
-            # plt.savefig('figures/spikes/sim22/sim' + str(simulation_nr) + "_spike" + str(num) + '.png')
-            plt.show()
+        # time = np.arange(78)
+        # fig = plt.figure(figsize=(5, 7))
+        # axes = fig.subplots(IMFs.shape[0])
+        # for imf, ax in enumerate(axes):
+        #     ax.set_title("Instantaneous frequency of IMF%s" % imf)
+        #     ax.plot(time, inst_f[imf])
+        #     ax.set_xlabel("Time")
+        #     ax.set_ylabel("Magnitude")
+        #     plt.tight_layout()
+        #     plt.savefig('figures/EMD/sim' + str(sim_nr) + '_spike' + str(i) + '_inst_freq_on_IMFs' + '.png')
+        # plt.show()
+
+        features[i] = np.array([np.max(spike), np.max(inst_f), np.min(inst_f)])
+
+        # if IMFs.shape[0] >= 4:
+        #     features[i] = np.concatenate((f[0], f[1], f[2], f[3]))
+        # elif IMFs.shape[0] >= 3:
+        #     features[i] = np.concatenate((f[0], f[1], f[2], [0, 0]))
+        # else:
+        #     features[i] = np.concatenate((f[0], f[1], [0, 0], [0, 0]))
+
+    features = fe.reduce_dimensionality(features, method='PCA2D')
+    return features
+
+
+def get_features_shape_phase_distribution(spikes):
+    pca_2d = PCA(n_components=2)
+
+    features = shape_features.get_shape_phase_distribution_features(spikes)
+    features = pca_2d.fit_transform(features)
+    print("Variance Ratio = ", np.sum(pca_2d.explained_variance_ratio_))
+
+    return features
 
 
 def accuracy_alex(spikes_arg, labels_arg, plot=False,
                   pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False,
                   save_folder="", title=""):
     title_suffix = title
-    X, y = ds.get_hilbert_features(0, spikes_arg=spikes_arg, labels_arg=labels_arg)
+    X = get_dataset_simulation_hht(spikes_arg)
+    y = labels_arg
     # feature_reduction='derivativesPCA2D')
 
     if X.shape[1] == 2:
@@ -228,19 +248,6 @@ def generate_dataset_from_simulations2(simulations, simulation_labels, save=Fals
     return spikes, labels
 
 
-# bd.accuracy_all_algorithms_on_multiple_simulations(1, 20, feature_extract_method=3)
-# hilbert_emd(2)
-
-# spikes_, labels_ = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
-#                                                       [[10], [7], [6], [15], [2], [8], [13], [8], [2]], pca=True)
-# spikes_, labels_ = generate_dataset_from_simulations2([2],[[2,4,5,6,8,9,10,12,14,15,16,18,19]], pca=True)
-# accuracy_alex(spikes_, labels_, plot=False, pe_unlabeled_data=False)
-
-# Diana: rosu, albastru, verde
-# Alex: negru, galben, aqua
-# Andreea: ticlam, mov, orange
-
-
 def write_cluster_info(sim_nr_left, sim_nr_right):
     results = []
     for sim_nr in range(sim_nr_left, sim_nr_right + 1):
@@ -251,7 +258,7 @@ def write_cluster_info(sim_nr_left, sim_nr_right):
         for i in range(1 + max(labels)):
             cluster_spikes, cluster_labels = generate_dataset_from_simulations2([sim_nr], [[i]])
             cluster_features = {"sim_nr": sim_nr, "spike_nr": i}
-            cluster_features.update(spike_features.describe_cluster(cluster_spikes))
+            cluster_features.update(shape_features.describe_cluster(cluster_spikes))
             results.append(cluster_features)
     with open('./results/Sim_%s_%s_features.csv' % (sim_nr_left, sim_nr_right), 'w', newline='') as file:
         writer = csv.DictWriter(file, results[0].keys())
@@ -269,15 +276,10 @@ def write_cluster_info(sim_nr_left, sim_nr_right):
 #         print(means[i])
 
 
-def test_silhouette(sim_nr=0):
-    # spikes_arg, labels_arg = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
-    #                                    [[10], [7], [6], [15], [2], [8], [13], [8], [2]])
-    # spikes, labels = ds.get_dataset_simulation_hilbert(0, spikes_arg=spikes_arg, labels_arg=labels_arg,
-    #                                          feature_reduction='derivativesPCA2D')
-    # scatter_plot.plot("Test sil", spikes, labels)
-    # plt.show()
-    # test_silhouette_sample(spikes, labels)
-    spikes, labels = ds.get_hilbert_features(sim_nr, feature_reduction='derivativesPCA2D')
+def test_silhouette():
+    spikes, labels = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
+                                                        [[10], [7], [6], [15], [2], [8], [13], [8], [2]])
+    spikes, labels = fe.apply_feature_extraction_method(spikes, 'hilbert', 'derivatives_pca2d')
     test_silhouette_sample(spikes, labels)
 
 
@@ -342,34 +344,114 @@ def silhouette_reduce2(D_chunk, start, labels, label_freqs):
     return intra_clust_dists, inter_clust_dists
 
 
-def test_silhouette_sample(spikes, labels, metric='euclidean'):
-    sil_coeffs = silhouette_samples2(spikes, labels, metric=metric)
+def test_silhouette_sample(spikes, labels, metric='euclidean', sim_nr=0):
+    sil_coeffs = metrics.silhouette_samples(spikes, labels, metric=metric)
     print(metric)
     means = []
     for label in range(max(labels) + 1):
         means.append(sil_coeffs[labels == label].mean())
-    for i in np.arange(len(means)):
-        print(means[i])
+
+    return means
 
 
 def test_silhouette_on_pca(sim_nr):
-    amplitude_pca, labels = ds.get_hilbert_features(sim_nr)
+    amplitude_pca, labels = ds.get_features_hilbert_envelope(sim_nr)
     distances = ['euclidean', 'manhattan', 'mahalanobis', 'sqeuclidean', 'chebyshev', 'minkowski',
                  'braycurtis', 'canberra', 'correlation']
+    means = []
     for i in range(len(distances)):
-        test_silhouette_sample(amplitude_pca, labels, metric=distances[i])
-        print()
+        means.append(test_silhouette_sample(amplitude_pca, labels, metric=distances[i]))
+    with open('./results/Sim_%s_metrics.csv' % (sim_nr), 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['euclidean', 'manhattan', 'mahalanobis', 'sqeuclidean', 'chebyshev', 'minkowski',
+                         'braycurtis', 'canberra', 'correlation'])
+        writer.writerows(means)
 
 
-# for i in range(11, 20):
+
+def get_dataset_simulation_emd_quartiles(sim_nr, spike_length=79, align_to_peak=True, normalize_spike=False,
+                                         spikes_arg=None, labels_arg=None):
+    if sim_nr == 0:
+        spikes = np.array(spikes_arg)
+        labels = np.array(labels_arg)
+    else:
+        spikes, labels = get_dataset_simulation(sim_nr, spike_length, align_to_peak, normalize_spike)
+    emd = EMD()
+
+    features = np.zeros((spikes.shape[0], 12))
+    for i, spike in enumerate(spikes):
+        emd(spike)
+        IMFs, res = emd.get_imfs_and_residue()
+        hb = np.abs(hilbert(spike))
+        ffts = fft.fft(IMFs)
+        freq = fft.fftfreq(len(ffts[0]))
+        t = np.arange(79)
+
+        # Only a name
+        IMFs = np.abs(ffts)
+        # f = np.array(deriv.compute_fdmethod(IMFs))
+
+        f1 = np.array([np.percentile(IMFs[0], 25), np.percentile(IMFs[0], 50), np.percentile(IMFs[0], 75)])
+        f2 = np.array([np.percentile(IMFs[1], 25), np.percentile(IMFs[1], 50), np.percentile(IMFs[1], 75)])
+        f3 = np.array([0, 0, 0])
+        f4 = np.array([0, 0, 0])
+        if IMFs.shape[0] >= 3:
+            f3 = np.array([np.percentile(IMFs[2], 25), np.percentile(IMFs[2], 50), np.percentile(IMFs[2], 75)])
+        if IMFs.shape[0] >= 4:
+            f4 = np.array([np.percentile(IMFs[3], 25), np.percentile(IMFs[3], 50), np.percentile(IMFs[3], 75)])
+
+        # print(np.concatenate((np.array([f1, f2, f3, f4]))))
+        features[i] = np.concatenate((np.array([f1, f2, f3, f4])))
+        # print(freq)
+        # plt.plot(freq, fft1.real, freq, fft1.imag)
+        # plt.show()
+        # plt.clf()
+        # plt.plot(freq, fft2.real, freq, fft2.imag)
+        # plt.show()
+
+    features = reduce_dimensionality(features, method='PCA2D')
+    return features, labels
+
+
+# bd.accuracy_all_algorithms_on_multiple_simulations(1, 2, feature_extract_method='hilbert')
+# hilbert_emd(2)
+
+# spikes_, labels_ = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
+#                                                       [[10], [7], [6], [15], [2], [8], [13], [8], [2]], pca=True)
+# spikes_, labels_ = generate_dataset_from_simulations2([62], [[3, 4, 6]], pca=True)
+# accuracy_alex(spikes_, labels_, plot=False, pe_unlabeled_data=False)
+
+
+# Diana: rosu, albastru, verde
+# Alex: negru, galben, aqua
+# Andreea: ticlam, mov, orange
+
+
+# for i in range(1, 40):
+#     if i == 24 or i == 25 or i == 44:
+#         continue
 #     print("SIM", i)
-#     test_silhouette(i)
-#     print()
-# test_silhouette()
+#     test_silhouette_on_pca(i)
 
+# for i in range(1, 10):
+#     run_acc(i)
 
-for i in range(3, 4):
-    if i == 24 or i == 25 or i == 44:
-        continue
-    print("SIM", i)
-    test_silhouette_on_pca(i)
+def run_acc(sim_nr):
+    bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
+                                             feature_extract_method='fourier_power',
+                                             dim_reduction_method='PCA2D',
+                                             plot=True,
+                                             pe_labeled_data=True,
+                                             pe_unlabeled_data=False,
+                                             pe_extra=False,
+                                             # save_folder='EMD',
+                                             )
+
+run_acc(22)
+
+# spikes, labels = pipeline.generate_dataset_from_simulations2([22], [[0, 1, 2, 3, 4, 5, 6]], False)
+# pipeline.pipeline(spikes, labels, [
+#     ['hilbert', 'derivatives3d', 'mahalanobis', 0.65],
+#     ['stft_d', 'PCA3D', 'mahalanobis', 0.67],
+#     ['superlets', 'PCA3D', 'euclidean', 0.70],
+# ])

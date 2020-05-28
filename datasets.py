@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 import derivatives as deriv
 import discretewlt as dwt
 import scatter_plot
-import spike_features
+import shape_features
 import superlets as slt
 import wavelets as wlt
 
@@ -261,6 +261,7 @@ def get_dataset_simulation_dwt2d(simNr, spike_length=79, align_to_peak=True, nor
     result_spikes1 = scaler.fit_transform(result_spikes1)
     pca_2d = PCA(n_components=2)
     result_spikes = pca_2d.fit_transform(result_spikes1)
+    return result_spikes
 
 
 # spike extraction options
@@ -336,7 +337,7 @@ def get_shape_phase_distribution_features(sim_nr, spike_length=79, align_to_peak
         spikes, labels = get_dataset_simulation(sim_nr, spike_length, align_to_peak, normalize_spike)
     pca_2d = PCA(n_components=2)
 
-    features = spike_features.get_shape_phase_distribution_features(spikes)
+    features = shape_features.get_shape_phase_distribution_features(spikes)
     features = pca_2d.fit_transform(features)
     print("Variance Ratio = ", np.sum(pca_2d.explained_variance_ratio_))
 
@@ -396,50 +397,6 @@ def get_emd_imf_derivatives_features(sim_nr, spike_length=79, align_to_peak=True
             features[i] = np.concatenate((f[0], f[1], f[2], [0, 0]))
         else:
             features[i] = np.concatenate((f[0], f[1], [0, 0], [0, 0]))
-
-    features = reduce_dimensionality(features, method='PCA2D')
-    return features, labels
-
-
-def get_dataset_simulation_emd_quartiles(sim_nr, spike_length=79, align_to_peak=True, normalize_spike=False,
-                                         spikes_arg=None, labels_arg=None):
-    if sim_nr == 0:
-        spikes = np.array(spikes_arg)
-        labels = np.array(labels_arg)
-    else:
-        spikes, labels = get_dataset_simulation(sim_nr, spike_length, align_to_peak, normalize_spike)
-    emd = EMD()
-
-    features = np.zeros((spikes.shape[0], 12))
-    for i, spike in enumerate(spikes):
-        emd(spike)
-        IMFs, res = emd.get_imfs_and_residue()
-        hb = np.abs(hilbert(spike))
-        ffts = fft.fft(IMFs)
-        freq = fft.fftfreq(len(ffts[0]))
-        t = np.arange(79)
-
-        # Only a name
-        IMFs = np.abs(ffts)
-        # f = np.array(deriv.compute_fdmethod(IMFs))
-
-        f1 = np.array([np.percentile(IMFs[0], 25), np.percentile(IMFs[0], 50), np.percentile(IMFs[0], 75)])
-        f2 = np.array([np.percentile(IMFs[1], 25), np.percentile(IMFs[1], 50), np.percentile(IMFs[1], 75)])
-        f3 = np.array([0, 0, 0])
-        f4 = np.array([0, 0, 0])
-        if IMFs.shape[0] >= 3:
-            f3 = np.array([np.percentile(IMFs[2], 25), np.percentile(IMFs[2], 50), np.percentile(IMFs[2], 75)])
-        if IMFs.shape[0] >= 4:
-            f4 = np.array([np.percentile(IMFs[3], 25), np.percentile(IMFs[3], 50), np.percentile(IMFs[3], 75)])
-
-        # print(np.concatenate((np.array([f1, f2, f3, f4]))))
-        features[i] = np.concatenate((np.array([f1, f2, f3, f4])))
-        # print(freq)
-        # plt.plot(freq, fft1.real, freq, fft1.imag)
-        # plt.show()
-        # plt.clf()
-        # plt.plot(freq, fft2.real, freq, fft2.imag)
-        # plt.show()
 
     features = reduce_dimensionality(features, method='PCA2D')
     return features, labels
