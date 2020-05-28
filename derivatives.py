@@ -120,6 +120,31 @@ def compute_first_second_derivative(spikes):
     return np.array(final_result)
 
 
+def fsde_methods_trials(spikes):
+    final_result = []
+    for x in spikes:
+        first_derivative = compute_derivative5stencil(x)
+
+        fmin = min(first_derivative)
+        fmax = max(first_derivative)
+
+        second_derivative = compute_derivative5stencil(first_derivative)
+
+        smin = min(second_derivative)
+        smax = max(second_derivative)
+
+        result = []
+
+        result.append(fmin)
+        result.append(fmax)
+        result.append(smax)
+        # result.append(smin)
+        final_result.append(result)
+
+    return np.array(final_result)
+
+
+
 def method6(f_min, f_max, s_min, s_max):
     """
     Method for computing the 2 dimensions according to fsde dimensionality reduction method

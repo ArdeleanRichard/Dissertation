@@ -457,7 +457,7 @@ def generate_dataset_from_simulations2(simulations, simulation_labels, save=Fals
         pca_2d = PCA(n_components=2)
         amplitude_pca = pca_2d.fit_transform(amplitude)
         sp.plot("STFT D GT for new sim trial_%s" % trial, amplitude_pca, labels, marker='o')
-        plt.savefig('figures/stft_plots/%s_stftd' % trial)
+        # plt.savefig('figures/stft_plots/%s_stftd' % trial)
         plt.show()
         print("STFT d")
         # test_silhouette_sample(amplitude_pca, labels)

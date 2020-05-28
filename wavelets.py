@@ -113,3 +113,33 @@ def wavelets(spikes):
         # coeffs = deriv.compute_fdmethod(np.abs(coeffs))
         result.append(np.ndarray.flatten(np.abs(coeffs)))
     return result
+
+
+def plot_cwt(spike):
+    wavelet = 'cmor0.1-1.5'
+    scales = np.arange(1, 100)
+    coeffs, scales_freq = pywt.cwt(spike, scales, wavelet)
+    time = np.arange(79)
+    fig = plt.figure(figsize=(5, 6))
+    axes = fig.subplots(4)
+    axes[0].set_title("Spike signal")
+    axes[0].plot(time, spike)
+    axes[0].set_xlabel("Time")
+    axes[0].set_ylabel("Magnitude")
+    plt.tight_layout()
+    axes[1].set_title("Scale 1")
+    axes[1].plot(np.arange(len(coeffs[0])), coeffs[0])
+    axes[1].set_xlabel("Time")
+    axes[1].set_ylabel("Magnitude")
+    plt.tight_layout()
+    axes[2].set_title("Scale 50")
+    axes[2].plot(np.arange(len(coeffs[50])), coeffs[50])
+    axes[2].set_xlabel("Time")
+    axes[2].set_ylabel("Magnitude")
+    plt.tight_layout()
+    axes[3].set_title("Scale 100")
+    axes[3].plot(np.arange(len(coeffs[98])), coeffs[98])
+    axes[3].set_xlabel("Time")
+    axes[3].set_ylabel("Magnitude")
+    plt.tight_layout()
+    plt.show()
