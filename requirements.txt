@@ -1,3 +1,4 @@
+SimpSOM
 EMD-signal
 scipy
 numpy==1.16

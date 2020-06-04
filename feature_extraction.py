@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 import scipy.signal as signal
 from PyEMD import EMD
@@ -9,6 +11,7 @@ from sklearn.preprocessing import StandardScaler
 import derivatives
 import derivatives as deriv
 import discretewlt as dwt
+import libraries.SimpSOM as sps
 import shape_features
 import stft_dpss
 import superlets as slt
@@ -100,19 +103,33 @@ def emd_signal_no_residuum(spikes):
 def emd_imf_derivatives(spikes):
     emd = EMD()
 
-    features = np.zeros((spikes.shape[0], 8))
+    features = np.zeros((spikes.shape[0], 10))
     for i, spike in enumerate(spikes):
         emd(spike)
         IMFs, res = emd.get_imfs_and_residue()
 
         f = np.array(deriv.compute_fdmethod(IMFs))
 
-        if IMFs.shape[0] >= 4:
-            features[i] = np.concatenate((f[0], f[1], f[2], f[3]))
-        elif IMFs.shape[0] >= 3:
-            features[i] = np.concatenate((f[0], f[1], f[2], [0, 0]))
-        else:
-            features[i] = np.concatenate((f[0], f[1], [0, 0], [0, 0]))
+        flattened_f = np.ndarray.flatten(f)
+        features[i][0:flattened_f.shape[0]] = flattened_f
+
+    return features
+
+
+def kohonen_som(spikes, dim, epochs, learn_rate, title="", plot=True):
+    filename = 'kohonen_' + str(dim[0]) + 'x' + str(dim[1]) + '_ep' + str(
+        epochs) + '_' + title
+
+    try:
+        k_map = pickle.load(open('models/' + filename + '.sav', 'rb'))
+    except FileNotFoundError:
+        k_map = sps.somNet(dim[0], dim[1], spikes, PBC=True, PCI=True)
+        k_map.train(startLearnRate=learn_rate, epochs=epochs)
+        pickle.dump(k_map, open('models/' + filename + '.sav', 'wb'))
+
+        if plot:
+            k_map.diff_graph(show=True, printout=True, filename='figures/kohonen/' + filename)
+    features = np.array(k_map.project(spikes, show=True, printout=True))
 
     return features
 
@@ -199,8 +216,17 @@ def reduce_dimensionality(n_features, method='PCA2D'):
     return features
 
 
-def apply_feature_extraction_method(spikes, feature_extraction_method=None, dim_reduction_method=None):
+def apply_feature_extraction_method(spikes, feature_extraction_method=None, dim_reduction_method=None, **kwargs):
     spikes = np.array(spikes)
+
+    options = {
+        'som_dim': [40, 40],
+        'som_epochs': 6000,
+        'som_learn_rate': 0.1,
+        'title': "",
+        'extra_plot': False,
+    }
+    options.update(kwargs)
 
     if feature_extraction_method.lower() == 'pca2d':
         features = reduce_dimensionality(spikes, feature_extraction_method)
@@ -220,6 +246,9 @@ def apply_feature_extraction_method(spikes, feature_extraction_method=None, dim_
         features = hilbert_envelope(spikes)
     elif feature_extraction_method.lower() == 'emd':
         features = emd_imf_derivatives(spikes)
+    elif feature_extraction_method.lower() == 'som':
+        features = kohonen_som(spikes, options['som_dim'], options['som_epochs'], options['som_learn_rate'],
+                               options['title'], plot=options['extra_plot'])
     elif feature_extraction_method.lower() == 'stft':
         features = stft(spikes)
     elif feature_extraction_method.lower() == 'stft_d':

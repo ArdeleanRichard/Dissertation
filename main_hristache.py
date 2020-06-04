@@ -1,6 +1,7 @@
 import csv
 import functools
 import pickle
+import struct
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,7 +21,6 @@ import datasets as ds
 import feature_extraction as fe
 import libraries.SimpSOM as sps
 import libraries.som as som2
-import pipeline
 import scatter_plot
 import shape_features
 
@@ -61,12 +61,13 @@ def generate_som(simulation_nr, dim, start_learn_rate, epochs):
 
 def som_features(simulation_nr, dim, start_learn_rate, epochs):
     spikes, labels, k_map = generate_som(simulation_nr, dim, start_learn_rate, epochs)
-    return spikes, labels, k_map, np.array(k_map.project(spikes, show=True, printout=True))
+    features = np.array(k_map.project(spikes, show=True, printout=True))
+    return spikes, labels, k_map, features
 
 
 def som_metrics(simulation_nr, dim, start_learn_rate, epochs, show=True):
     spikes, labels, k_map, features = som_features(simulation_nr, dim, start_learn_rate, epochs)
-
+    print("ala")
     alg_labels = [[], [], []]
     for alg in range(0, 3):
         alg_labels[alg] = bd.apply_algorithm(features, labels, alg)
@@ -108,10 +109,10 @@ def som_err_graph(simulation_nr, dim, start_learn_rate, epochs):
 # print("Mutual Info alg", a, " ", mutual_info_classif(X, labels[a], discrete_features="auto"))
 # get_mutual_info(21)
 
-def get_dataset_simulation_hht(spikes):
+def hilbert_huang_transform(spikes):
     emd = EMD()
     spikes = np.array(spikes)
-    features = np.zeros((spikes.shape[0], 3))
+    features = np.zeros((spikes.shape[0], 8))
     for i, spike in enumerate(spikes):
         emd(spike)
         IMFs, res = emd.get_imfs_and_residue()
@@ -132,7 +133,8 @@ def get_dataset_simulation_hht(spikes):
         #     plt.savefig('figures/EMD/sim' + str(sim_nr) + '_spike' + str(i) + '_inst_freq_on_IMFs' + '.png')
         # plt.show()
 
-        features[i] = np.array([np.max(spike), np.max(inst_f), np.min(inst_f)])
+        # features[i] = np.array([np.max(spike), np.max(inst_f), np.min(inst_f)])
+        f = np.ndarray.flatten(fe.reduce_dimensionality(inst_f, method='PCA2D'))
 
         # if IMFs.shape[0] >= 4:
         #     features[i] = np.concatenate((f[0], f[1], f[2], f[3]))
@@ -159,7 +161,7 @@ def accuracy_alex(spikes_arg, labels_arg, plot=False,
                   pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False,
                   save_folder="", title=""):
     title_suffix = title
-    X = get_dataset_simulation_hht(spikes_arg)
+    X = hilbert_huang_transform(spikes_arg)
     y = labels_arg
     # feature_reduction='derivativesPCA2D')
 
@@ -368,7 +370,6 @@ def test_silhouette_on_pca(sim_nr):
         writer.writerows(means)
 
 
-
 def get_dataset_simulation_emd_quartiles(sim_nr, spike_length=79, align_to_peak=True, normalize_spike=False,
                                          spikes_arg=None, labels_arg=None):
     if sim_nr == 0:
@@ -418,7 +419,7 @@ def get_dataset_simulation_emd_quartiles(sim_nr, spike_length=79, align_to_peak=
 
 # spikes_, labels_ = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
 #                                                       [[10], [7], [6], [15], [2], [8], [13], [8], [2]], pca=True)
-# spikes_, labels_ = generate_dataset_from_simulations2([62], [[3, 4, 6]], pca=True)
+# spikes_, labels_ = ds.get_dataset_simulation(24)
 # accuracy_alex(spikes_, labels_, plot=False, pe_unlabeled_data=False)
 
 
@@ -438,16 +439,22 @@ def get_dataset_simulation_emd_quartiles(sim_nr, spike_length=79, align_to_peak=
 
 def run_acc(sim_nr):
     bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
-                                             feature_extract_method='fourier_power',
+                                             feature_extract_method='emd',
                                              dim_reduction_method='PCA2D',
                                              plot=True,
                                              pe_labeled_data=True,
                                              pe_unlabeled_data=False,
                                              pe_extra=False,
-                                             # save_folder='EMD',
+                                             # save_folder='kohonen',
+
+                                             # som_dim=[35, 45],
+                                             # som_epochs=6000,
+                                             # title='sim' + str(sim_nr),
+                                             # extra_plot=True,
                                              )
 
-run_acc(22)
+
+# run_acc(22)
 
 # spikes, labels = pipeline.generate_dataset_from_simulations2([22], [[0, 1, 2, 3, 4, 5, 6]], False)
 # pipeline.pipeline(spikes, labels, [
@@ -455,3 +462,79 @@ run_acc(22)
 #     ['stft_d', 'PCA3D', 'mahalanobis', 0.67],
 #     ['superlets', 'PCA3D', 'euclidean', 0.70],
 # ])
+
+
+spikes_per_channel = np.array([11837, 2509, 1443, 2491, 18190, 9396, 876, 9484, 9947, 10558, 2095, 3046, 898,
+                               1284, 5580, 6409, 9274, 13625, 419, 193, 3220, 2128, 281, 219, 4111, 1108, 5045, 6476,
+                               973, 908,
+                               787, 10734])
+
+
+def read_timestamps():
+    with open('./datasets/real_data/Waveforms/M017_S001_SRCS3L_25,50,100_0004_5stdv.spiket', 'rb') as file:
+        timestamps = []
+        read_val = file.read(4)
+        timestamps.append(struct.unpack('i', read_val)[0])
+
+        while read_val:
+            read_val = file.read(4)
+            try:
+                timestamps.append(struct.unpack('i', read_val)[0])
+            except struct.error:
+                break
+        timestamps = np.array(timestamps)
+
+        return np.array(timestamps)
+
+
+def read_waveforms():
+    with open('./datasets/real_data/Waveforms/M017_S001_SRCS3L_25,50,100_0004_5stdv.spikew', 'rb') as file:
+        waveforms = []
+        read_val = file.read(4)
+        waveforms.append(struct.unpack('f', read_val)[0])
+
+        while read_val:
+            read_val = file.read(4)
+            try:
+                waveforms.append(struct.unpack('f', read_val)[0])
+            except struct.error:
+                break
+
+        return np.array(waveforms)
+
+
+def extract_spikes(timestamps, waveform, channel):
+    left_limit = np.sum(spikes_per_channel[:channel])
+    right_limit = left_limit + spikes_per_channel[channel]
+    timestamps = timestamps[left_limit:right_limit]
+    # waveform = waveform[channel * 36297600: (channel + 1) * 36297600]
+
+    print(waveform.shape)
+
+    spikes = np.zeros((spikes_per_channel[channel], 58))
+    print(spikes.shape)
+    for index in range(len(timestamps)):
+        # print('index', index)
+        # print(timestamps[index])
+        # print(timestamps[index] + 58)
+        # print(waveform.shape)
+        # print()
+        spikes[index] = waveform[timestamps[index]: timestamps[index] + 58]
+    print(spikes.shape)
+    # print(spikes[-2].shape)
+
+    peak_ind = np.argmin(spikes, axis=1)
+    # avg_peak = np.floor(np.mean(peak_ind))
+    timestamps = timestamps - (19 - peak_ind)
+    timestamps = timestamps.astype(int)
+
+    spikes = []
+    for i in range(len(timestamps)):
+        spikes.append(waveform[timestamps[i]:timestamps[i] + 58])
+        plt.plot(np.arange(58), -spikes[i])
+    plt.show()
+
+
+timestamps_ = read_timestamps()
+waveforms_ = read_waveforms()
+extract_spikes(timestamps_, waveforms_, channel=2)
