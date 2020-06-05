@@ -33,8 +33,7 @@ def fourier_understanding():
         # sp.plot_spikes(spikes_by_color, "Cluster %d Sim_%d" % (i, sim_nr))
 
 
-def fourier_feature_extract():
-    sim_nr = 8
+def fourier_feature_extraction(sim_nr):
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
     # sp.plot("Ground truth" + str(sim_nr), spikes, labels, marker='o')
     # print(labels)
@@ -48,30 +47,14 @@ def fourier_feature_extract():
     amplitude = np.sqrt(np.add(np.multiply(X, X), np.multiply(Y, Y)))
     phase = np.arctan2(Y, X)
     power = np.power(amplitude, 2)
-    # sp.plot_spikes(X, "Real")
-    # sp.plot_spikes(Y, "Imaginary")
-    # sp.plot_spikes(amplitude, "Amplitude")
-    # sp.plot_spikes(phase, "Phase")
-    # sp.plot_spikes(power, "Power")
+    sp.plot_spikes(X, "Real")
+    sp.plot_spikes(Y, "Imaginary")
+    sp.plot_spikes(amplitude, "Amplitude")
+    sp.plot_spikes(phase, "Phase")
+    sp.plot_spikes(power, "Power")
 
-    # plot the real-imaginary and amplitude-phase values
-    label_color = [cs.LABEL_COLOR_MAP[l] for l in labels]
-    # for i in range(0, len(X)-1):
-    #     plt.scatter(X[i], amplitude[i], color=label_color[i])
-    # # plt.scatter(X[:], Y[:], c=label_color, marker='o', edgecolors='k')
-    # plt.xlabel('Real axis')
-    # plt.ylabel('Amplitude axis')
-    # plt.title('Sim 79 with FFT real-amplitude values')
-    # plt.show()
-
-    # plot the spikes in the same cluster
-    # time = np.arange(40)
-    # label_1 = np.array([5, 11, 22, 23, 25])
-    # for i in label_1:
-    #     plt.plot(time, Y[i])
-    #     plt.title("Imaginary FFT for %d" % i)
-    #     plt.savefig("sim_15_imag_s%d.png" % i)
-    #     plt.show()
+    plot_two_spectral_dimensions(X, Y, labels=labels)
+    # plot_spikes_same_cluster(Y)
 
     pca_2d = PCA(n_components=2)
 
@@ -83,97 +66,111 @@ def fourier_feature_extract():
     # plt.show()
 
     real_signal_pca = pca_2d.fit_transform(X)
-    img_signal_pca = pca_2d.fit_transform(Y)
-    sp.plot(title="GT on Fourier real coeff on Sim_" + str(sim_nr), X=real_signal_pca, labels=labels, marker='o')
+    title = "GT on Fourier real coeff on Sim_%d" % sim_nr
+    sp.plot(title=title, X=real_signal_pca, labels=labels, marker='o')
+    plt.savefig('figures/stft_plots/%s' % title)
     plt.show()
-    sp.plot(title="GT on Fourier img coeff on Sim_" + str(sim_nr), X=img_signal_pca, labels=labels, marker='o')
+
+    img_signal_pca = pca_2d.fit_transform(Y)
+    title = "GT on Fourier imaginary coeff on Sim_%d" % sim_nr
+    sp.plot(title=title, X=img_signal_pca, labels=labels, marker='o')
+    plt.savefig('figures/stft_plots/%s' % title)
     plt.show()
 
     amplitude_signal_pca = pca_2d.fit_transform(amplitude)
-    phase_signal_pca = pca_2d.fit_transform(phase)
-    title = "GT Fourier amplitude on Sim_" + str(sim_nr)
-    sp.plot(title=title, X=amplitude_signal_pca, labels=labels,
-            marker='o')
-    # plt.savefig('figures/stft_plots/%s' % title)
+    title = "GT on Fourier amplitude coeff on Sim_%d" % sim_nr
+    sp.plot(title=title, X=amplitude_signal_pca, labels=labels, marker='o')
+    plt.savefig('figures/stft_plots/%s' % title)
     plt.show()
-    sp.plot(title="GT on Fourier phase coeff on Sim_" + str(sim_nr), X=phase_signal_pca, labels=labels, marker='o')
+
+    phase_signal_pca = pca_2d.fit_transform(phase)
+    title = "GT on Fourier phase coeff on Sim_%d" % sim_nr
+    sp.plot(title=title, X=phase_signal_pca, labels=labels, marker='o')
+    plt.savefig('figures/stft_plots/%s' % title)
     plt.show()
 
     power_signal_pca = pca_2d.fit_transform(power)
-    sp.plot(title="GT on Fourier power coeff on Sim_" + str(sim_nr), X=power_signal_pca, labels=labels,
-            marker='o')
+    title = "GT on Fourier power coeff on Sim_%d" % sim_nr
+    sp.plot(title=title, X=power_signal_pca, labels=labels, marker='o')
+    plt.savefig('figures/stft_plots/%s' % title)
     plt.show()
 
-    # SBM
-    real_sbm_labels = bd.apply_algorithm(real_signal_pca, labels, 2)
-    sp.plot(title="SBM on Fourier real coeff on Sim_" + str(sim_nr), X=real_signal_pca, labels=real_sbm_labels,
-            marker='o')
+    for i in range(1, 2):
+        # SBM
+        real_sbm_labels = bd.apply_algorithm(real_signal_pca, labels, i)
+        title = "%s on Fourier real coeff for Sim_%d" % (cs.algorithms[i], sim_nr)
+        sp.plot(title=title, X=real_signal_pca, labels=real_sbm_labels, marker='o')
+        plt.savefig('figures/stft_plots/%s' % title)
+        plt.show()
+
+        img_sbm_labels = bd.apply_algorithm(img_signal_pca, labels, i)
+        title = "%s on Fourier imaginary coeff for Sim_%d" % (cs.algorithms[i], sim_nr)
+        sp.plot(title=title, X=img_signal_pca, labels=img_sbm_labels, marker='o')
+        plt.savefig('figures/stft_plots/%s' % title)
+        plt.show()
+
+        amplitude_sbm_labels = bd.apply_algorithm(amplitude_signal_pca, labels, i)
+        title = "%s on Fourier amplitude coeff for Sim_%d" % (cs.algorithms[i], sim_nr)
+        sp.plot(title=title, X=amplitude_signal_pca, labels=amplitude_sbm_labels, marker='o')
+        plt.savefig('figures/stft_plots/%s' % title)
+        plt.show()
+
+        phase_sbm_labels = bd.apply_algorithm(phase_signal_pca, labels, i)
+        title = "%s on Fourier phase coeff for Sim_%d" % (cs.algorithms[i], sim_nr)
+        sp.plot(title=title, X=phase_signal_pca, labels=phase_sbm_labels, marker='o')
+        plt.savefig('figures/stft_plots/%s' % title)
+        plt.show()
+
+        power_sbm_labels = bd.apply_algorithm(power_signal_pca, labels, i)
+        title = "%s on Fourier power coeff for Sim_%d" % (cs.algorithms[i], sim_nr)
+        sp.plot(title=title, X=power_signal_pca, labels=power_sbm_labels, marker='o')
+        plt.savefig('figures/stft_plots/%s' % title)
+        plt.show()
+
+        real_results = bd.benchmark_algorithm_labeled_data(real_sbm_labels, labels)
+        print("Real")
+        bd.print_benchmark_labeled_data(sim_nr, i, real_results)
+
+        img_results = bd.benchmark_algorithm_labeled_data(img_sbm_labels, labels)
+        print("Imaginary")
+        bd.print_benchmark_labeled_data(sim_nr, i, img_results)
+
+        amplitude_results = bd.benchmark_algorithm_labeled_data(amplitude_sbm_labels, labels)
+        print("Amplitude")
+        bd.print_benchmark_labeled_data(sim_nr, i, amplitude_results)
+
+        phase_results = bd.benchmark_algorithm_labeled_data(phase_sbm_labels, labels)
+        print("Phase")
+        bd.print_benchmark_labeled_data(sim_nr, i, phase_results)
+
+        power_results = bd.benchmark_algorithm_labeled_data(power_sbm_labels, labels)
+        print("Power")
+        bd.print_benchmark_labeled_data(sim_nr, i, power_results)
+
+
+def plot_two_spectral_dimensions(dim1, dim2, labels):
+    # plot the real-imaginary and amplitude-phase values
+    label_color = [cs.LABEL_COLOR_MAP[l] for l in labels]
+    for i in range(0, len(dim1) - 1):
+        plt.scatter(dim1[i], dim2[i], color=label_color[i])
+    # plt.scatter(X[:], Y[:], c=label_color, marker='o', edgecolors='k')
+    plt.xlabel('Real axis')
+    plt.ylabel('Imaginary axis')
+    plt.title('Sim 22 with FFT real-img values')
     plt.show()
-    img_sbm_labels = bd.apply_algorithm(img_signal_pca, labels, 2)
-    sp.plot(title="SBM on Fourier img coeff on Sim_" + str(sim_nr), X=img_signal_pca, labels=img_sbm_labels, marker='o')
-    plt.show()
-    amplitude_sbm_labels = bd.apply_algorithm(amplitude_signal_pca, labels, 2)
-    phase_sbm_labels = bd.apply_algorithm(phase_signal_pca, labels, 2)
-    power_sbm_labels = bd.apply_algorithm(power_signal_pca, labels, 2)
 
-    real_results = bd.benchmark_algorithm_labeled_data(real_sbm_labels, labels)
-    real_f = ["%.3f" % number for number in real_results]
-    print("Real")
-    bd.print_benchmark_labeled_data(sim_nr, 2, real_results)
-
-    img_results = bd.benchmark_algorithm_labeled_data(img_sbm_labels, labels)
-    print("Imaginary")
-    bd.print_benchmark_labeled_data(sim_nr, 2, img_results)
-
-    amplitude_results = bd.benchmark_algorithm_labeled_data(amplitude_sbm_labels, labels)
-    print("Amplitude")
-    bd.print_benchmark_labeled_data(sim_nr, 2, amplitude_results)
-
-    phase_results = bd.benchmark_algorithm_labeled_data(phase_sbm_labels, labels)
-    print("Phase")
-    bd.print_benchmark_labeled_data(sim_nr, 2, phase_results)
-
-    power_results = bd.benchmark_algorithm_labeled_data(power_sbm_labels, labels)
-    print("Power")
-    bd.print_benchmark_labeled_data(sim_nr, 2, power_results)
-    #
-    # # K-means
-    # real_kmeans_labels = bd.apply_algorithm(real_signal_pca, labels, 0)
-    # sp.plot(title="K-Means on Fourier real coeff on Sim_" + str(sim_nr), X=real_signal_pca, labels=real_kmeans_labels,
-    #         marker='o')
-    # plt.show()
-    # img_kmeans_labels = bd.apply_algorithm(img_signal_pca, labels, 0)
-    # sp.plot(title="K-Means on Fourier img coeff on Sim_" + str(sim_nr), X=img_signal_pca, labels=img_kmeans_labels,
-    #         marker='o')
-    # plt.show()
-    #
-    # real_results = bd.benchmark_algorithm_labeled_data(real_kmeans_labels, labels)
-    # img_results = bd.benchmark_algorithm_labeled_data(img_kmeans_labels, labels)
-    # print("Real")
-    # bd.print_benchmark_labeled_data(sim_nr, 0, real_results)
-    # print("Imaginary")
-    # bd.print_benchmark_labeled_data(sim_nr, 0, img_results)
-    #
-    # # DBSCAN
-    # real_dbscan_labels = bd.apply_algorithm(real_signal_pca, labels, 1)
-    # sp.plot(title="DBSCAN on Fourier real coeff on Sim_" + str(sim_nr), X=real_signal_pca, labels=real_dbscan_labels,
-    #         marker='o')
-    # plt.show()
-    # img_dbscan_labels = bd.apply_algorithm(img_signal_pca, labels, 1)
-    # sp.plot(title="DBSCAN on Fourier img coeff on Sim_" + str(sim_nr), X=img_signal_pca, labels=img_dbscan_labels,
-    #         marker='o')
-    # plt.show()
-    #
-    # real_results = bd.benchmark_algorithm_labeled_data(real_dbscan_labels, labels)
-    # img_results = bd.benchmark_algorithm_labeled_data(img_dbscan_labels, labels)
-    # print("Real")
-    # bd.print_benchmark_labeled_data(sim_nr, 1, real_results)
-    # print("Imaginary")
-    # bd.print_benchmark_labeled_data(sim_nr, 1, img_results)
+def plot_spikes_in_same_cluster(dimension):
+    # plot the spikes in the same cluster
+    time = np.arange(40)
+    label_1 = np.array([5, 11, 22, 23, 25])
+    for i in label_1:
+        plt.plot(time, dimension[i])
+        plt.title("Imaginary FFT for %d" % i)
+        plt.savefig("sim_15_imag_s%d.png" % i)
+        plt.show()
 
 
-def fourier_feature_extract_3d():
-    sim_nr = 79
+def fourier_feature_extraction_3d(sim_nr):
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
     # sp.plot("Ground truth" + str(sim_nr), signals, labels, marker='o')
     # sp.plot_spikes(spikes)
@@ -239,16 +236,16 @@ def fourier_all_sim():
 
             pca_2d = PCA(n_components=2)
 
-            # real_signal_pca = pca_2d.fit_transform(X)
-            # img_signal_pca = pca_2d.fit_transform(Y)
-            # amplitude_signal_pca = pca_2d.fit_transform(amplitude)
-            # phase_signal_pca = pca_2d.fit_transform(phase)
-            # power_signal_pca = pca_2d.fit_transform(power)
-            real_signal_pca = derivatives.compute_fdmethod(X)
-            img_signal_pca = derivatives.compute_fdmethod(Y)
-            amplitude_signal_pca = derivatives.compute_fdmethod(amplitude)
-            phase_signal_pca = derivatives.compute_fdmethod(phase)
-            power_signal_pca = derivatives.compute_fdmethod(power)
+            real_signal_pca = pca_2d.fit_transform(X)
+            img_signal_pca = pca_2d.fit_transform(Y)
+            amplitude_signal_pca = pca_2d.fit_transform(amplitude)
+            phase_signal_pca = pca_2d.fit_transform(phase)
+            power_signal_pca = pca_2d.fit_transform(power)
+            # real_signal_pca = derivatives.compute_fdmethod(X)
+            # img_signal_pca = derivatives.compute_fdmethod(Y)
+            # amplitude_signal_pca = derivatives.compute_fdmethod(amplitude)
+            # phase_signal_pca = derivatives.compute_fdmethod(phase)
+            # power_signal_pca = derivatives.compute_fdmethod(power)
 
             # SBM
             real_sbm_labels = bd.apply_algorithm(real_signal_pca, labels, 2)
@@ -322,5 +319,5 @@ def fourier_all_sim():
         writer.writerow(power_average)
 
 # fourier_understanding()
-# fourier_feature_extract()
+fourier_feature_extraction(sim_nr=37)
 # fourier_all_sim()
