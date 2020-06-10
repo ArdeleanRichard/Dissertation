@@ -212,7 +212,7 @@ def reduce_dimensionality(n_features, method='PCA2D'):
         pca_2d = PCA(n_components=2)
         features = pca_2d.fit_transform(features)
     else:
-        features = []
+        raise Exception('Dimensionality Reduction method unknown.')
     return features
 
 
@@ -268,7 +268,7 @@ def apply_feature_extraction_method(spikes, feature_extraction_method=None, dim_
     elif feature_extraction_method.lower() == 'shape':
         features = shape_features.get_shape_phase_distribution_features(spikes)
     else:
-        features = reduce_dimensionality(spikes, 'PCA2D')
+        raise Exception('Feature extraction method unknown.')
 
     if dim_reduction_method is not None:
         features = reduce_dimensionality(features, dim_reduction_method)

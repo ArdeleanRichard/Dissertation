@@ -112,7 +112,7 @@ def som_err_graph(simulation_nr, dim, start_learn_rate, epochs):
 def hilbert_huang_transform(spikes):
     emd = EMD()
     spikes = np.array(spikes)
-    features = np.zeros((spikes.shape[0], 8))
+    features = np.zeros((spikes.shape[0], 10))
     for i, spike in enumerate(spikes):
         emd(spike)
         IMFs, res = emd.get_imfs_and_residue()
@@ -121,27 +121,22 @@ def hilbert_huang_transform(spikes):
         phase = np.unwrap(np.angle(hb))
         inst_f = (np.diff(phase) / (2.0 * np.pi))
 
-        # time = np.arange(78)
-        # fig = plt.figure(figsize=(5, 7))
-        # axes = fig.subplots(IMFs.shape[0])
-        # for imf, ax in enumerate(axes):
-        #     ax.set_title("Instantaneous frequency of IMF%s" % imf)
-        #     ax.plot(time, inst_f[imf])
-        #     ax.set_xlabel("Time")
-        #     ax.set_ylabel("Magnitude")
-        #     plt.tight_layout()
-        #     plt.savefig('figures/EMD/sim' + str(sim_nr) + '_spike' + str(i) + '_inst_freq_on_IMFs' + '.png')
-        # plt.show()
+        time = np.arange(78)
+        fig = plt.figure(figsize=(5, 7))
+        axes = fig.subplots(IMFs.shape[0])
+        for imf, ax in enumerate(axes):
+            ax.set_title("Instantaneous frequency of IMF%s" % imf)
+            ax.plot(time, inst_f[imf])
+            ax.set_xlabel("Time")
+            ax.set_ylabel("Magnitude")
+            plt.tight_layout()
+            plt.savefig('figures/EMD/sim' + str() + '_spike' + str(i) + '_inst_freq_on_IMFs' + '.png')
+        plt.show()
 
         # features[i] = np.array([np.max(spike), np.max(inst_f), np.min(inst_f)])
-        f = np.ndarray.flatten(fe.reduce_dimensionality(inst_f, method='PCA2D'))
-
-        # if IMFs.shape[0] >= 4:
-        #     features[i] = np.concatenate((f[0], f[1], f[2], f[3]))
-        # elif IMFs.shape[0] >= 3:
-        #     features[i] = np.concatenate((f[0], f[1], f[2], [0, 0]))
-        # else:
-        #     features[i] = np.concatenate((f[0], f[1], [0, 0], [0, 0]))
+        f = np.ndarray.flatten(fe.reduce_dimensionality(inst_f, method='derivatives2d'))
+        print(f.shape)
+        features[i][:f.shape[0]] = f
 
     features = fe.reduce_dimensionality(features, method='PCA2D')
     return features
@@ -157,11 +152,11 @@ def get_features_shape_phase_distribution(spikes):
     return features
 
 
-def accuracy_alex(spikes_arg, labels_arg, plot=False,
+def accuracy_alex(spikes_arg, labels_arg=None, plot=False,
                   pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False,
                   save_folder="", title=""):
     title_suffix = title
-    X = hilbert_huang_transform(spikes_arg)
+    X = fe.apply_feature_extraction_method(spikes_arg, 'PCA2D')
     y = labels_arg
     # feature_reduction='derivativesPCA2D')
 
@@ -439,8 +434,8 @@ def get_dataset_simulation_emd_quartiles(sim_nr, spike_length=79, align_to_peak=
 
 def run_acc(sim_nr):
     bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
-                                             feature_extract_method='emd',
-                                             dim_reduction_method='PCA2D',
+                                             feature_extract_method='hilbert',
+                                             dim_reduction_method='derivatives_PCA2D',
                                              plot=True,
                                              pe_labeled_data=True,
                                              pe_unlabeled_data=False,
@@ -487,8 +482,8 @@ def read_timestamps():
         return np.array(timestamps)
 
 
-def read_waveforms():
-    with open('./datasets/real_data/Waveforms/M017_S001_SRCS3L_25,50,100_0004_5stdv.spikew', 'rb') as file:
+def read_waveforms(filename):
+    with open(filename, 'rb') as file:
         waveforms = []
         read_val = file.read(4)
         waveforms.append(struct.unpack('f', read_val)[0])
@@ -535,6 +530,110 @@ def extract_spikes(timestamps, waveform, channel):
     plt.show()
 
 
-timestamps_ = read_timestamps()
-waveforms_ = read_waveforms()
-extract_spikes(timestamps_, waveforms_, channel=2)
+def extract_spikes3(waveform, channel):
+    left_limit = np.sum(spikes_per_channel[:channel])
+    right_limit = left_limit + spikes_per_channel[channel]
+
+    spikes = []
+    for i in range(0, len(waveform), 58):
+        spikes.append(waveform[i:i + 58])
+    print(len(spikes))
+    for i in range(0, len(spikes), 1000):
+        plt.plot(np.arange(58), -spikes[i])
+    plt.show()
+
+    return spikes[left_limit:right_limit]
+
+
+units_per_channel = [
+    [],
+    [1629, 474, 5951, 255],
+    [],
+    [],
+    [686],
+    [15231, 1386, 678],
+    [1269, 1192, 3362, 2263, 192],
+    [79],
+    [684, 2053, 3125],
+    [4313, 160, 123, 2582, 211],
+    [1303, 6933, 1298],
+    [],
+    [285],
+    [],
+    [],
+    [2658, 1489, 461],
+    [1742, 150, 277],
+    [5845, 542],
+    [8762, 886, 699],
+    [],
+    [],
+    [],
+    [252],
+    [],
+    [],
+    [1480, 745, 203],
+    [],
+    [2397, 512],
+    [658, 1328, 138],
+    [],
+    [],
+    [],
+    [5899, 239],
+]
+
+
+def sum_until_channel(channel):
+    ch_sum = 0
+    for i in units_per_channel[:channel]:
+        ch_sum += np.sum(np.array(i)).astype(int)
+
+    return ch_sum
+
+
+def get_spike_units(waveform, channel, plot_spikes=False):
+    spikes = []
+    new_spikes = np.zeros((np.sum(units_per_channel[channel]), 58))
+
+    for i in range(0, len(waveform), 58):
+        spikes.append(waveform[i: i + 58])
+
+    left_limit_spikes = sum_until_channel(channel)
+    right_limit_spikes = left_limit_spikes + np.sum(np.array(units_per_channel[channel]))
+    print(left_limit_spikes, right_limit_spikes)
+    spikes = spikes[left_limit_spikes: right_limit_spikes]
+
+    if plot_spikes:
+        for i in range(0, len(spikes), 1000):
+            plt.plot(np.arange(58), -spikes[i])
+        plt.show()
+
+    labels = np.array([])
+    for i, units in enumerate(units_per_channel[channel]):
+        labels = np.append(labels, np.repeat(i, units))
+
+    for i, units in enumerate(units_per_channel[channel]):
+        left_lim = sum_until_channel(channel)
+        right_lim = left_lim + units
+
+        spike_index = 0
+        for j in range(len(spikes)):
+            # print(j, left_lim, right_lim)
+            new_spikes[spike_index] = spikes[j]
+            spike_index += 1
+    return new_spikes, labels.astype(int)
+
+# timestamps_ = read_timestamps()
+# waveforms_ = read_waveforms('./datasets/real_data/Waveforms/M017_S001_SRCS3L_25,50,100_0004_5stdv.spikew')
+waveforms_ = read_waveforms('./datasets/real_data/Units/M017_0004_5stdv.ssduw')
+# extract_spikes2(timestamps_, waveforms_, channel=1)
+spikes, labels = get_spike_units(waveforms_, channel=9)
+
+spikes2d = fe.apply_feature_extraction_method(spikes, 'derivatives2d',)
+scatter_plot.plot_clusters(spikes2d, labels, 'Deriv2d',)
+plt.show()
+
+# print(spikes2d)
+
+# timestamps_ = read_timestamps()
+# waveforms_ = read_waveforms()
+# extract_spikes(timestamps_, waveforms_, channel=2)
