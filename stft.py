@@ -1,31 +1,26 @@
 import csv
-import functools
 
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as signal
 from sklearn.decomposition import PCA
 from sklearn import metrics
-from sklearn.metrics import pairwise_distances_chunked
-from sklearn.metrics.cluster.unsupervised import check_number_of_labels
-from sklearn.preprocessing import LabelEncoder
-from sklearn.utils import check_X_y
 import plotly.express as px
 
 import benchmark_data as bd
 import constants as cs
 import datasets as ds
-import derivatives as deriv
+import derivatives
 import scatter_plot as sp
 import stft_dpss as dpss
 
 
 def short_time_fourier_feature_extraction():
-    sim_nr = 1
+    sim_nr = 3
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
-    w = 'hamming'
+    w = 'blackman'
     fs = 1
-    nperseg = 40
+    nperseg = 54
     data_nr = 7
     # sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window=w, nperseg=nperseg, noverlap=5)
     sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window=w, fs=fs, nperseg=nperseg)
@@ -53,11 +48,11 @@ def short_time_fourier_feature_extraction():
     # phase_pca = pca_2d.fit_transform(spikes)
     power_pca = pca_2d.fit_transform(power)
 
-    # real_pca = deriv.compute_fdmethod(X)
-    # imaginary_pca = deriv.compute_fdmethod(Y)
-    # amplitude_pca = deriv.compute_fdmethod(amplitude)
-    # phase_pca = deriv.compute_fdmethod(phase)
-    # power_pca = deriv.compute_fdmethod(power)
+    # real_pca = derivatives.compute_fdmethod(X)
+    # imaginary_pca = derivatives.compute_fdmethod(Y)
+    # amplitude_pca = derivatives.compute_fdmethod(amplitude)
+    # phase_pca = derivatives.compute_fdmethod(phase)
+    # power_pca = derivatives.compute_fdmethod(power)
 
     # for spectral_feature in range(3, 8):
     # apply algorithm
@@ -73,19 +68,19 @@ def short_time_fourier_feature_extraction():
         data = phase_pca
     if data_nr == 7:
         data = power_pca
-    sp.plot(title="GT on STFT %s %s Sim_%d" % (w, cs.feature_extraction_methods[data_nr], sim_nr), X=data,
+    sp.plot(title="GT on STFT %s %s Sim_%d" % (w, cs.feature_extraction_methods[data_nr+4], sim_nr), X=data,
             labels=labels, marker='o')
-    plt.savefig('./figures/stft_plots/STFT_%s_%s_Sim_%d' % (w, cs.feature_extraction_methods[data_nr], sim_nr))
+    plt.savefig('./figures/stft_plots/STFT_%s_%s_Sim_%d' % (w, cs.feature_extraction_methods[data_nr+4], sim_nr))
     plt.show()
 
     alg_labels = [[], [], []]
     for alg_nr in range(0, 3):
         alg_labels[alg_nr] = bd.apply_algorithm(data, labels, alg_nr)
         sp.plot(title="%s on STFT %s %s coeff on Sim_%d" % (
-            cs.algorithms[alg_nr], w, cs.feature_extraction_methods[data_nr], sim_nr), X=data,
+            cs.algorithms[alg_nr], w, cs.feature_extraction_methods[data_nr+4], sim_nr), X=data,
                 labels=alg_labels[alg_nr], marker='o')
         plt.savefig('./figures/stft_plots/%s_STFT_%s_%s_Sim_%d' % (
-            cs.algorithms[alg_nr], w, cs.feature_extraction_methods[data_nr], sim_nr))
+            cs.algorithms[alg_nr], w, cs.feature_extraction_methods[data_nr+4], sim_nr))
         plt.show()
 
     pe_labeled_data_results = [[], [], []]
@@ -254,15 +249,12 @@ def plot_stft_spike():
     #         plt.show()
 
 
-def stft_find_nperseg():
+def stft_find_params():
     sim_nr = 94
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
     w_list = ['bartlett', 'blackman', 'blackmanharris', 'bohman', 'flattop', 'hamming', 'hann', 'parzen']
     dimensions = [3, 4, 5, 7]
-    # dimensions = [4]
-    w = 'bartlett'
     fs = 1
-    # nperseg = 43
     data_nr = 7
     for data_nr in dimensions:
         for w in w_list:
@@ -276,7 +268,6 @@ def stft_find_nperseg():
                 X = np.array(X)
                 Y = [x.imag for x in stft_signal]
                 Y = np.array(Y)
-                # amplitude2 = np.sqrt(np.add(np.multiply(X, X), np.multiply(Y, Y)))
                 amplitude = np.abs(stft_signal)
                 phase = np.arctan2(Y, X)
                 power = np.power(amplitude, 2)
@@ -289,7 +280,6 @@ def stft_find_nperseg():
                 phase_pca = pca_2d.fit_transform(phase)
                 power_pca = pca_2d.fit_transform(power)
 
-                # apply algorithm
                 # for data_nr in range(3, 8):
                 data = real_pca
                 if data_nr == 3:
@@ -332,18 +322,18 @@ def stft_find_nperseg():
                             writer.writerow(row)
 
 
-def derivatives_with_stft(sim_nr, nperseg):
+def stft_with_derivatives(sim_nr, nperseg):
     """
-        This function extracts the simulation data, apply stft, apply derivatives, concateates results and apply pca2d.
+        This function extracts the simulation data, apply stft, apply derivatives, concatenates results and apply pca2d.
         Works only with the amplitude for now.
     :return: the SBM results for labeled data
     """
     # sim_nr = 1
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
-
+    print("spikes")
+    print(spikes.shape)
     w = 'blackman'
     fs = 2
-    # nperseg = 48
 
     # sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window=w, nperseg=nperseg, noverlap=5)
     sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window=w, fs=fs, nperseg=nperseg)
@@ -351,22 +341,25 @@ def derivatives_with_stft(sim_nr, nperseg):
     print(len(sampled_frequencies))
 
     # stft_signal = Zxx.reshape(*Zxx.shape[:1], -1)
-    # print(stft_signal.shape)
+    print("Zxx")
+    print(Zxx.shape)
 
     amplitude = np.abs(Zxx)
-    # print(amplitude.shape)
+    print("amplitude")
+    print(amplitude.shape)
     # # on axis 1 - terrible results, on axis 2 are good results
-    amplitude_deriv = np.apply_along_axis(deriv.compute_fdmethod_1spike, 2, amplitude)
-    print(amplitude_deriv.shape)
-    amplitude_concat = amplitude_deriv.reshape(*amplitude_deriv.shape[:1], -1)
-    # print(amplitude_concat.shape)
+    amplitude_d = np.apply_along_axis(derivatives.compute_fdmethod_1spike, 2, amplitude)
+    print(amplitude_d.shape)
+    amplitude_concat = amplitude_d.reshape(*amplitude_d.shape[:1], -1)
+    print("amplitude_concat")
+    print(amplitude_concat.shape)
     pca_2d = PCA(n_components=2)
     amplitude_pca = pca_2d.fit_transform(amplitude_concat)
-    title = "Sim_%d GT %s %s %d" % (sim_nr, cs.feature_extraction_methods[5], w, nperseg)
+    title = "Sim_%d GT %s %s %d" % (sim_nr, cs.feature_extraction_methods[11], w, nperseg)
     sp.plot(title=title, X=amplitude_pca, labels=labels, marker='o')
     plt.savefig('figures/stft_plots/%s' % title)
     plt.show()
-    dim_3d = True
+    dim_3d = False
     if dim_3d:
         pca_3d = PCA(n_components=3)
         X = pca_3d.fit_transform(amplitude_concat)
@@ -375,7 +368,7 @@ def derivatives_with_stft(sim_nr, nperseg):
         fig.show()
 
     sbm_labels = bd.apply_algorithm(amplitude_pca, labels, 2)
-    title_sbm = "SBM on STFT %s %s %d on Sim_%d" % (cs.feature_extraction_methods[5], w, nperseg, sim_nr)
+    title_sbm = "SBM on %s %s %d on Sim_%d" % (cs.feature_extraction_methods[11], w, nperseg, sim_nr)
     sp.plot(title=title_sbm, X=amplitude_pca, labels=sbm_labels, marker='o')
     plt.savefig('figures/stft_plots/%s' % title_sbm)
     plt.show()
@@ -403,7 +396,7 @@ def loop_deriv_stft():
         for i in range(1, 96):
             if i != 25 and i != 27 and i != 44:
                 simulation_counter += 1
-                results = derivatives_with_stft(sim_nr=i, nperseg=nperseg)
+                results = stft_with_derivatives(sim_nr=i, nperseg=nperseg)
                 average += results
                 formatted = ["%.3f" % number for number in results]
                 row = [i, formatted[0], formatted[1], formatted[2], formatted[3], formatted[4]]
@@ -462,7 +455,7 @@ def generate_dataset_from_simulations2(simulations, simulation_labels, save=Fals
         spikes_for_stft = spikes
         sampled_frequencies, time_segments, Zxx = signal.stft(spikes_for_stft, window='blackman', fs=1, nperseg=45)
         amplitude = np.abs(Zxx)
-        amplitude = np.apply_along_axis(deriv.compute_fdmethod_1spike, 2, amplitude)
+        amplitude = np.apply_along_axis(derivatives.compute_fdmethod_1spike, 2, amplitude)
         amplitude = amplitude.reshape(*amplitude.shape[:1], -1)
         pca_2d = PCA(n_components=2)
         amplitude_pca = pca_2d.fit_transform(amplitude)
@@ -473,7 +466,7 @@ def generate_dataset_from_simulations2(simulations, simulation_labels, save=Fals
         test_silhouette_sample(amplitude_pca, labels)
     if dpss_flag:
         spikes_for_stft = spikes
-        w = dpss.generate_stft_windows(w_nr=10)
+        w = dpss.generate_dpss_windows(w_nr=10)
         w_nr = 3
         sampled_frequencies, time_segments, Zxx = signal.stft(spikes_for_stft, window=w[w_nr], fs=1, nperseg=79)
         amplitude = np.abs(Zxx)
@@ -493,7 +486,7 @@ def extract_stft_d(sim_nr=79, dim=2):
     spikes_for_stft = spikes
     sampled_frequencies, time_segments, Zxx = signal.stft(spikes_for_stft, window='blackman', fs=1, nperseg=45)
     amplitude = np.abs(Zxx)
-    amplitude = np.apply_along_axis(deriv.compute_fdmethod_1spike, 2, amplitude)
+    amplitude = np.apply_along_axis(derivatives.compute_fdmethod_1spike, 2, amplitude)
     amplitude = amplitude.reshape(*amplitude.shape[:1], -1)
     pca_2d = PCA(n_components=dim)
     amplitude_pca = pca_2d.fit_transform(amplitude)
@@ -540,8 +533,8 @@ def silhouette_all(dim=2):
 # stft_on_time_segments()
 # stft_level_apply_sbm()
 # plot_stft_spike()
-# short_time_fourier_feature_extraction()
-# derivatives_with_stft(12, 45)
+short_time_fourier_feature_extraction()
+# stft_with_derivatives(3, 45)
 # loop_deriv_stft()
 # test_silhouette_on_pca(sim_nr=1, dim=2)
-silhouette_all(dim=3)
+# silhouette_all(dim=3)

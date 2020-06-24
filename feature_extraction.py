@@ -125,7 +125,7 @@ def stft(spikes):
 
 
 def stft_d(spikes):
-    sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window='blackman', fs=1, nperseg=45)
+    sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window='blackman', fs=1, nperseg=35)
     amplitude = np.abs(Zxx)
     amplitude = np.apply_along_axis(derivatives.compute_fdmethod_1spike, 2, amplitude)
     amplitude = amplitude.reshape(*amplitude.shape[:1], -1)
@@ -133,10 +133,18 @@ def stft_d(spikes):
 
 
 def stft_multitaper(spikes):
-    win = stft_dpss.generate_stft_windows()
-    f0, t0, zxx0 = signal.stft(spikes, window=win[0], nperseg=79, fs=1)
-    f2, t2, zxx2 = signal.stft(spikes, window=win[2], nperseg=79, fs=1)
+    win = stft_dpss.generate_dpss_windows()
+    f0, t0, zxx0 = signal.stft(spikes, window=win[0], nperseg=58, fs=1)
+    f2, t2, zxx2 = signal.stft(spikes, window=win[2], nperseg=58, fs=1)
     Zxx = np.concatenate([zxx0, zxx2], axis=2)
+    stft_signal = Zxx.reshape(*Zxx.shape[:1], -1)
+    amplitude = np.abs(stft_signal)
+    return amplitude
+
+
+def stft_multitaper_w(spikes):
+    win = stft_dpss.generate_dpss_windows()
+    f, t, Zxx = signal.stft(spikes, window=win[1], nperseg=58, fs=1)
     stft_signal = Zxx.reshape(*Zxx.shape[:1], -1)
     amplitude = np.abs(stft_signal)
     return amplitude
@@ -226,6 +234,7 @@ def apply_feature_extraction_method(spikes, feature_extraction_method=None, dim_
         features = stft_d(spikes)
     elif feature_extraction_method.lower() == 'stft_dpss':
         features = stft_multitaper(spikes)
+        # features = stft_multitaper_w(spikes)
     elif feature_extraction_method.lower() == 'fourier_real':
         features = fourier_real(spikes)
     elif feature_extraction_method.lower() == 'fourier_imaginary':

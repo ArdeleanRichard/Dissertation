@@ -12,8 +12,8 @@ import derivatives as deriv
 import scatter_plot as sp
 
 
-def generate_stft_windows(w_nr=4, plot=False, plot_s=False):
-    M = 79  # 512
+def generate_dpss_windows(w_nr=4, plot=False, plot_s=False):
+    M = 58  # 512
     NW = 2.5  # 2.5
     win, eigvals = signal.windows.dpss(M, NW, w_nr, return_ratios=True)
     if plot:
@@ -40,7 +40,7 @@ def generate_stft_windows(w_nr=4, plot=False, plot_s=False):
 
 
 def stft_with_dpss_windows(sim_nr=1, w_nr=0):
-    win = generate_stft_windows()
+    win = generate_dpss_windows()
     # w_nr = 0
     # sim_nr = 40
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
@@ -56,7 +56,7 @@ def stft_with_dpss_windows(sim_nr=1, w_nr=0):
 
 def save_all_dpss():
     pca_2d = PCA(n_components=2)
-    win = generate_stft_windows()
+    win = generate_dpss_windows()
     w_nr = 3
     for alg_nr in range(2, 3):
         average = [0, 0, 0, 0, 0]
@@ -93,7 +93,7 @@ def save_all_dpss():
 def plot_spike_dpss():
     sim_nr = 15
     fs = 1
-    w = generate_stft_windows()
+    w = generate_dpss_windows()
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
     f0, t0, zxx0 = signal.stft(spikes, window=w[0], nperseg=79, fs=fs)
     f1, t1, zxx1 = signal.stft(spikes, window=w[1], nperseg=79, fs=fs)
@@ -123,9 +123,9 @@ def plot_spike_dpss():
     plt.show()
 
 
-def stft_dpss_concat_on_simulation(spikes, derivatives=False):
+def stft_dpss_concat(spikes, derivatives=False):
     fs = 1
-    w = generate_stft_windows()
+    w = generate_dpss_windows()
     f0, t0, zxx0 = signal.stft(spikes, window=w[0], nperseg=79, fs=fs)
     f1, t1, zxx1 = signal.stft(spikes, window=w[1], nperseg=79, fs=fs)
     f2, t2, zxx2 = signal.stft(spikes, window=w[2], nperseg=79, fs=fs)
@@ -147,7 +147,7 @@ def stft_dpss_concat_on_simulation(spikes, derivatives=False):
 def feature_extraction_stft_dpss_concat(sim_nr=79, plot_gt=False, plot_sbm=False):
     pca2d = PCA(n_components=2)
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
-    signal_dpss = stft_dpss_concat_on_simulation(spikes)
+    signal_dpss = stft_dpss_concat(spikes)
     amplitude = np.abs(signal_dpss)
     signal_pca = pca2d.fit_transform(amplitude)
     if plot_gt:
