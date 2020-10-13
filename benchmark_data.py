@@ -224,47 +224,53 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     # apply algorithm(s) and save clustering labels
     labels = [[], [], []]
     for a in range(0, 3):
-        labels[a] = apply_algorithm(X, y, a)
+        if a != 1:
+            labels[a] = apply_algorithm(X, y, a)
 
     # plot algorithms labels
     if plot:
         if X.shape[1] == 2:
             for a in range(0, 3):
-                scatter_plot.plot(cs.algorithms[a] + " on Sim" + title_suffix, X, labels[a],
-                                  marker='o')
-                if save_folder != "":
-                    plt.savefig('figures/' + save_folder + '/' + "sim" + title_suffix + "_" + cs.algorithms[a] + '.png')
-                plt.show()
+                if a != 1:
+                    scatter_plot.plot(cs.algorithms[a] + " on Sim" + title_suffix, X, labels[a],
+                                      marker='o')
+                    if save_folder != "":
+                        plt.savefig('figures/' + save_folder + '/' + "sim" + title_suffix + "_" + cs.algorithms[a] + '.png')
+                    plt.show()
         elif X.shape[1] == 3:
             for a in range(0, 3):
-                fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2], color=labels[a].astype(str))
-                fig.update_layout(title=cs.algorithms[a] + " for Sim" + title_suffix)
-                fig.show()
+                if a != 1:
+                    fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2], color=labels[a].astype(str))
+                    fig.update_layout(title=cs.algorithms[a] + " for Sim" + title_suffix)
+                    fig.show()
 
     # performance evaluation
     if pe_labeled_data:
         print("\nPerformance evaluation - labeled data - " + feature_extract_method)
         pe_labeled_data_results = [[], [], []]
         for a in range(0, 3):
-            pe_labeled_data_results[a] = benchmark_algorithm_labeled_data(y, labels[a])
-            print_benchmark_labeled_data(simulation_nr, a, pe_labeled_data_results[a])
-            write_benchmark_labeled_data(simulation_nr, feature_extract_method, pe_labeled_data_results)
+            if a!=1:
+                pe_labeled_data_results[a] = benchmark_algorithm_labeled_data(y, labels[a])
+                print_benchmark_labeled_data(simulation_nr, a, pe_labeled_data_results[a])
+                write_benchmark_labeled_data(simulation_nr, feature_extract_method, pe_labeled_data_results)
 
     if pe_unlabeled_data:
         print("\nPerformance evaluation - unlabeled data - " + feature_extract_method)
         pe_unlabeled_data_results = [[], [], []]
         pe_ground_results = benchmark_algorithm_unlabeled_data(X, y)
         for a in range(0, 3):
-            pe_unlabeled_data_results[a] = benchmark_algorithm_unlabeled_data(X, labels[a])
-            print_benchmark_unlabeled_data(simulation_nr, a, pe_unlabeled_data_results[a], pe_ground_results)
-            write_benchmark_unlabeled_data(simulation_nr, feature_extract_method, pe_unlabeled_data_results,
+            if a != 1:
+                pe_unlabeled_data_results[a] = benchmark_algorithm_unlabeled_data(X, labels[a])
+                print_benchmark_unlabeled_data(simulation_nr, a, pe_unlabeled_data_results[a], pe_ground_results)
+                write_benchmark_unlabeled_data(simulation_nr, feature_extract_method, pe_unlabeled_data_results,
                                            pe_ground_results)
     if pe_extra:
         print("\nPerformance evaluation - extra - " + feature_extract_method)
         pe_extra_results = [[], [], []]
         for a in range(0, 3):
-            pe_extra_results[a] = benchmark_algorithm_extra(y, labels[a])
-            print_benchmark_extra(simulation_nr, a, pe_extra_results[a])
+            if a != 1:
+                pe_extra_results[a] = benchmark_algorithm_extra(y, labels[a])
+                print_benchmark_extra(simulation_nr, a, pe_extra_results[a])
 
 
 def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method=0):

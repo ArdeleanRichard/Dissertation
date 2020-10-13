@@ -16,12 +16,12 @@ import stft_dpss as dpss
 
 
 def short_time_fourier_feature_extraction():
-    sim_nr = 3
+    sim_nr = 13
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
-    w = 'blackman'
+    w = 'bohman'
     fs = 1
-    nperseg = 54
-    data_nr = 7
+    nperseg = 52
+    data_nr = 2
     # sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window=w, nperseg=nperseg, noverlap=5)
     sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window=w, fs=fs, nperseg=nperseg)
     print(len(time_segments))
@@ -58,29 +58,29 @@ def short_time_fourier_feature_extraction():
     # apply algorithm
     # for data_nr in range(3, 8):
     data = real_pca
-    if data_nr == 3:
+    if data_nr == 0:
         data = real_pca
-    if data_nr == 4:
+    if data_nr == 1:
         data = imaginary_pca
-    if data_nr == 5:
+    if data_nr == 2:
         data = amplitude_pca
-    if data_nr == 6:
+    if data_nr == 3:
         data = phase_pca
-    if data_nr == 7:
+    if data_nr == 4:
         data = power_pca
-    sp.plot(title="GT on STFT %s %s Sim_%d" % (w, cs.feature_extraction_methods[data_nr+4], sim_nr), X=data,
+    sp.plot(title="GT on STFT %s %d %s Sim_%d" % (w, nperseg, cs.feature_extraction_methods[data_nr+13], sim_nr), X=data,
             labels=labels, marker='o')
-    plt.savefig('./figures/stft_plots/STFT_%s_%s_Sim_%d' % (w, cs.feature_extraction_methods[data_nr+4], sim_nr))
+    plt.savefig('./figures/stft_plots/STFT_%s_%d_%s_ampl_Sim_%d' % (w, nperseg, cs.feature_extraction_methods[data_nr+13], sim_nr))
     plt.show()
 
     alg_labels = [[], [], []]
     for alg_nr in range(0, 3):
         alg_labels[alg_nr] = bd.apply_algorithm(data, labels, alg_nr)
-        sp.plot(title="%s on STFT %s %s coeff on Sim_%d" % (
-            cs.algorithms[alg_nr], w, cs.feature_extraction_methods[data_nr+4], sim_nr), X=data,
+        sp.plot(title="%s on STFT %s %d %s coeff on Sim_%d" % (
+            cs.algorithms[alg_nr], w, nperseg, cs.feature_extraction_methods[data_nr+13], sim_nr), X=data,
                 labels=alg_labels[alg_nr], marker='o')
-        plt.savefig('./figures/stft_plots/%s_STFT_%s_%s_Sim_%d' % (
-            cs.algorithms[alg_nr], w, cs.feature_extraction_methods[data_nr+4], sim_nr))
+        plt.savefig('./figures/stft_plots/%s_STFT_%s_%d_%s_Sim_%d' % (
+            cs.algorithms[alg_nr], w, nperseg, cs.feature_extraction_methods[data_nr+13], sim_nr))
         plt.show()
 
     pe_labeled_data_results = [[], [], []]
@@ -199,30 +199,51 @@ def stft_level_apply_sbm():
 
 
 def plot_stft_spike():
-    sim_nr = 15
+    sim_nr = 2
     fs = 1
     # nperseg = 40
-    nperseg = 52
+    nperseg = 45
     w = 'blackman'
     spikes, labels = ds.get_dataset_simulation(sim_nr, spike_length=79, align_to_peak=2, normalize_spike=False)
     f, t, Zxx = signal.stft(spikes, window=w, nperseg=nperseg, fs=fs)
-    stft_signal = Zxx.reshape(*Zxx.shape[:1], -1)
+
     print(f)
     print(t)
     print(Zxx.shape)
     print(Zxx)
+    amplitude = np.abs(Zxx)
+    stft_signal = amplitude.reshape(*amplitude.shape[:1], -1)
+    deriv = True
+    if deriv:
+        amplitude = np.abs(Zxx)
+        amplitude = np.apply_along_axis(derivatives.compute_fdmethod_1spike, 2, amplitude)
+        stft_signal = amplitude.reshape(*amplitude.shape[:1], -1)
 
-    spike_nr = 155
-    plt.plot(stft_signal)  # this is interesting
-    plt.plot(stft_signal[spike_nr])
+
+    spike_nr = 5000
+    # plt.plot(stft_signal)  # this is interesting
+    # plt.title("STFT signal %s fs_%.2f nperseg_%d" % (w, fs, nperseg))
+    # plt.show()
+    X = [x.real for x in stft_signal[spike_nr]]
+    Y = [x.imag for x in stft_signal[spike_nr]]
+    plt.plot(X)
+    plt.plot(Y)
+    plt.title("Concatenated amplitude %s fs_%.2f nperseg_%d" % (w, fs, nperseg))
+    plt.savefig('./figures/stft_plots/conc_amplitude_fs_%d_nperseg_%d' % (fs, nperseg))
     plt.show()
+
     plt.plot(np.arange(79), spikes[spike_nr])
+    plt.title("Spike %d simulation %d" % (spike_nr, sim_nr))
+    plt.savefig('./figures/stft_plots/Spike_%d_simulation_%d' % (spike_nr, sim_nr))
     plt.show()
-    plt.plot(np.abs(Zxx)[spike_nr])
+
+    plt.plot(amplitude[spike_nr])
+    plt.title("Amplitude spike for %s fs_%.2f nperseg_%d" % (w, fs, nperseg))
+    plt.savefig('./figures/stft_plots/Amplitude_spike')
     plt.show()
     # plt.pcolormesh(t, f, np.abs(Zxx)[5], cmap='jet')
     # plt.show()
-    s = plt.imshow(np.abs(Zxx)[spike_nr], cmap='jet', aspect='auto', origin='lower')
+    s = plt.imshow(amplitude[spike_nr], cmap='jet', aspect='auto', origin='lower')
     plt.colorbar(s)
     plt.xlabel('Time')
     plt.ylabel('Frequency')
@@ -353,6 +374,7 @@ def stft_with_derivatives(sim_nr, nperseg):
     amplitude_concat = amplitude_d.reshape(*amplitude_d.shape[:1], -1)
     print("amplitude_concat")
     print(amplitude_concat.shape)
+
     pca_2d = PCA(n_components=2)
     amplitude_pca = pca_2d.fit_transform(amplitude_concat)
     title = "Sim_%d GT %s %s %d" % (sim_nr, cs.feature_extraction_methods[11], w, nperseg)

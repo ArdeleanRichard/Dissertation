@@ -16,15 +16,14 @@ import feature_extraction as fe
 
 
 def gui():
-    bd.accuracy_all_algorithms_on_simulation(simulation_nr=83,
-                                             feature_extract_method='stft_dpss',
+    bd.accuracy_all_algorithms_on_simulation(simulation_nr=4,
+                                             feature_extract_method='stft',
                                              dim_reduction_method='pca2d',
                                              plot=True,
-                                             pe_labeled_data=False,
-                                             pe_unlabeled_data=False,
+                                             pe_labeled_data=True,
+                                             pe_unlabeled_data=True,
                                              pe_extra=False,
-                                             save_folder='spikes_on_cluster',
-                                             # title='IMF_derivatives_PCA2D',
+                                             save_folder='demo',
                                              )
 
 
@@ -404,9 +403,9 @@ def fe_per_channels():
         plt.show()
 
 
-fe_per_channels()
+# fe_per_channels()
 
-# gui()
+gui()
 # plot_all_ground_truths()
 # spikes_per_cluster(2)
 # all_spikes()

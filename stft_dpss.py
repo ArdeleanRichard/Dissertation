@@ -13,7 +13,7 @@ import scatter_plot as sp
 
 
 def generate_dpss_windows(w_nr=4, plot=False, plot_s=False):
-    M = 58  # 512
+    M = 79  # 512
     NW = 2.5  # 2.5
     win, eigvals = signal.windows.dpss(M, NW, w_nr, return_ratios=True)
     if plot:
