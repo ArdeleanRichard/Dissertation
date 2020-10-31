@@ -11,7 +11,7 @@ import scatter_plot
 def main():
     # data = ds.getTINSData()
     # data, y = ds.getGenData()
-    data, y = ds.get_dataset_simulation_features(simNr=3, align_to_peak=True)
+    data, y = ds.get_dataset_simulation_pca_2d(simNr=79, align_to_peak=True)
 
     print(data)
 
