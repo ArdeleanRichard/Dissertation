@@ -6,11 +6,9 @@ import plotly.express as px
 from scipy.fftpack import fft
 from sklearn.decomposition import PCA
 
-import benchmark_data as bd
-import constants as cs
-import datasets as ds
-import derivatives
-import scatter_plot as sp
+from utils.benchmark import benchmark_data as bd
+from utils import constants as cs, scatter_plot as sp
+from utils.datasets import datasets as ds
 
 
 def fourier_understanding():

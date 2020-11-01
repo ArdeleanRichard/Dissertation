@@ -3,9 +3,9 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-import SBM
-import datasets as ds
-import scatter_plot
+from utils.sbm import SBM
+from utils.datasets import datasets as ds
+from utils import scatter_plot
 
 
 def main():

@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
 
-import constants as cs
+from utils import constants as cs
 
 
 def plot(title, X, labels=None, plot=True, marker='o'):

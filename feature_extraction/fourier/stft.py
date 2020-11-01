@@ -7,12 +7,11 @@ from sklearn.decomposition import PCA
 from sklearn import metrics
 import plotly.express as px
 
-import benchmark_data as bd
-import constants as cs
-import datasets as ds
-import derivatives
-import scatter_plot as sp
-import stft_dpss as dpss
+from utils.benchmark import benchmark_data as bd
+from utils import constants as cs, scatter_plot as sp
+from utils.datasets import datasets as ds
+from feature_extraction import derivatives
+from feature_extraction.fourier import stft_dpss as dpss
 
 
 def short_time_fourier_feature_extraction():
@@ -555,7 +554,7 @@ def silhouette_all(dim=2):
 # stft_on_time_segments()
 # stft_level_apply_sbm()
 # plot_stft_spike()
-short_time_fourier_feature_extraction()
+# short_time_fourier_feature_extraction()
 # stft_with_derivatives(3, 45)
 # loop_deriv_stft()
 # test_silhouette_on_pca(sim_nr=1, dim=2)

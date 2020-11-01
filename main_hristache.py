@@ -10,15 +10,13 @@ from scipy import fft
 from scipy.fftpack import hilbert
 from sklearn.decomposition import PCA
 
-import benchmark_data as bd
-import constants as cs
-import datasets as ds
-import feature_extraction as fe
+from utils.benchmark import benchmark_data as bd
+from utils import constants as cs, scatter_plot
+from utils.datasets import datasets as ds
 import libraries.SimpSOM as sps
 import libraries.som as som2
-import pipeline
-import scatter_plot
-import shape_features
+from pipeline import pipeline
+from feature_extraction import shape_features, feature_extraction as fe
 
 
 def get_mutual_info(simulation_nr):
@@ -374,9 +372,9 @@ def real_dataset(channel, feature_extraction_method, dim_reduction_method):
 
 def run_sim(sim_nr):
     bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
-                                             feature_extract_method='hht_ks',
-                                             # dim_reduction_method='derivatives_pca2d',
-                                             dim_reduction_method='pca2d',
+                                             feature_extract_method='hilbert',
+                                             dim_reduction_method='derivatives_pca2d',
+                                             # dim_reduction_method='pca2d',
                                              plot=True,
                                              pe_labeled_data=True,
                                              pe_unlabeled_data=False,
@@ -399,8 +397,8 @@ def run_pipeline():
     ])
 
 
-run_sim(64)
-# run_sim(40)
+# run_sim(64)
+run_sim(40)
 # run_pipeline()
 
 # bd.accuracy_all_algorithms_on_multiple_simulations(1, 3, feature_extract_method='hilbert',

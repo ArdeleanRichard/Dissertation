@@ -3,9 +3,8 @@ from collections import Counter
 import numpy as np
 from sklearn import metrics
 
-import datasets as ds
-import feature_extraction as fe
-import scatter_plot
+from feature_extraction import feature_extraction as fe
+from utils import scatter_plot
 
 
 def remove_separated_clusters(features, spikes, labels, metric, threshold):
@@ -62,16 +61,3 @@ def pipeline(spikes, labels, methods):
                 changed = False
                 break
         stop = not changed
-
-
-# spikes, labels = generate_dataset_from_simulations2([4], [[0, 1, 2, 3, 4]], False)
-spikes, labels = generate_dataset_from_simulations2([21], [[0, 1, 2, 3]], False)
-# spikes, labels = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
-#                                                     [[10], [7], [6], [15], [2], [8], [13], [8], [2]], False)
-pipeline(spikes, labels, [
-    ['stft_d', 'PCA2D', 'mahalanobis', 0.67],
-    ['hilbert', 'derivatives2d', 'mahalanobis', 0.65],
-    ['superlets', 'PCA2D', 'euclidean', 0.70],
-])
-
-# pipeline(spikes, labels, [['pca2d', 'PCA2D', 'euclidean', 0.65]])
