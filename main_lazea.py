@@ -8,7 +8,7 @@ from sklearn.metrics.cluster.unsupervised import check_number_of_labels
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_X_y
 
-from utils.datasets import datasets as ds, realdata
+from utils.dataset_parsing import datasets as ds, realdata
 from utils import scatter_plot
 from feature_extraction import feature_extraction as fe
 
