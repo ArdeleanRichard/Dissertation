@@ -3,7 +3,7 @@ from collections import Counter
 import numpy as np
 from sklearn import metrics
 
-from utils.datasets import datasets as ds
+from utils.dataset_parsing import datasets as ds
 from feature_extraction import feature_extraction as fe
 from utils import scatter_plot
 

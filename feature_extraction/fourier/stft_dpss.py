@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 
 from utils.benchmark import benchmark_data as bd
 from utils import constants as cs, scatter_plot as sp
-from utils.datasets import datasets as ds
+from utils.dataset_parsing import datasets as ds
 from feature_extraction import derivatives as deriv
 
 

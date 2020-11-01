@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans
 sys.setrecursionlimit(100000)
 
 from utils.sbm import SBM
-from utils.datasets import datasets as ds
+from utils.dataset_parsing import datasets as ds
 #
 # dataName = ["S1", "S2", "U", "UO"]
 # files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
