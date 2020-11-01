@@ -6,13 +6,12 @@ import numpy as np
 from sklearn.decomposition import PCA
 import plotly.express as px
 
-import benchmark_data as bd
-import constants as cs
-import datasets as ds
-import scatter_plot as sp
-from constants import LABEL_COLOR_MAP
-import derivatives
-import feature_extraction as fe
+from utils.benchmark import benchmark_data as bd
+from utils import constants as cs, scatter_plot as sp
+from utils.datasets import datasets as ds
+from utils.constants import LABEL_COLOR_MAP
+from feature_extraction import derivatives
+from feature_extraction import feature_extraction as fe
 
 
 def gui():

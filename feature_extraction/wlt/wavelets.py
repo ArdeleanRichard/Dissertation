@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pywt
 
-import derivatives as deriv
+from feature_extraction import derivatives as deriv
 
 
 # from oct2py import octave, Oct2Py

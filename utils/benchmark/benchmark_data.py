@@ -9,11 +9,10 @@ from sklearn import metrics
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import KMeans
 
-import SBM
-import constants as cs
-import datasets as ds
-import feature_extraction as fe
-import scatter_plot
+from utils.sbm import SBM
+from utils import constants as cs, scatter_plot
+from utils.datasets import datasets as ds
+from feature_extraction import feature_extraction as fe
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 sys.setrecursionlimit(100000)
@@ -277,7 +276,8 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
             print_benchmark_extra(simulation_nr, a, pe_extra_results[a])
 
 
-def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method=None, reduce_dimensionality_method=None):
+def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method=None,
+                                                    reduce_dimensionality_method=None):
     """
     :param l_sim: lower bound simulation number
     :param r_sim: upper bound simulation number

@@ -5,11 +5,10 @@ import numpy as np
 import scipy.signal as signal
 from sklearn.decomposition import PCA
 
-import benchmark_data as bd
-import constants as cs
-import datasets as ds
-import derivatives as deriv
-import scatter_plot as sp
+from utils.benchmark import benchmark_data as bd
+from utils import constants as cs, scatter_plot as sp
+from utils.datasets import datasets as ds
+from feature_extraction import derivatives as deriv
 
 
 def generate_dpss_windows(w_nr=4, plot=False, plot_s=False):

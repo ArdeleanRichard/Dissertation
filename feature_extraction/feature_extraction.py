@@ -9,14 +9,11 @@ from scipy.stats import kstest, norm
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-import derivatives
-import derivatives as deriv
-import discretewlt as dwt
+from feature_extraction.wlt import discretewlt as dwt, wavelets as wlt
 import libraries.SimpSOM as sps
-import shape_features
-import stft_dpss
-import superlets as slt
-import wavelets as wlt
+from feature_extraction import shape_features, derivatives as deriv
+from feature_extraction.fourier import stft_dpss
+from feature_extraction.slt import superlets as slt
 
 
 def continuous_wavelet_transform(spikes):
@@ -247,7 +244,7 @@ def stft(spikes):
 def stft_d(spikes):
     sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window='blackman', fs=1, nperseg=45)
     amplitude = np.abs(Zxx)
-    amplitude = np.apply_along_axis(derivatives.compute_fdmethod_1spike, 2, amplitude)
+    amplitude = np.apply_along_axis(deriv.compute_fdmethod_1spike, 2, amplitude)
     amplitude = amplitude.reshape(*amplitude.shape[:1], -1)
     return amplitude
 

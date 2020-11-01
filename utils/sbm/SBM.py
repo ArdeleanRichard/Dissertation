@@ -6,7 +6,7 @@ from sklearn import preprocessing
 
 sys.setrecursionlimit(100000)
 
-import SBM_functions as fs
+from utils.sbm import SBM_functions as fs
 
 
 def sequential(X, pn, ccThreshold=5, version=2):
