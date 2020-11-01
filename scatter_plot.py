@@ -113,14 +113,14 @@ def plot_grid(title, X, pn, labels=None, plot=True, marker='o'):
             # plt.grid(True)
 
 
-def plot_spikes(spikes, title=""):
+def plot_spikes(spikes, step=5, title=""):
     """"
     Plots spikes from a simulation
     :param spikes: matrix - the list of spikes in a simulation
     :param title: string - the title of the plot
     """
-    for i in range(0, len(spikes), 60):
-        plt.plot(np.arange(79), spikes[i])
+    for i in range(0, len(spikes), step):
+        plt.plot(np.arange(len(spikes[i])), spikes[i])
     plt.xlabel('Time')
     plt.ylabel('Magnitude')
     plt.title(title)
