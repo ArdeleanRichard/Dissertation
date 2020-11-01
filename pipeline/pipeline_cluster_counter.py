@@ -3,9 +3,9 @@ from collections import Counter
 import numpy as np
 from sklearn import metrics
 
-import datasets as ds
-import feature_extraction as fe
-import scatter_plot
+from utils.datasets import datasets as ds
+from feature_extraction import feature_extraction as fe
+from utils import scatter_plot
 
 
 def generate_dataset_from_simulations2(simulations, simulation_labels, save=False):

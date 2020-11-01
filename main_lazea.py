@@ -3,24 +3,14 @@ import functools
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import metrics
-from sklearn.decomposition import PCA
 from sklearn.metrics import pairwise_distances_chunked
 from sklearn.metrics.cluster.unsupervised import check_number_of_labels
 from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_X_y
 
-import derivatives as deriv
-import datasets as ds
-import scatter_plot
-import superlets as slt
-import benchmark_data as bd
-import discretewlt as dwt
-import wavelets as wlt
-import stft
-import feature_extraction as fe
-import pipeline
-import realdata
+from utils.datasets import datasets as ds, realdata
+from utils import scatter_plot
+from feature_extraction import feature_extraction as fe
 
 
 def silhouette_samples2(X, labels, metric='euclidean', **kwds):

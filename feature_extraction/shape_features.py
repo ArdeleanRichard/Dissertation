@@ -1,11 +1,9 @@
-import math
-
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
-from scipy.stats import iqr, kurtosis, skew
+from scipy.stats import iqr, skew
 
-import derivatives
+from feature_extraction import derivatives
 
 
 def get_closest_index(signal, index, target):
