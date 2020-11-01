@@ -230,6 +230,8 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     if plot:
         if X.shape[1] == 2:
             for a in range(0, 3):
+                if a == 1:
+                    continue
                 scatter_plot.plot(cs.algorithms[a] + " on Sim" + title_suffix, X, labels[a],
                                   marker='o')
                 if save_folder != "":
@@ -237,6 +239,8 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
                 plt.show()
         elif X.shape[1] == 3:
             for a in range(0, 3):
+                if a == 1:
+                    continue
                 fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2], color=labels[a].astype(str))
                 fig.update_layout(title=cs.algorithms[a] + " for Sim" + title_suffix)
                 fig.show()
@@ -246,6 +250,8 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
         print("\nPerformance evaluation - labeled data - " + feature_extract_method)
         pe_labeled_data_results = [[], [], []]
         for a in range(0, 3):
+            if a == 1:
+                continue
             pe_labeled_data_results[a] = benchmark_algorithm_labeled_data(y, labels[a])
             print_benchmark_labeled_data(simulation_nr, a, pe_labeled_data_results[a])
             write_benchmark_labeled_data(simulation_nr, feature_extract_method, pe_labeled_data_results)
@@ -255,6 +261,8 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
         pe_unlabeled_data_results = [[], [], []]
         pe_ground_results = benchmark_algorithm_unlabeled_data(X, y)
         for a in range(0, 3):
+            if a == 1:
+                continue
             pe_unlabeled_data_results[a] = benchmark_algorithm_unlabeled_data(X, labels[a])
             print_benchmark_unlabeled_data(simulation_nr, a, pe_unlabeled_data_results[a], pe_ground_results)
             write_benchmark_unlabeled_data(simulation_nr, feature_extract_method, pe_unlabeled_data_results,
@@ -263,11 +271,13 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
         print("\nPerformance evaluation - extra - " + feature_extract_method)
         pe_extra_results = [[], [], []]
         for a in range(0, 3):
+            if a == 1:
+                continue
             pe_extra_results[a] = benchmark_algorithm_extra(y, labels[a])
             print_benchmark_extra(simulation_nr, a, pe_extra_results[a])
 
 
-def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method=0):
+def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method=None, reduce_dimensionality_method=None):
     """
     :param l_sim: lower bound simulation number
     :param r_sim: upper bound simulation number
@@ -279,23 +289,24 @@ def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extrac
         if (sim == 25) or (sim == 44):
             continue
         print("Running sim", sim)
-        X, y = fe.apply_feature_extraction_method(sim, feature_extract_method)
-        scatter_plot.plot("Ground truth for Sim" + str(sim), X, y, marker='o')
-        plt.savefig("GT_sim" + str(sim) + "_" + cs.feature_extraction_methods[feature_extract_method])
-        plt.show()
+        X, y = ds.get_dataset_simulation(sim, 79, True, False)
+        X = fe.apply_feature_extraction_method(X, feature_extract_method, reduce_dimensionality_method)
+        # scatter_plot.plot("Ground truth for Sim" + str(sim), X, y, marker='o')
+        # plt.savefig("GT_sim" + str(sim) + "_" + feature_extract_method)
+        # plt.show()
         # apply algorithm(s) and save clustering labels
         labels = [[], [], []]
         for alg in range(0, 3):
             labels[alg] = apply_algorithm(X, y, alg)
-            scatter_plot.plot(cs.algorithms[alg] + " on Sim" + str(sim), X, labels[alg], marker='o')
-            # plt.savefig(cs.algorithms[alg] + "_sim" + str(sim) + "_" + cs.feature_extraction_methods[
-            #     feature_extract_method])
-            plt.show()
+            # scatter_plot.plot(cs.algorithms[alg] + " on Sim" + str(sim), X, labels[alg], marker='o')
+            # plt.savefig(cs.algorithms[alg] + "_sim" + str(sim) + "_" + feature_extract_method)
+            # plt.show()
 
         pe_labeled_data_results = [[], [], []]
         for alg in range(0, 3):
             pe_labeled_data_results[alg] = benchmark_algorithm_labeled_data(y, labels[alg])
-            write_benchmark_labeled_data(sim, cs.feature_extraction_methods[feature_extract_method],
+
+            write_benchmark_labeled_data(sim, feature_extract_method,
                                          pe_labeled_data_results)
         simulations_results.append(pe_labeled_data_results)
     average_accuracy = np.mean(np.array(simulations_results), axis=0)

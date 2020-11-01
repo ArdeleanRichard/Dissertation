@@ -37,7 +37,7 @@ def spike_extract(signal, spike_start, spike_length):
     return spikes
 
 
-def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize_spikes, spike_label):
+def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize_spikes):
     spikes = spike_extract(signal, spike_start, spike_length)
 
     # align to max
@@ -323,7 +323,7 @@ def get_dataset_simulation(simNr, spike_length=79, align_to_peak=True, normalize
     data = simulation_dictionary['data'][0, :]
 
     # each spike will contain the first 79 points from the data after it has started
-    spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike, labels)
+    spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike)
 
     return spikes, labels
 

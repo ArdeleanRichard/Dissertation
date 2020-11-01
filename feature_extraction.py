@@ -5,6 +5,7 @@ import scipy.signal as signal
 from PyEMD import EMD
 from scipy.fftpack import fft
 from scipy.signal import hilbert
+from scipy.stats import kstest, norm
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
@@ -87,6 +88,92 @@ def hilbert_envelope(spikes):
     return envelope
 
 
+def hht(spikes):
+    emd = EMD()
+    spikes = np.array(spikes)
+    features = np.zeros((spikes.shape[0], 3))
+    for i, spike in enumerate(spikes):
+        emd(spike)
+        IMFs, res = emd.get_imfs_and_residue()
+
+        hb = hilbert(IMFs)
+        phase = np.unwrap(np.angle(hb))
+        inst_f = (np.diff(phase) / (2.0 * np.pi))
+
+        # time = np.arange(78)
+        # fig = plt.figure(figsize=(5, 7))
+        # axes = fig.subplots(IMFs.shape[0])
+        # for imf, ax in enumerate(axes):
+        #     ax.set_title("Instantaneous frequency of IMF%s" % imf)
+        #     ax.plot(time, inst_f[imf])
+        #     ax.set_xlabel("Time")
+        #     ax.set_ylabel("Magnitude")
+        #     plt.tight_layout()
+        #     plt.savefig('figures/EMD/sim' + str() + '_spike' + str(i) + '_inst_freq_on_IMFs' + '.png')
+        # plt.show()
+
+        features[i] = np.array([np.max(spike), np.max(inst_f), np.min(inst_f)])
+        # f = np.ndarray.flatten(reduce_dimensionality(inst_f, method='derivatives2d'))
+        # features[i][:f.shape[0]] = f
+
+    return features
+
+
+def hht_ks(spikes):
+    emd = EMD()
+    spikes = np.array(spikes)
+    features = np.zeros((spikes.shape[0], 468))
+    for i, spike in enumerate(spikes):
+        emd(spike)
+        IMFs, res = emd.get_imfs_and_residue()
+
+        hb = hilbert(IMFs)
+        phase = np.abs(hb)
+        inst_f = phase
+        # phase = np.unwrap(np.angle(hb))
+        # inst_f = (np.diff(phase) / (2.0 * np.pi))
+
+        concat_imfs = np.concatenate((inst_f[:]))
+
+        features[i, 0:concat_imfs.shape[0]] = concat_imfs
+        # f = np.ndarray.flatten(reduce_dimensionality(inst_f, method='derivatives2d'))
+        # features[i][:f.shape[0]] = f
+
+    # pca = PCA(n_components=78)
+    # features = pca.fit_transform(features)
+
+    # print(features.shape)
+
+    k_s = []
+    for i in range(468):
+        coeffs = []
+        for spike_coeff_pos in range(0, len(features)):
+            coeffs.append(features[spike_coeff_pos][i])
+        loc, scale = norm.fit(coeffs)
+        # create a normal distribution with loc and scale
+        n = norm(loc=loc, scale=scale)
+        s, p = kstest(coeffs, n.cdf)
+        k_s.append(p)
+    min_10_pos = take_min_10positions(k_s)
+    res = []
+    for res_index in range(len(features)):
+        lst = []
+        for i in range(len(min_10_pos)):
+            lst.append(features[res_index][i])
+        res.append(lst)
+
+    return np.array(res)
+
+
+def take_min_10positions(coeff):
+    ordered = coeff.copy()
+    ordered.sort()
+    result_pos = []
+    for i in range(0, 10):
+        result_pos.append(coeff.index(ordered[i]))
+    return result_pos
+
+
 def emd_signal_no_residuum(spikes):
     emd = EMD()
 
@@ -103,7 +190,7 @@ def emd_signal_no_residuum(spikes):
 def emd_imf_derivatives(spikes):
     emd = EMD()
 
-    features = np.zeros((spikes.shape[0], 10))
+    features = np.zeros((spikes.shape[0], 12))
     for i, spike in enumerate(spikes):
         emd(spike)
         IMFs, res = emd.get_imfs_and_residue()
@@ -244,6 +331,10 @@ def apply_feature_extraction_method(spikes, feature_extraction_method=None, dim_
         features = discrete_wavelet_transform(spikes)
     elif feature_extraction_method.lower() == 'hilbert':
         features = hilbert_envelope(spikes)
+    elif feature_extraction_method.lower() == 'hht':
+        features = hht(spikes)
+    elif feature_extraction_method.lower() == 'hht_ks':
+        features = hht_ks(spikes)
     elif feature_extraction_method.lower() == 'emd':
         features = emd_imf_derivatives(spikes)
     elif feature_extraction_method.lower() == 'som':
