@@ -11,7 +11,7 @@ from sklearn.cluster import KMeans
 
 from utils.sbm import SBM
 from utils import constants as cs, scatter_plot
-from utils.datasets import datasets as ds
+from utils.dataset_parsing import datasets as ds
 from feature_extraction import feature_extraction as fe
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
