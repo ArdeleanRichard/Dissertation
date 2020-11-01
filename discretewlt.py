@@ -3,7 +3,14 @@ import numpy as np
 import pywt
 
 import derivatives as deriv
+from scipy.stats import norm, kstest
 
+
+#
+# def new_ks(spikes):
+#     for spike in spikes:
+#         coeffsmatrix = haardecomposition(spike, 1)
+#
 
 def plot_dwt1(spike):
     coeffsmatrix = haardecomposition(spike, 1)
@@ -28,11 +35,12 @@ def plot_dwt1(spike):
     plt.tight_layout()
     plt.show()
 
+
 def plot_dwt(spike):
     coeffsmatrix = haardecomposition(spike, 4)
     ca, cd4, cd3, cd2, cd1 = coeffsmatrix
     time = np.arange(79)
-    fig = plt.figure(figsize=(5,10))
+    fig = plt.figure(figsize=(5, 10))
     axes = fig.subplots(6)
     axes[0].set_title("Spike signal")
     axes[0].plot(time, spike)
@@ -66,19 +74,86 @@ def plot_dwt(spike):
     plt.tight_layout()
     plt.show()
 
+
+def dwt_pca(spikes):
+    result = []
+    for spike in spikes:
+        coeffsmatrix = haardecomposition(spike, 4)
+        ca, cd4, cd3, cd2, cd1 = coeffsmatrix
+        res1 = []
+        for i in np.arange(len(ca)):
+            res1.append(ca[i])
+        for i in np.arange(len(cd1)):
+            res1.append(cd1[i])
+        for i in np.arange(len(cd2)):
+            res1.append(cd2[i])
+        for i in np.arange(len(cd3)):
+            res1.append(cd3[i])
+        for i in np.arange(len(cd4)):
+            res1.append(cd4[i])
+        result.append(res1)
+    return np.array(result)
+
+
 def dwt_fd_method(spikes):
     result = []
     for spike in spikes:
         coeffsmatrix = haardecomposition(spike, 4)
         ca, cd4, cd3, cd2, cd1 = coeffsmatrix
         res1 = []
-        res1.append(deriv.compute_fdmethod_1spike(ca))
-        res1.append(deriv.compute_fdmethod_1spike(cd4))
-        res1.append(deriv.compute_fdmethod_1spike(cd3))
-        res1.append(deriv.compute_fdmethod_1spike(cd2))
-        res1.append(deriv.compute_fdmethod_1spike(cd1))
+        if len(ca) > 4:
+            res1.append(deriv.compute_fdmethod_1spike(ca))
+        else:
+            res1.append(deriv.compute_fdmethod_1spike2(ca))
+        if len(cd4) > 4:
+            res1.append(deriv.compute_fdmethod_1spike(cd4))
+        else:
+            res1.append(deriv.compute_fdmethod_1spike2(cd4))
+        if len(cd3) > 4:
+            res1.append(deriv.compute_fdmethod_1spike(cd3))
+        else:
+            res1.append(deriv.compute_fdmethod_1spike2(cd3))
+        if len(cd2) > 4:
+            res1.append(deriv.compute_fdmethod_1spike(cd2))
+        else:
+            res1.append(deriv.compute_fdmethod_1spike2(cd2))
+        if len(cd1) > 4:
+            res1.append(deriv.compute_fdmethod_1spike(cd1))
+        else:
+            res1.append(deriv.compute_fdmethod_1spike2(cd1))
         result.append(np.ndarray.flatten(np.array(res1)))
     return result
+
+
+def compute_haar_ks(spikes):
+    result = []
+    # print(len(spikes))
+    for spike in spikes:
+        coeffsmatrix = haardecomposition(spike, 4)
+        ca, cd4, cd3, cd2, cd1 = coeffsmatrix
+        coeffs = np.concatenate((ca, cd4, cd3, cd2, cd1))
+        coeffs = np.ndarray.flatten(coeffs)
+        # print(len(coeffs)) = 80
+        result.append(coeffs)
+    # print(len(result))
+    k_s = []
+    for coeff in range(79):
+        coeffs = []
+        for spike_coeff_pos in range(0, len(result)):
+            coeffs.append(result[spike_coeff_pos][coeff])
+        loc, scale = norm.fit(coeffs)
+        # create a normal distribution with loc and scale
+        n = norm(loc=loc, scale=scale)
+        s, p = kstest(coeffs, n.cdf)
+        k_s.append(p)
+    min_10_pos = take_min_10positions(k_s)
+    res = []
+    for res_index in range(len(result)):
+        lst = []
+        for i in range(len(min_10_pos)):
+            lst.append(result[res_index][i])
+        res.append(lst)
+    return np.array(res)
 
 
 def compute_haar(spikes):
@@ -145,6 +220,15 @@ def compute_haar2(spikes):
 def haardecomposition(spike, level):
     coeffsmatrix = pywt.wavedec(spike, 'haar', mode='per', level=level)
     return coeffsmatrix
+
+
+def take_min_10positions(coeff):
+    ordered = coeff.copy()
+    ordered.sort()
+    result_pos = []
+    for i in range(0, 10):
+        result_pos.append(coeff.index(ordered[i]))
+    return result_pos
 
 
 def take_max_10positions(coeff):

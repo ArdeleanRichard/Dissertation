@@ -18,6 +18,9 @@ import benchmark_data as bd
 import discretewlt as dwt
 import wavelets as wlt
 import stft
+import feature_extraction as fe
+import pipeline
+import realdata
 
 
 def silhouette_samples2(X, labels, metric='euclidean', **kwds):
@@ -96,9 +99,7 @@ def plot_spikes_from_cluster(simnr, spikes, labels, label):
 
 
 def purity_score(y_true, y_pred):
-    # compute contingency matrix (also called confusion matrix)
     contingency_matrix = metrics.cluster.contingency_matrix(y_true, y_pred)
-    # return purity
     return np.sum(np.amax(contingency_matrix, axis=0)) / np.sum(contingency_matrix)
 
 
@@ -177,101 +178,56 @@ def remove_separated_clusters_old(spikes, labels):
 
 
 def main():
-    spikes, labels = ds.get_dataset_simulation(15, 79, True, False)
-    features = deriv.fsde_methods_trials(spikes)
-    # scaler = StandardScaler()
-    # result_spikes1 = scaler.fit_transform(features)
-    # pca_2d = PCA(n_components=2)
-    # result_spikes = pca_2d.fit_transform(result_spikes1)
-    scatter_plot.plot("Ground truth for Sim15 method 7", features, labels, marker='o')
-    plt.show()
-
-    # spikes, labels = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
-    #                                                      [[10], [7], [6], [15], [2], [8], [13], [8], [2]], False)
-
-    # result_spikes1 = slt.slt(spikes, 5, 1.8)
-    # scaler = StandardScaler()
-    # result_spikes1 = scaler.fit_transform(spikes)
-    # pca_2d = PCA(n_components=2)
-    # result_spikes = pca_2d.fit_transform(result_spikes1)
-    # scatter_plot.plot("Ground truth for Sim_generated", result_spikes, labels, marker='o')
-    # plt.show()
-    # print("EUCLIDEAN")
-    # remove_separated_clusters(result_spikes, labels, 'euclidean', 0.7)
-    # print("MANHATTAN")
-    # remove_separated_clusters(result_spikes, labels, 'manhattan', 0.7)
-    # print("EBRAYCURTIS")
-    # remove_separated_clusters(result_spikes, labels, 'braycurtis', 0.7)
-    # print("CHEBYSHEV")
-    # remove_separated_clusters(result_spikes, labels, 'chebyshev', 0.7)
-    # print("CANBERRA")
-    # remove_separated_clusters(result_spikes, labels, 'canberra', 0.7)
-    # print("CORRELATION")
-    # remove_separated_clusters(result_spikes, labels, 'correlation', 0.7)
-    # print("MINKOWSKI")
-    # remove_separated_clusters(result_spikes, labels, 'minkowski', 0.7)
-    # print("SEUCLIDEAN")
-    # remove_separated_clusters(result_spikes, labels, 'seuclidean', 0.7)
-    # print("SQEUCLIDEAN")
-    # remove_separated_clusters(result_spikes, labels, 'sqeuclidean', 0.7)
-    # print("MAHALANOBIS")
-    # remove_separated_clusters(result_spikes, labels, 'mahalanobis', 0.7)
-    # wlt.plot_cwt(spikes[3])
-
-    # sim 39 clusters 1 2
-    # sim 59 clusters 0 2
-
-    # sim 76 clusters 1 2 - doesnt work
-    # sim 33 clusters 0 1 3 4 - doesnt work
-    # sim 54 clusters 0 2 3 4 - doesnt work
-    # sim 77 clusters 1 3 4 5 - doesnt work
-    # sim 22 clusters 0 1 3 6 - separates green cluster only
-    # sim 24 clusters 1 4 5 6 - black cluster separated 0.63
-    # sim 57 clusters 1 2 4 6 - nope
-    # sim 62 clusters 0 1 2 3 4 5 6 - aqua il desparte
-
-    # sim 62 clusters3,4,6
-    # simulations = [33,54,24,62]
-    # labels = [[0,1,4],[3,4],[1,4],[2,3,4,6]]
-    # sim = 3
-    # spikes, labels = generate_dataset_from_simulations2([54],
-    #                                                 [[0,1,2,3,4,5]], False)
-    # bd.accuracy_all_algorithms_on_simulation(simulation_nr=15,
-    #                                          feature_extract_method=4,
+    # sim_nr = 64
+    # bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
+    #                                          feature_extract_method='PCA2D',
+    #                                          dim_reduction_method=None,
     #                                          plot=True,
-    #                                          pe_labeled_data=False,
+    #                                          pe_labeled_data=True,
     #                                          pe_unlabeled_data=False,
     #                                          pe_extra=False
     #                                          # save_folder='EMD',
     #                                          # title='IMF_derivatives_PCA2D',
-    #                                          )
-    # spikes, labels = generate_dataset_from_simulations2([1, 2, 6, 12, 24, 28, 2, 15, 17],
-    #                                                      [[10], [7], [6], [15], [2], [8], [13], [8], [2]], False)
-    # avg = bd.accuracy_all_algorithms_on_multiple_simulations(1,95,2)
-    # print(avg)
-    # pipeline.pipeline(0,spikes, labels, ['stft','hil','slt'])
-    # spikes_hilbert = ds.hilbert(spikes)
-    #
-    # envelope = np.abs(spikes_hilbert)
-    #
-    # features = ds.reduce_dimensionality(envelope, 'derivativesPCA2D')
+    #                                         )
+    # fe_methods = ['derivatives2d', 'fsde', 'dwt']
+    # for method in fe_methods:
+    #     bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
+    #                                              feature_extract_method=method,
+    #                                              dim_reduction_method='pca2d',
+    #                                              plot=True,
+    #                                              pe_labeled_data=True,
+    #                                              pe_unlabeled_data=False,
+    #                                              pe_extra=False
+    #                                              # save_folder='EMD',
+    #                                              # title='IMF_derivatives_PCA2D',
+    #                                              )
 
-    # result_spikes1 = slt.slt(spikes, 5, 1.8)
-    # result_spikes1 = wlt.fd_wavelets(spikes)
-    # result_spikes1 = dwt.dwt_fd_method(spikes)
-    # scaler = StandardScaler()
-    # result_spikes1 = scaler.fit_transform(result_spikes1)
-    # pca_2d = PCA(n_components=2)
-    # result_spikes = pca_2d.fit_transform(result_spikes1)
-    # remove_separated_clusters(result_spikes, labels, 'manhattan',0.7)
-    # labels2 = []
-    # labels2.append(labels[sim])
-    # print(len(labels2))
-    # simulations2 = []
-    # simulations2.append(simulations[sim])
-    # stft.generate_dataset_from_simulations2([62],[[3,4,6]],stftd=True)
-    # scatter_plot.plot("Ground truth for Sim_"+str(57), result_spikes, labels, marker='o')
+    # pipeline.pipeline(spikes, labels, [
+    #         ['dwt', 'PCA3D', 'euclidean', 0.61],
+    #         ['derivatives3d', None, 'euclidean', 0.60],
+    #         ])
+
+    # waveforms_ = read_waveforms('./datasets/real_data/Units/M017_0004_5stdv.ssduw')
+    # waveforms_ = realdata.read_waveforms('C:/poli/year4/licenta/codeGoodGit/Dissertation/datasets/realdata2/_Date spike sorting 19.06.2020/Sortate/M017_004_3stdv/Units/M017_S001_SRCS3L_25,50,100_0004.ssduw')
+    # channel_nr = 16
+    # spikes, labels = realdata.get_spike_units(waveforms_, channel=channel_nr)
+    # spikes3d = fe.apply_feature_extraction_method(spikes, 'dwt', 'pca3d')
+    # print(spikes3d.shape)
+    # scatter_plot.plot_clusters(spikes3d, labels, 'dwt_Channel_' + str(channel_nr), "real_data")
     # plt.show()
 
-
+    kampff_spike_len = 78
+    waveforms_ = realdata.read_waveforms(
+        'C:/poli/year4/licenta/codeGoodGit/Dissertation/datasets/c37_npx/c37_npx.spikew')
+    spikes = []
+    for i in np.arange(len(waveforms_)/kampff_spike_len):
+        spk = []
+        for j in np.arange(kampff_spike_len):
+            spk.append(-waveforms_[int(i * kampff_spike_len + j)])
+        spikes.append(spk)
+    # scatter_plot.plot_spikes(spikes, step=20, title="cell 37 - kampff dataset")
+    features = fe.apply_feature_extraction_method(spikes,'cwt', 'pca2d')
+    labels = np.ones(4811)
+    scatter_plot.plot_clusters(features, labels, title="cell 37 kampff cwt + pca2d",
+                               save_folder='')
 main()

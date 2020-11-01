@@ -31,7 +31,7 @@ def slt(spikes, ord, ncyc, derivatives=True):
 
         # spike_arr = np.ndarray.tolist(spike)
         # spike2 = ctypes.cast(spike, ctypes.POINTER(ctypes.c_float))
-        output = np.zeros((250, 80))
+        output = np.zeros((250, len(spikes[0])+1))
         output2 = output.astype(np.float32)
 
         spike2 = (ctypes.c_float * len(spikes[0]))(*spike)  # this is probably correct dont change!!!!
@@ -46,8 +46,8 @@ def slt(spikes, ord, ncyc, derivatives=True):
         # print(data_p[1])
         for i in np.arange(250):
             output_partial = []
-            for j in np.arange(79):
-                output_partial.append(data_p[i * 79 + j])
+            for j in np.arange(len(spikes[0])):
+                output_partial.append(data_p[i * len(spikes[0]) + j])
             output_final.append(output_partial)
         result.append(output_final)
 
@@ -73,17 +73,18 @@ def slt(spikes, ord, ncyc, derivatives=True):
             result2.append(np.ndarray.flatten(result_partial))
     else:
         for i in np.arange(len(spikes)):
-            result_partial = []
+            # result_partial = []
 
-            for j in np.arange(250):
+            # for j in np.arange(250):
                 # result2.append(np.ndarray.flatten(np.array(result[i])))
-                result_partial.append(max(result[i][j]))
-            max1 = max(result_partial)
-            maxpos = result_partial.index(max1)
-            fin = []
-            fin.append(max1)
-            fin.append(maxpos)
-            result2.append(np.array(fin))
+                # result_partial.append(max(result[i][j]))
+            # max1 = max(result_partial)
+            # maxpos = result_partial.index(max1)
+            # fin = []
+            # fin.append(max1)
+            # fin.append(maxpos)
+            # result2.append(np.array(fin))
+            result2.append(np.ndarray.flatten(np.array(result[i])))
     print("done")
     return result2
 
@@ -106,7 +107,7 @@ def slt_1spike(spike, spike_pos, label, ord, ncyc, freq_start, freq_end):
     pos = 0
     ptr = superletsDLL.asrwt_alloc(len(spike), 1000, freq_start, freq_end, freq_end - freq_start + 1, ncyc, ord, ord,
                                    True)
-    output = np.zeros((freq_end - freq_start + 1, 80))
+    output = np.zeros((freq_end - freq_start + 1, len(spike)+1))
     output2 = output.astype(np.float32)
 
     spike2 = (ctypes.c_float * len(spike))(*spike)  # this is probably correct dont change!!!!
@@ -117,20 +118,67 @@ def slt_1spike(spike, spike_pos, label, ord, ncyc, freq_start, freq_end):
     output_final = []
     for i in np.arange(freq_end - freq_start + 1):
         output_partial = []
-        for j in np.arange(79):
-            output_partial.append(data_p[i * 79 + j])
+        for j in np.arange(len(spike)):
+            output_partial.append(data_p[i * len(spike) + j])
         output_final.append(output_partial)
     result.append(output_final)
 
+
     superletsDLL.asrwt_free(ptr)
-    values = np.abs(output_final)
-    scales_freq = np.arange(freq_start, freq_end)
-    df = scales_freq[-1] / scales_freq[-2]
-    ymesh = np.concatenate([scales_freq, [scales_freq[-1] * df]])
-    im = plt.pcolormesh(np.arange(len(spike)), ymesh, values, cmap="jet")
-    plt.colorbar(im)
-    plt.title("Sim" + str(2) + "_spike" + str(spike_pos) + "label" + str(label) + "_superlets")
-    plt.xlabel("Time")
-    plt.ylabel("Frequency - linear")
-    plt.savefig("Sim" + str(2) + "_spike" + str(spike_pos) + "label" + str(label) + "_superlets")
+
+    time = np.arange(len(spike))
+
+    fig = plt.figure(figsize=(5, 6))
+    axes = fig.subplots(4)
+    axes[0].set_title("Spike signal")
+    axes[0].plot(time, spike)
+    axes[0].set_xlabel("Time")
+    axes[0].set_ylabel("Magnitude")
+    plt.tight_layout()
+    axes[1].set_title("Coeff[0]")
+    axes[1].plot(np.arange(len(output_final[0])), output_final[0])
+    axes[1].set_xlabel("Time")
+    axes[1].set_ylabel("Magnitude")
+    plt.tight_layout()
+    axes[2].set_title("Coeff[100]")
+    axes[2].plot(np.arange(len(output_final[100])), output_final[100])
+    axes[2].set_xlabel("Time")
+    axes[2].set_ylabel("Magnitude")
+    plt.tight_layout()
+    axes[3].set_title("Coeff[250]")
+    axes[3].plot(np.arange(len(output_final[249])), output_final[249])
+    axes[3].set_xlabel("Time")
+    axes[3].set_ylabel("Magnitude")
+    plt.tight_layout()
     plt.show()
+
+    fig = plt.figure(figsize=(5, 6))
+    axes = fig.subplots(3)
+    axes[0].set_title("Spike signal")
+    axes[0].plot(time, spike)
+    axes[0].set_xlabel("Time")
+    axes[0].set_ylabel("Magnitude")
+    plt.tight_layout()
+    axes[1].set_title("Coeff[250]")
+    axes[1].plot(np.arange(len(output_final[249])), output_final[249])
+    axes[1].set_xlabel("Time")
+    axes[1].set_ylabel("Magnitude")
+    plt.tight_layout()
+    derivat = deriv.compute_derivative5stencil(output_final[249])
+    axes[2].set_title("Derivative of Coeff[250]")
+    axes[2].plot(np.arange(len(derivat)), derivat)
+    axes[2].set_xlabel("Time")
+    axes[2].set_ylabel("Magnitude")
+    plt.tight_layout()
+    plt.show()
+    # values = np.abs(output_final)
+    # scales_freq = np.arange(freq_start, freq_end)
+    # df = scales_freq[-1] / scales_freq[-2]
+    # ymesh = np.concatenate([scales_freq, [scales_freq[-1] * df]])
+    # im = plt.pcolormesh(np.arange(len(spike)), ymesh, values, cmap="jet")
+    # plt.colorbar(im)
+    # plt.title("_spike" + str(spike_pos) + "label" + str(label) + "_superlets")
+    # plt.xlabel("Time")
+    # plt.ylabel("Frequency - linear")
+    # plt.savefig("_spike" + str(spike_pos) + "label" + str(label) + "_superlets")
+    # plt.show()

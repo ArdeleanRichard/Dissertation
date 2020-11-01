@@ -32,10 +32,10 @@ def plot_wavelet(spikes, spike_pos, sim_nr):
     n = len(spikes[spike_pos])
     spike = spikes[spike_pos]
     time = np.arange(n)
-    # wavelet = 'cmor0.1-1.5'
-    wavelet = 'morl'
-    scales = np.arange(1, min(len(time) / 10, 100))
-    # scales = np.arange(10, 100)
+    wavelet = 'cmor0.1-0.3'
+    # wavelet = 'morl'
+    # scales = np.arange(1, min(len(time) / 10, 100))
+    scales = np.arange(4, 170)
 
     coeffs, scales_freq = pywt.cwt(spike, scales, wavelet)
     coeffs = np.abs(coeffs)
@@ -81,19 +81,25 @@ def plot_wavelet(spikes, spike_pos, sim_nr):
 #     return results
 
 
-def fd_wavelets(spikes):
+def fd_wavelets(spikes, derivatives = True):
     # wavelet = 'morl'
-    # wavelet  = 'cmor0.8-1.5'
+    # wavelet  = 'cmor0.7-1.5'
     wavelet = 'cmor0.1-1.5'
+    # wavelet = 'cmor0.1-0.1'
+
     result = []
     # time = np.arange(len(spikes[0]))
-    # scales = np.arange(1, min(len(time) / 10, 100))
+    # scales = np.arange(1, min(len(spikes[0]) / 10, 100))
     scales = np.arange(10, 100)
+    # scales = np.arange(1, 70)
 
     # scales = np.arange(1, min(len(spikes) / 10, 100))
     for spike in spikes:
         coeffs, scales_freq = pywt.cwt(spike, scales, wavelet)
-        coeffs = deriv.compute_fdmethod(np.abs(coeffs))
+        if derivatives:
+            coeffs = deriv.compute_fdmethod(np.abs(coeffs))
+        else:
+            coeffs = np.abs(coeffs)
         result.append(np.ndarray.flatten(coeffs))
     return result
 

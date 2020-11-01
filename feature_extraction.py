@@ -20,12 +20,12 @@ def continuous_wavelet_transform(spikes):
     Load the dataset after applying continuous wavelets on 2 dimensions
     :returns result_spikes: matrix - the 2-dimensional points resulted
     """
-    cwt_features = wlt.fd_wavelets(spikes)
+    cwt_features = wlt.fd_wavelets(spikes, derivatives=True)
 
-    scaler = StandardScaler()
-    features = scaler.fit_transform(cwt_features)
+    # scaler = StandardScaler()
+    # features = scaler.fit_transform(cwt_features)
 
-    return features
+    return cwt_features
 
 
 def discrete_wavelet_transform(spikes):
@@ -35,16 +35,26 @@ def discrete_wavelet_transform(spikes):
     :returns result_spikes: matrix - the 2-dimensional points resulted
     """
     dwt_features = dwt.dwt_fd_method(spikes)
+    # scaler = StandardScaler()
+    # features = scaler.fit_transform(dwt_features)
 
-    scaler = StandardScaler()
-    features = scaler.fit_transform(dwt_features)
+    return dwt_features
 
-    return features
+
+def discrete_wavelet_transform_ks(spikes):
+    """
+    Load the dataset after dwt on 2 dimensions
+
+    :returns result_spikes: matrix - the 2-dimensional points resulted
+    """
+    dwt_features = dwt.compute_haar_ks(spikes)
+
+    return dwt_features
 
 
 def superlets(spikes):
     slt_features = slt.slt(spikes, 2, 1.1)
-    # slt_features = slt.slt2(spikes, 5, 1.5)
+    # slt_features = slt.slt(spikes, 5, 1.8)
 
     scaler = StandardScaler()
     features = scaler.fit_transform(slt_features)
@@ -67,6 +77,12 @@ def derivatives2d(spikes):
 
 def derivatives3d(spikes):
     result_spikes = deriv.compute_fdmethod3d(spikes)
+
+    return result_spikes
+
+
+def fsde(spikes):
+    result_spikes = deriv.fsde_method(spikes)
 
     return result_spikes
 
@@ -210,12 +226,16 @@ def apply_feature_extraction_method(spikes, feature_extraction_method=None, dim_
         features = derivatives2d(spikes)
     elif feature_extraction_method.lower() == 'derivatives3d':
         features = derivatives3d(spikes)
-    elif feature_extraction_method.lower() == 'superlets':
+    elif feature_extraction_method.lower() == 'fsde':
+        features = fsde(spikes)
+    elif feature_extraction_method.lower() == 'slt':
         features = superlets(spikes)
     elif feature_extraction_method.lower() == 'cwt':
         features = continuous_wavelet_transform(spikes)
     elif feature_extraction_method.lower() == 'dwt':
         features = discrete_wavelet_transform(spikes)
+    elif feature_extraction_method.lower() == 'dwt_ks':
+        features = discrete_wavelet_transform_ks(spikes)
     elif feature_extraction_method.lower() == 'hilbert':
         features = hilbert_envelope(spikes)
     elif feature_extraction_method.lower() == 'emd':

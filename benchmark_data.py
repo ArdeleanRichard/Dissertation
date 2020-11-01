@@ -60,7 +60,9 @@ def benchmark_algorithm_labeled_data(y, labels):
     nnp_ari = metrics.adjusted_rand_score(y_nn, labels_nn)
     nnp_ami = metrics.adjusted_mutual_info_score(y_nn, labels_nn)
 
-    return np.array([all_ari, all_ami, nnp_ari, nnp_ami, all_fmi])
+    contingency_matrix = metrics.cluster.contingency_matrix(y, labels)
+    purity = np.sum(np.amax(contingency_matrix, axis=0)) / np.sum(contingency_matrix)
+    return np.array([all_ari, all_ami, nnp_ari, nnp_ami, all_fmi, purity])
 
 
 def print_benchmark_labeled_data(sim_nr, algorithm_number, pe_results):
@@ -98,7 +100,7 @@ def write_benchmark_labeled_data(simulation_number, feature_extr_method, pe_valu
     formatted_sbm = ["%.3f" % number for number in pe_values[2]]
     formatted_sbm.insert(0, "S.B.M.")
 
-    header_labeled_data = ['Algor', 'ARI-a', 'AMI-a', 'ARI-n', 'AMI-n', 'FMI-a']
+    header_labeled_data = ['Algor', 'ARI-a', 'AMI-a', 'ARI-n', 'AMI-n', 'FMI-a', 'purity']
     row_list = [header_labeled_data, formatted_kmeans, formatted_dbscan, formatted_sbm]
     with open('./results/Sim_%s_labeled_%s.csv' % (simulation_number, feature_extr_method), 'w', newline='') as file:
         writer = csv.writer(file, delimiter=',')
@@ -267,7 +269,8 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
             print_benchmark_extra(simulation_nr, a, pe_extra_results[a])
 
 
-def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method=0):
+def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extract_method='',
+                                                    reduce_dimensionality_method=''):
     """
     :param l_sim: lower bound simulation number
     :param r_sim: upper bound simulation number
@@ -279,23 +282,23 @@ def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extrac
         if (sim == 25) or (sim == 44):
             continue
         print("Running sim", sim)
-        X, y = fe.apply_feature_extraction_method(sim, feature_extract_method)
+        X, y = ds.get_dataset_simulation(sim, 79, True, False)
+        X = fe.apply_feature_extraction_method(X, feature_extract_method, reduce_dimensionality_method)
         scatter_plot.plot("Ground truth for Sim" + str(sim), X, y, marker='o')
-        plt.savefig("GT_sim" + str(sim) + "_" + cs.feature_extraction_methods[feature_extract_method])
+        plt.savefig("GT_sim" + str(sim) + "_" + feature_extract_method)
         plt.show()
         # apply algorithm(s) and save clustering labels
         labels = [[], [], []]
         for alg in range(0, 3):
             labels[alg] = apply_algorithm(X, y, alg)
             scatter_plot.plot(cs.algorithms[alg] + " on Sim" + str(sim), X, labels[alg], marker='o')
-            # plt.savefig(cs.algorithms[alg] + "_sim" + str(sim) + "_" + cs.feature_extraction_methods[
-            #     feature_extract_method])
+            plt.savefig(cs.algorithms[alg] + "_sim" + str(sim) + "_" + feature_extract_method)
             plt.show()
 
         pe_labeled_data_results = [[], [], []]
         for alg in range(0, 3):
             pe_labeled_data_results[alg] = benchmark_algorithm_labeled_data(y, labels[alg])
-            write_benchmark_labeled_data(sim, cs.feature_extraction_methods[feature_extract_method],
+            write_benchmark_labeled_data(sim, feature_extract_method,
                                          pe_labeled_data_results)
         simulations_results.append(pe_labeled_data_results)
     average_accuracy = np.mean(np.array(simulations_results), axis=0)

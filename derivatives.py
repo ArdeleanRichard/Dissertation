@@ -120,15 +120,15 @@ def compute_first_second_derivative(spikes):
     return np.array(final_result)
 
 
-def fsde_methods_trials(spikes):
+def fsde_method(spikes):
     final_result = []
     for x in spikes:
-        first_derivative = compute_derivative5stencil(x)
+        first_derivative = compute_derivative(x)
 
         fmin = min(first_derivative)
         fmax = max(first_derivative)
 
-        second_derivative = compute_derivative5stencil(first_derivative)
+        second_derivative = compute_derivative(first_derivative)
 
         smin = min(second_derivative)
         smax = max(second_derivative)
@@ -136,13 +136,13 @@ def fsde_methods_trials(spikes):
         result = []
 
         result.append(fmin)
+        # result.append(fmax)
+        # result.append(smax)
         result.append(fmax)
         result.append(smax)
-        # result.append(smin)
-        final_result.append(result)
+        final_result.append(np.array(result))
 
     return np.array(final_result)
-
 
 
 def method6(f_min, f_max, s_min, s_max):
@@ -222,6 +222,16 @@ def compute_derivative5stencil(function):
 
 def compute_fdmethod_1spike(spike):
     first_derivative = compute_derivative5stencil(spike)
+    f_min = min(first_derivative)
+    f_max = max(first_derivative)
+    result = []
+    result.append(f_max - f_min)
+    result.append(max(spike))
+    return np.array(result)
+
+
+def compute_fdmethod_1spike2(spike):
+    first_derivative = compute_derivative(spike)
     f_min = min(first_derivative)
     f_max = max(first_derivative)
     result = []
