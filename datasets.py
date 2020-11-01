@@ -37,7 +37,7 @@ def spike_extract(signal, spike_start, spike_length):
     return spikes
 
 
-def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize_spikes, spike_label):
+def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize_spikes):
     spikes = spike_extract(signal, spike_start, spike_length)
 
     # align to max
@@ -323,7 +323,7 @@ def get_dataset_simulation(simNr, spike_length=79, align_to_peak=True, normalize
     data = simulation_dictionary['data'][0, :]
 
     # each spike will contain the first 79 points from the data after it has started
-    spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike, labels)
+    spikes = spike_preprocess(data, start, spike_length, align_to_peak, normalize_spike)
 
     return spikes, labels
 
@@ -665,3 +665,25 @@ def load_particular_dataset(datasetNumber):
     if datasetNumber == 1:
         for k in range(len(X)):
             y[k] = y[k] - 1
+
+
+def generate_dataset_from_simulations(simulations, simulation_labels, save=False):
+    spikes = []
+    labels = []
+    index = 0
+    for sim_index in np.arange(len(simulations)):
+        s, l = get_dataset_simulation(simulations[sim_index], 79, True, False)
+        for spike_index in np.arange(len(s)):
+            for wanted_label in np.arange(len(simulation_labels[sim_index])):
+                if simulation_labels[sim_index][wanted_label] == l[spike_index]:
+                    spikes.append(s[spike_index])
+                    labels.append(index + wanted_label)
+        index = index + len(simulation_labels[sim_index])
+
+    spikes = np.array(spikes)
+    labels = np.array(labels)
+    if save:
+        np.savetxt("spikes.csv", spikes, delimiter=",")
+        np.savetxt("labels.csv", labels, delimiter=",")
+
+    return spikes, labels

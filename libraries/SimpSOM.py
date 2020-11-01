@@ -312,7 +312,7 @@ class somNet:
             plt.sca(ax)
 
             printName = os.path.join('./', filename)
-
+            plt.tight_layout()
             if printout == True:
                 plt.savefig(printName, bbox_inches='tight', dpi=dpi)
             if show == True:
@@ -387,7 +387,7 @@ class somNet:
                 for label, x, y in zip(labels, [pos[0] for pos in bmuList], [pos[1] for pos in bmuList]):
                     plt.annotate(label, xy=(x, y), xytext=(-0.5, 0.5), textcoords='offset points', ha='right',
                                  va='bottom', size=50, zorder=11)
-
+            plt.tight_layout()
             if printout == True:
                 plt.savefig(printName, bbox_inches='tight', dpi=72)
             if show == True:

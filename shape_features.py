@@ -63,7 +63,7 @@ def get_valleys_near_peak(spike):
     return left_min_index, spike[left_min_index], right_min_index, spike[right_min_index]
 
 
-def get_shape_phase_distribution_features(spikes, plot=True):
+def get_shape_phase_distribution_features(spikes, plot=False):
     """
     :returns derivative based features
     P1	First zero-crossing of the FD before the action potential has been detected
@@ -80,7 +80,7 @@ def get_shape_phase_distribution_features(spikes, plot=True):
         fd, sd = get_derivatives(spike)
 
         spike_max, spike_max_index = get_max(spike)
-        spike_min, spike_min_index = get_min(spike)
+        # spike_min, spike_min_index = get_min(spike)
 
         fd_max, fd_max_index = get_max(fd)
         fd_min, fd_min_index = get_min(fd)
@@ -88,51 +88,51 @@ def get_shape_phase_distribution_features(spikes, plot=True):
         sd_max, sd_max_index = get_max(sd)
         sd_min, sd_min_index = get_min(sd)
 
-        p2_argmin_fd = np.argmin(fd)
+        # p2_argmin_fd = np.argmin(fd)
 
-        for index in range(p2_argmin_fd - 1, 0, -1):
-            if fd[index] > 0 > fd[index + 1]:
-                p1_fd_min_before_peak_index = get_closest_index(fd, index, 0)
-                break
-        if p1_fd_min_before_peak_index == 0:
-            p1_fd_min_before_peak_index = 2
+        # for index in range(p2_argmin_fd - 1, 0, -1):
+        #     if fd[index] > 0 > fd[index + 1]:
+        #         p1_fd_min_before_peak_index = get_closest_index(fd, index, 0)
+        #         break
+        # if p1_fd_min_before_peak_index == 0:
+        #     p1_fd_min_before_peak_index = 2
 
         p3_sd_max_index = sd_max_index
         p5_sd_min_index = sd_min_index
         p4_fd_max_index = fd_max_index
-        p6_fd_min_after_p5_index = np.argmin(fd[p5_sd_min_index:p5_sd_min_index + 20]) + p5_sd_min_index
+        # p6_fd_min_after_p5_index = np.argmin(fd[p5_sd_min_index:p5_sd_min_index + 20]) + p5_sd_min_index
 
-        f1 = p5_sd_min_index - p1_fd_min_before_peak_index
-        f2 = fd[p4_fd_max_index] - fd[p2_argmin_fd]
-        f3 = fd[p6_fd_min_after_p5_index] - fd[p2_argmin_fd]
-
-        f5 = math.log2(abs((fd[p4_fd_max_index] - fd[p2_argmin_fd]) / (p4_fd_max_index - p2_argmin_fd)))
-        f6 = (fd[p6_fd_min_after_p5_index] - fd[p4_fd_max_index]) / (p6_fd_min_after_p5_index - p4_fd_max_index)
-        f7 = math.log2(
-            abs((fd[p6_fd_min_after_p5_index] - fd[p2_argmin_fd]) / (p6_fd_min_after_p5_index - p2_argmin_fd)))
-        f8_rms_pre_peak = np.sqrt(np.mean(fd[:spike_max_index] * fd[:spike_max_index]))
-        if math.isnan(f8_rms_pre_peak):
-            f8_rms_pre_peak = 0
-        f9 = ((fd[p2_argmin_fd] - fd[p1_fd_min_before_peak_index]) / (p2_argmin_fd - p1_fd_min_before_peak_index)) / (
-                (fd[p3_sd_max_index] - fd[p2_argmin_fd]) / (p3_sd_max_index - p2_argmin_fd))
-        f10 = ((fd[p4_fd_max_index] - fd[p3_sd_max_index]) / (p4_fd_max_index - p3_sd_max_index)) / (
-                (fd[p5_sd_min_index] - fd[p4_fd_max_index]) / (p5_sd_min_index - p4_fd_max_index))
-        f11 = fd[p2_argmin_fd] / fd[p4_fd_max_index]
-        f12 = fd[p1_fd_min_before_peak_index]
-        f13 = fd[p3_sd_max_index]
+        # f1 = p5_sd_min_index - p1_fd_min_before_peak_index
+        # f2 = fd[p4_fd_max_index] - fd[p2_argmin_fd]
+        # f3 = fd[p6_fd_min_after_p5_index] - fd[p2_argmin_fd]
+        #
+        # f5 = math.log2(abs((fd[p4_fd_max_index] - fd[p2_argmin_fd]) / (p4_fd_max_index - p2_argmin_fd)))
+        # f6 = (fd[p6_fd_min_after_p5_index] - fd[p4_fd_max_index]) / (p6_fd_min_after_p5_index - p4_fd_max_index)
+        # f7 = math.log2(
+        #     abs((fd[p6_fd_min_after_p5_index] - fd[p2_argmin_fd]) / (p6_fd_min_after_p5_index - p2_argmin_fd)))
+        # f8_rms_pre_peak = np.sqrt(np.mean(fd[:spike_max_index] * fd[:spike_max_index]))
+        # if math.isnan(f8_rms_pre_peak):
+        #     f8_rms_pre_peak = 0
+        # f9 = ((fd[p2_argmin_fd] - fd[p1_fd_min_before_peak_index]) / (p2_argmin_fd - p1_fd_min_before_peak_index)) / (
+        #         (fd[p3_sd_max_index] - fd[p2_argmin_fd]) / (p3_sd_max_index - p2_argmin_fd))
+        # f10 = ((fd[p4_fd_max_index] - fd[p3_sd_max_index]) / (p4_fd_max_index - p3_sd_max_index)) / (
+        #         (fd[p5_sd_min_index] - fd[p4_fd_max_index]) / (p5_sd_min_index - p4_fd_max_index))
+        # f11 = fd[p2_argmin_fd] / fd[p4_fd_max_index]
+        # f12 = fd[p1_fd_min_before_peak_index]
+        # f13 = fd[p3_sd_max_index]
         f14_fd_max = fd[p4_fd_max_index]
-        f15 = fd[p5_sd_min_index]
-        f16 = fd[p6_fd_min_after_p5_index]
-        f17 = sd[p1_fd_min_before_peak_index]
+        # f15 = fd[p5_sd_min_index]
+        # f16 = fd[p6_fd_min_after_p5_index]
+        # f17 = sd[p1_fd_min_before_peak_index]
         f18_sd_max = sd[p3_sd_max_index]
         f19_sd_min = sd[p5_sd_min_index]
         f20 = iqr(fd)
         f21 = iqr(sd)
-        f22 = kurtosis(fd)
-        f23 = skew(fd)
-        f24 = skew(sd)
+        # f22 = kurtosis(fd)
+        # f23 = skew(fd)
+        # f24 = skew(sd)
 
-        spike_half_width, right_width_index, left_width_index = get_half_width(spike)
+        # spike_half_width, right_width_index, left_width_index = get_half_width(spike)
 
         if plot:
             plt.plot(np.arange(79), spike, label='spike')
@@ -149,17 +149,19 @@ def get_shape_phase_distribution_features(spikes, plot=True):
             # plt.axvline(x=spike_max_index)
             # plt.plot([0, 80], [0, 0])
             # plt.title("Shape and Phase Features")
-            plt.plot(left_width_index + np.arange(spike_half_width),
-                     np.repeat((spike[left_width_index] + spike[right_width_index]) / 2, spike_half_width),
-                     label='Half-Width')
-            plt.legend()
-            plt.title("Spike Half-Width")
-            plt.xlabel("Time")
-            plt.ylabel("Amplitude")
-            plt.show()
+            # plt.plot(left_width_index + np.arange(spike_half_width),
+            #          np.repeat((spike[left_width_index] + spike[right_width_index]) / 2, spike_half_width),
+            #          label='Half-Width')
+            # plt.legend()
+            # plt.title("Spike Half-Width")
+            # plt.xlabel("Time")
+            # plt.ylabel("Amplitude")
+            # plt.show()
 
         features.append(
-            [f14_fd_max - fd_min, f18_sd_max, f18_sd_max, spike_max, ]
+            # [f14_fd_max - fd_min, f18_sd_max, f18_sd_max, spike_max,]
+            [f14_fd_max, fd_min, f18_sd_max, f19_sd_min, spike_max, f20, f21]
+            # [spike_max, f14_fd_max, fd_min, spike_half_width]
             # [spike_max, f19_sd_min, rms, ]
         )
 

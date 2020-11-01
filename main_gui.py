@@ -1,25 +1,29 @@
 import csv
+import struct
 
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
+import plotly.express as px
 
 import benchmark_data as bd
 import constants as cs
 import datasets as ds
 import scatter_plot as sp
 from constants import LABEL_COLOR_MAP
+import derivatives
+import feature_extraction as fe
 
 
 def gui():
-    bd.accuracy_all_algorithms_on_simulation(simulation_nr=15,
-                                             feature_extract_method=1,
+    bd.accuracy_all_algorithms_on_simulation(simulation_nr=4,
+                                             feature_extract_method='stft',
+                                             dim_reduction_method='pca2d',
                                              plot=True,
-                                             pe_labeled_data=False,
-                                             pe_unlabeled_data=False,
-                                             pe_extra=False
-                                             # save_folder='EMD',
-                                             # title='IMF_derivatives_PCA2D',
+                                             pe_labeled_data=True,
+                                             pe_unlabeled_data=True,
+                                             pe_extra=False,
+                                             save_folder='demo',
                                              )
 
 
@@ -149,7 +153,259 @@ def plot_single_spike():
     for i in range(1, 79):
         print('f(%d,%d)=1' % (i, spike[i]))
 
-# gui()
+
+spikes_per_channel = np.array([0, 11837, 2509, 1443, 2491, 18190, 9396, 876, 9484, 9947, 10558, 2095, 3046, 898,
+                               1284, 5580, 6409, 9274, 13625, 419, 193, 3220, 2128, 281, 219, 4111, 1108, 5045, 6476,
+                               973, 908,
+                               787, 10734])
+
+
+def read_timestamps():
+    with open('./datasets/real_data/Waveforms/M017_S001_SRCS3L_25,50,100_0004_5stdv.spiket', 'rb') as file:
+        timestamps = []
+        read_val = file.read(4)
+        timestamps.append(struct.unpack('i', read_val)[0])
+
+        while read_val:
+            read_val = file.read(4)
+            try:
+                timestamps.append(struct.unpack('i', read_val)[0])
+            except struct.error:
+                break
+        timestamps = np.array(timestamps)
+
+        return np.array(timestamps)
+
+
+def read_waveforms(filename):
+    with open(filename, 'rb') as file:
+        waveforms = []
+        read_val = file.read(4)
+        waveforms.append(struct.unpack('f', read_val)[0])
+
+        while read_val:
+            read_val = file.read(4)
+            try:
+                waveforms.append(struct.unpack('f', read_val)[0])
+            except struct.error:
+                break
+
+        return np.array(waveforms)
+
+
+def extract_spikes(timestamps, waveform, channel):
+    left_limit = np.sum(spikes_per_channel[:channel])
+    right_limit = left_limit + spikes_per_channel[channel]
+    timestamps = timestamps[left_limit:right_limit]
+    # timestamps = timestamps[1:51]
+    # waveform = waveform[channel * 36297600: (channel + 1) * 36297600]
+
+    print(waveform.shape)
+
+    spikes = np.zeros((spikes_per_channel[channel], 58))
+    # spikes = np.zeros((50, 58))
+    print(spikes.shape)
+    for index in range(len(timestamps)):
+        # print('index', index)
+        # print(timestamps[index])
+        # print(timestamps[index] + 58)
+        # print(waveform.shape)
+        # print()
+        spikes[index] = waveform[timestamps[index]: timestamps[index] + 58]
+    print(spikes.shape)
+    # print(spikes[-2].shape)
+
+    peak_ind = np.argmin(spikes, axis=1)
+    # avg_peak = np.floor(np.mean(peak_ind))
+    timestamps = timestamps - (19 - peak_ind)
+    timestamps = timestamps.astype(int)
+
+    spikes = []
+    for i in range(len(timestamps)):
+        spikes.append(waveform[timestamps[i]:timestamps[i] + 58])
+        plt.plot(np.arange(58), -spikes[i])
+    plt.show()
+
+
+def extract_spikes2(timestamps, waveform, channel):
+    left_limit = np.sum(spikes_per_channel[:channel])
+    right_limit = left_limit + spikes_per_channel[channel]
+    waveform_channel = waveform[left_limit:right_limit]
+    print(left_limit)
+    print(right_limit)
+
+    spikes = []
+    spike_index = 0
+    for i in range(int(left_limit), int(right_limit), 58):
+        print(len(waveform[i:i + 58]))
+        spikes.append(waveform_channel[i:i + 58])
+        print(spike_index)
+        spike_index += 1
+    # plt.show()
+
+    spikes = []
+    for i in range(0, spikes_per_channel[channel]):
+        spikes.append(waveform_channel[i * 58:(i + 1) * 58])
+
+    for i in range(0, 10):
+        plt.plot(np.arange(58), -spikes[i])
+    plt.show()
+
+
+def extract_spikes3(waveform):
+    spikes = []
+    for i in range(0, len(waveform), 58):
+        spikes.append(waveform[i:i + 58])
+    print(len(spikes))
+    for i in range(0, len(spikes), 1000):
+        plt.plot(np.arange(58), -spikes[i])
+    plt.show()
+
+    pca2d = PCA(n_components=2)
+    # X = pca2d.fit_transform(spikes[0:int(np.floor(spikes_per_channel[2]/58))])
+    X = pca2d.fit_transform(spikes[0:11837])
+    plt.scatter(X[:, 0], X[:, 1], marker='o', edgecolors='k')
+    plt.show()
+
+    pca3d = PCA(n_components=3)
+    X = pca3d.fit_transform(spikes[0:11837])
+    fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2])
+    fig.update_layout(title="Ground truth for channel 1")
+    fig.show()
+
+    der_spikes = derivatives.compute_fdmethod(spikes[0:11837])
+    plt.scatter(der_spikes[:, 0], der_spikes[:, 1], marker='o', edgecolors='k')
+    plt.show()
+
+
+units_per_channel_5 = [
+    [],
+    [1629, 474, 5951, 255],
+    [],
+    [],
+    [686],
+    [15231, 1386, 678],
+    [1269, 1192, 3362, 2263, 192],
+    [79],
+    [684, 2053, 3125],
+    [4313, 160, 123, 2582, 211],
+    [1303, 6933, 1298],
+    [],
+    [285],
+    [],
+    [],
+    [2658, 1489, 461],
+    [1742, 150, 277],
+    [5845, 542],
+    [8762, 886, 699],
+    [],
+    [],
+    [],
+    [252],
+    [],
+    [],
+    [1480, 745, 203],
+    [],
+    [2397, 512],
+    [658, 1328, 138],
+    [],
+    [],
+    [],
+    [5899, 239],
+]
+
+units_per_channel = [
+    [],
+    [1773, 483, 2282],
+    [2149, 280],
+    [],
+    [993, 2828],
+    [32565, 200],
+    [1061, 1362, 135, 1102],
+    [],
+    [2085, 3056, 692],
+    [145, 349, 220],
+    [1564],
+    [9537],
+    [14264],
+    [4561],
+    [6926],
+    [1859, 439, 1359],
+    [309, 1877],
+    [1379, 242],
+    [2739],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [1149],
+    [201, 244],
+    [],
+    [109, 209],
+    [413],
+    [377],
+    [421],
+    [276, 19014],
+]
+
+def sum_until_channel(channel):
+    ch_sum = 0
+    for i in units_per_channel[:channel]:
+        ch_sum += np.sum(np.array(i)).astype(int)
+
+    return ch_sum
+
+
+def get_spike_units(waveform, channel, plot_spikes=False):
+    spikes = []
+    new_spikes = np.zeros((np.sum(units_per_channel[channel]), 58))
+
+    for i in range(0, len(waveform), 58):
+        spikes.append(waveform[i: i + 58])
+
+    left_limit_spikes = sum_until_channel(channel)
+    right_limit_spikes = left_limit_spikes + np.sum(np.array(units_per_channel[channel]))
+    print(left_limit_spikes, right_limit_spikes)
+    spikes = spikes[left_limit_spikes: right_limit_spikes]
+
+    if plot_spikes:
+        for i in range(0, len(spikes), 1000):
+            plt.plot(np.arange(58), -spikes[i])
+        plt.show()
+
+    labels = np.array([])
+    for i, units in enumerate(units_per_channel[channel]):
+        labels = np.append(labels, np.repeat(i, units))
+
+    for i, units in enumerate(units_per_channel[channel]):
+        left_lim = sum_until_channel(channel)
+        right_lim = left_lim + units
+
+        spike_index = 0
+        for j in range(len(spikes)):
+            # print(j, left_lim, right_lim)
+            new_spikes[spike_index] = spikes[j]
+            spike_index += 1
+    return new_spikes, labels.astype(int)
+
+
+def fe_per_channels():
+    # waveforms_ = read_waveforms('./datasets/real_data/M017_004_5stdv/Units/M017_0004_5stdv.ssduw')
+    # channel_list = [1, 4, 5, 6, 7, 8, 9, 10, 12, 15, 16, 17, 18, 22, 25, 27, 28, 32]
+    waveforms_ = read_waveforms('./datasets/real_data/M017_004_3stdv/Units/M017_S001_SRCS3L_25,50,100_0004.ssduw')
+    channel_list = [1, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 25, 26, 28, 29, 30, 31, 32]
+    for ch in range(5, 6):
+        spikes, labels = get_spike_units(waveforms_, channel=channel_list[ch])
+        spikes2d = fe.apply_feature_extraction_method(spikes, 'pca3d')
+        sp.plot_clusters(spikes2d, labels, 'pca3d channel_%d' % channel_list[ch], 'real_data')
+        plt.show()
+
+
+# fe_per_channels()
+
+gui()
 # plot_all_ground_truths()
 # spikes_per_cluster(2)
 # all_spikes()
