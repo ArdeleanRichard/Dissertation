@@ -8,28 +8,6 @@ import feature_extraction as fe
 import scatter_plot
 
 
-def generate_dataset_from_simulations2(simulations, simulation_labels, save=False):
-    spikes = []
-    labels = []
-    index = 0
-    for sim_index in np.arange(len(simulations)):
-        s, l = ds.get_dataset_simulation(simulations[sim_index], 79, True, False)
-        for spike_index in np.arange(len(s)):
-            for wanted_label in np.arange(len(simulation_labels[sim_index])):
-                if simulation_labels[sim_index][wanted_label] == l[spike_index]:
-                    spikes.append(s[spike_index])
-                    labels.append(index + wanted_label)
-        index = index + len(simulation_labels[sim_index])
-
-    spikes = np.array(spikes)
-    labels = np.array(labels)
-    if save:
-        np.savetxt("spikes.csv", spikes, delimiter=",")
-        np.savetxt("labels.csv", labels, delimiter=",")
-
-    return spikes, labels
-
-
 def remove_separated_clusters(features, spikes, labels, metric, threshold):
     labels_to_delete = []
 
