@@ -147,3 +147,50 @@ def spikes_per_cluster(spikes, labels, sim_nr):
         plt.savefig('figures/spikes_on_cluster/Sim_%d_Cluster_%d_pca' % (sim_nr, i))
         plt.show()
         # print(cluster_pca)
+
+def make_distribution_all_features(sim_nr):
+    X, _ = ds.get_dataset_simulation(sim_nr)
+    # feature = X[:, feature_nr]
+    # plot_magnitude_distribution(feature)
+
+    for i in range(79):
+        # Subset to the airline
+        subset = X[:, i]
+
+        # Draw the density plot
+        sns.distplot(subset, hist=False, kde=True,
+                     kde_kws={'linewidth': 2},
+                     label=i)
+
+    # Plot formatting
+    plt.legend(prop={'size': 5}, title='Spikes')
+    plt.title('Distribution of spikes by magnitude')
+    plt.xlabel('Magnitude')
+    plt.ylabel('Density')
+    plt.show()
+
+
+def make_distribution_one_feature(sim_nr, feature_nr):
+    X, _ = ds.get_dataset_simulation(sim_nr)
+    spikes = X[:, feature_nr]
+
+    sns.distplot(spikes, hist=True, kde=True,
+                 bins=int(180 / 5), color='darkblue',
+                 hist_kws={'edgecolor': 'black'},
+                 kde_kws={'linewidth': 4})
+
+    # Plot formatting
+    # plt.legend(prop={'size': 16}, title='Airline')
+    plt.title('Distribution of spikes by magnitude for feature %s' % feature_nr)
+    plt.xlabel('Magnitude')
+    plt.ylabel('Density')
+    plt.show()
+
+
+# intre 23-35 aprox
+if __name__ == "__main__":
+    for i in range(79):
+        make_distribution_one_feature(79, i)
+        # (9/36) 0.25*4=1
+    # X, _ = ds.get_dataset_simulation(4)
+    # plot_spikes(X)
