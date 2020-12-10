@@ -8,6 +8,8 @@ from sklearn import preprocessing
 from sklearn.decomposition import PCA
 
 from utils import constants as cs
+from utils.dataset_parsing import datasets as ds
+import seaborn as sns
 
 
 def plot(title, X, labels=None, plot=True, marker='o'):
