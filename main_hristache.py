@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 
 from utils.benchmark import benchmark_data as bd
 from utils import constants as cs, scatter_plot
-from utils.datasets import datasets as ds
+from utils.dataset_parsing import datasets as ds
 import libraries.SimpSOM as sps
 import libraries.som as som2
 from pipeline import pipeline

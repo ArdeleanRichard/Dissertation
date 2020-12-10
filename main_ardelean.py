@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from utils.sbm import SBM
-from utils.datasets import datasets as ds
+from utils.dataset_parsing import datasets as ds
 from utils import scatter_plot
 
 
