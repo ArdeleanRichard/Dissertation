@@ -117,6 +117,7 @@ def plot_spikes(spikes, step=5, title=""):
     """"
     Plots spikes from a simulation
     :param spikes: matrix - the list of spikes in a simulation
+    :param step: skips every step spikes
     :param title: string - the title of the plot
     """
     for i in range(0, len(spikes), step):

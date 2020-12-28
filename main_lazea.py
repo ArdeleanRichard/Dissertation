@@ -206,18 +206,65 @@ def main():
     # scatter_plot.plot_clusters(spikes3d, labels, 'dwt_Channel_' + str(channel_nr), "real_data")
     # plt.show()
 
-    kampff_spike_len = 78
+    cell = "c37"
+    kampff_spike_len = 54
     waveforms_ = realdata.read_waveforms(
-        'C:/poli/year4/licenta/codeGoodGit/Dissertation/datasets/c37_npx/c37_npx.spikew')
+        'D:\\GitHub\\Dissertation\\datasets\\dataset_studenti\\' + cell + '\\waveforms\\' + cell + '_npx.spikew')
+    print(waveforms_.shape)
+    print(len(waveforms_) / kampff_spike_len)
+
     spikes = []
-    for i in np.arange(len(waveforms_)/kampff_spike_len):
+    for i in np.arange(len(waveforms_) / kampff_spike_len):
         spk = []
         for j in np.arange(kampff_spike_len):
             spk.append(-waveforms_[int(i * kampff_spike_len + j)])
         spikes.append(spk)
     # scatter_plot.plot_spikes(spikes, step=20, title="cell 37 - kampff dataset")
-    features = fe.apply_feature_extraction_method(spikes,'cwt', 'pca2d')
-    labels = np.ones(4811)
-    scatter_plot.plot_clusters(features, labels, title="cell 37 kampff cwt + pca2d",
+    features = fe.apply_feature_extraction_method(spikes, feature_extraction_method='pca2d')
+    labels = np.ones(2108)
+    scatter_plot.plot_clusters(features, labels, title=cell + " kampff pca2d",
                                save_folder='')
-main()
+
+    np.array(spikes).astype(dtype='int16').tofile(
+        "D:/GitHub/Dissertation/datasets/dataset_studenti/processed" + '/%s.bin' % cell, sep="")
+    read_data = np.fromfile("D:/GitHub/Dissertation/datasets/dataset_studenti/processed" + '/%s.bin' % cell,
+                            dtype='int16')
+    # print(read_data.shape)
+    # print(read_data)
+
+
+# main()
+
+c14 = np.fromfile("D:/GitHub/Dissertation/datasets/dataset_studenti/processed" + '/c14.bin', dtype='int16')
+c15 = np.fromfile("D:/GitHub/Dissertation/datasets/dataset_studenti/processed" + '/c15.bin', dtype='int16')
+c19 = np.fromfile("D:/GitHub/Dissertation/datasets/dataset_studenti/processed" + '/c19.bin', dtype='int16')
+c24 = np.fromfile("D:/GitHub/Dissertation/datasets/dataset_studenti/processed" + '/c24.bin', dtype='int16')
+c28 = np.fromfile("D:/GitHub/Dissertation/datasets/dataset_studenti/processed" + '/c28.bin', dtype='int16')
+c37 = np.fromfile("D:/GitHub/Dissertation/datasets/dataset_studenti/processed" + '/c37.bin', dtype='int16')
+labels = np.concatenate((
+    # (np.ones(c14.shape[0] // 54) + 0),
+    # (np.ones(c15.shape[0] // 54) + 1),
+    # (np.ones(c19.shape[0] // 54) + 2),
+    # (np.ones(c24.shape[0] // 54) + 3),
+    (np.ones(c28.shape[0] // 54) + 4),
+    # (np.ones(c37.shape[0] // 54) + 5)
+))
+
+spikes = np.concatenate((
+    # c14,
+    # c15,
+    # c19,
+    # c24,
+    c28,
+    # c37
+))
+spikes = spikes.reshape((spikes.shape[0] // 54, 54))
+
+features = fe.apply_feature_extraction_method(spikes,
+                                              feature_extraction_method='pca3d',
+                                              # dim_reduction_method='derivatives_pca2d'
+                                              )
+scatter_plot.plot_clusters(features, labels, title="plot",
+                           save_folder='')
+
+# scatter_plot.plot_spikes(c14.reshape((c14.shape[0] // 54, 54)), step=2500)

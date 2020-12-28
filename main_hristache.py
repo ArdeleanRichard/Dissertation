@@ -398,8 +398,9 @@ def run_pipeline():
 
 
 # run_sim(64)
-run_sim(40)
+run_sim(4)
 # run_pipeline()
 
 # bd.accuracy_all_algorithms_on_multiple_simulations(1, 3, feature_extract_method='hilbert',
 #                                                    reduce_dimensionality_method='derivatives_pca2d')
+
