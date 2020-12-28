@@ -202,12 +202,18 @@ def print_benchmark_extra(sim_nr, algorithm_number, pe_results):
     print("Sim" + str(sim_nr) + " - " + cs.algorithms[algorithm_number] + " - " + 'V-s: {: .3f}'.format(pe_results[5]))
 
 
+def distribution_filter_features(X, number_of_features):
+    return scatter_plot.make_distributions(X, number_of_features)
+
+
 def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method, dim_reduction_method=None, plot=False,
                                           pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False,
                                           save_folder="", **kwargs):
     title_suffix = str(simulation_nr) + "_" + feature_extract_method
     # get data
     X, y = ds.get_dataset_simulation(simulation_nr)
+    X = distribution_filter_features(X, 15)
+
     X = fe.apply_feature_extraction_method(X, feature_extract_method, dim_reduction_method, **kwargs)
 
     if X.shape[1] == 2:
