@@ -216,7 +216,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     X, y = ds.get_dataset_simulation(simulation_nr)
 
     # reduce the feature space
-    
+    X = distribution_filter_features(X, 15)
 
     if feature_extract_method is not None:
         X = fe.apply_feature_extraction_method(X, feature_extract_method, dim_reduction_method, **kwargs)
