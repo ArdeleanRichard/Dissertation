@@ -194,7 +194,7 @@ def stft_level_apply_sbm():
     # for a in range(0, 3):
     #     pe_labeled_data_results[a] = bd.benchmark_algorithm_labeled_data(labels, alg_labels[a])
     #     bd.print_benchmark_labeled_data(sim_nr, a, pe_labeled_data_results[a])
-    #     bd.write_benchmark_labeled_data(sim_nr, cs.feature_extraction_methods[data_nr], pe_labeled_data_results)
+    #     bd.write_benchmark_labeled_data(sim_nr, cs.feature_extraction_methods.py[data_nr], pe_labeled_data_results)
 
 
 def plot_stft_spike():
@@ -313,19 +313,19 @@ def stft_find_params():
                 if data_nr == 7:
                     data = power_pca
                 # sp.plot(title="GT on STFT %s %s nperseg=%d on Sim_%d" % (
-                #     w, cs.feature_extraction_methods[data_nr], nperseg, sim_nr), X=data, labels=labels, marker='o')
+                #     w, cs.feature_extraction_methods.py[data_nr], nperseg, sim_nr), X=data, labels=labels, marker='o')
                 # plt.savefig('./figures/stft_plots/STFT_%s_%s_%d_Sim_%d' % (
-                #     cs.feature_extraction_methods[data_nr], w, nperseg, sim_nr))
+                #     cs.feature_extraction_methods.py[data_nr], w, nperseg, sim_nr))
                 # plt.show()
 
                 alg_labels = [[], [], []]
                 for alg_nr in range(2, 3):
                     alg_labels[alg_nr] = bd.apply_algorithm(data, labels, alg_nr)
                     # sp.plot(title="%s on STFT %s %s coeff on Sim_%d" % (
-                    #     cs.algorithms[alg_nr], w, cs.feature_extraction_methods[data_nr], sim_nr), X=data,
+                    #     cs.algorithms[alg_nr], w, cs.feature_extraction_methods.py[data_nr], sim_nr), X=data,
                     #         labels=alg_labels[alg_nr], marker='o')
                     # plt.savefig('./figures/stft_plots/%s_STFT_%s_%s_Sim_%d' % (
-                    #     cs.algorithms[alg_nr], w, cs.feature_extraction_methods[data_nr], sim_nr))
+                    #     cs.algorithms[alg_nr], w, cs.feature_extraction_methods.py[data_nr], sim_nr))
                     # plt.show()
 
                 pe_labeled_data_results = [[], [], []]

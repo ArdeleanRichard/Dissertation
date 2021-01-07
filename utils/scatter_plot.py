@@ -231,6 +231,7 @@ def make_distributions(X, number_of_features):
 
     features_distributions.sort(key=lambda tup: tup[2], reverse=True)
     top_features = features_distributions[:number_of_features]
+    nr_peaks = [i[2] for i in top_features]
 
     indexes_list = [i[0] for i in top_features]
 
@@ -244,7 +245,7 @@ def make_distributions(X, number_of_features):
         # plot_distribution(X, top_features[i][0], 40)
         # plt.show()
 
-    return X[:, indexes_list]
+    return X[:, indexes_list], nr_peaks
 
 
 # intre 23-35 aprox

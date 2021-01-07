@@ -17,17 +17,20 @@ import libraries.SimpSOM as sps
 import libraries.som as som2
 from pipeline import pipeline
 from feature_extraction import shape_features, feature_extraction as fe
+from utils.feature_extraction_methods import feature_extraction_method
 
 
 def run_sim(sim_nr):
     bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
-                                             feature_extract_method=None,
+                                             feature_extract_method=feature_extraction_method.PCA2D.value,
                                              # dim_reduction_method='',
                                              # dim_reduction_method='pca2d',
                                              plot=True,
                                              pe_labeled_data=True,
                                              pe_unlabeled_data=False,
                                              pe_extra=False,
+                                             nr_features=30,
+                                             weighted=True
                                              # save_folder='kohonen',
 
                                              # som_dim=[20, 20],
@@ -37,4 +40,5 @@ def run_sim(sim_nr):
                                              )
 
 
-run_sim(79)
+run_sim(20)
+

@@ -312,8 +312,8 @@ def get_dataset_simulation(simNr, spike_length=79, align_to_peak=True, normalize
     :returns spikes: matrix - the 79-dimensional points resulted
     :returns labels: vector - the vector of labels for each point
     """
-    simulation_dictionary = loadmat('../datasets/simulation_' + str(simNr) + '.mat')
-    ground_truth_dictionary = loadmat('../datasets/ground_truth.mat')
+    simulation_dictionary = loadmat('./datasets/simulation_' + str(simNr) + '.mat')
+    ground_truth_dictionary = loadmat('./datasets/ground_truth.mat')
 
     labels = ground_truth_dictionary['spike_classes'][0][simNr - 1][0, :]
     start = ground_truth_dictionary['spike_first_sample'][0][simNr - 1][0, :]
