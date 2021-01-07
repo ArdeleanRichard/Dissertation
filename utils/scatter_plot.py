@@ -172,12 +172,12 @@ def make_distribution_all_features(sim_nr):
     plt.show()
 
 
-def make_distribution_one_feature(sim_nr, feature_nr):
+def make_distribution_one_feature(sim_nr, feature_nr, bins):
     X, _ = ds.get_dataset_simulation(sim_nr)
     spikes = X[:, feature_nr]
 
     sns.distplot(spikes, hist=True, kde=True,
-                 bins=int(180 / 5), color='darkblue',
+                 bins=bins, color='darkblue',
                  hist_kws={'edgecolor': 'black'},
                  kde_kws={'linewidth': 4})
 
@@ -191,8 +191,8 @@ def make_distribution_one_feature(sim_nr, feature_nr):
 
 # intre 23-35 aprox
 if __name__ == "__main__":
-    for i in range(79):
-        make_distribution_one_feature(79, i)
+    #for i in range(79):
+    make_distribution_one_feature(20, 22, 64)
         # (9/36) 0.25*4=1
     # X, _ = ds.get_dataset_simulation(4)
     # plot_spikes(X)
