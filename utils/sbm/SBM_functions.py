@@ -14,6 +14,14 @@ import warnings
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+# X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+# X_scaled = X_std * (max - min) + min
+def min_max_scaling(X, pn):
+    X_std = np.zeros_like(X)
+    X_std[:, 0] = (X[:, 0] - np.amin(X[:, 0])) / (np.amax(X[:, 0]) - np.amin(X[:, 0]))
+    X_std[:, 1] = (X[:, 1] - np.amin(X[:, 1])) / (np.amax(X[:, 1]) - np.amin(X[:, 1]))
+    X_std = X_std * pn
+    return X_std
 
 # TODO
 def valid_center(value):
@@ -59,9 +67,16 @@ def check_maxima(array, point):
     :returns : boolean - whether or not it is a maxima
     """
     neighbours = get_neighbours(point, np.shape(array))
+
+
     for neighbour in neighbours:
         if array[tuple(neighbour)] > array[point]:
             return False
+    # fastest way but you need to convert array of arrays to array of tuples
+    # neighbours = np.apply_along_axis(tuple, 0, neighbours)
+    # this doesnt work because python retarded
+    # print(np.all(array[neighbours] < array[point]))
+
     return True
 
 
@@ -78,6 +93,7 @@ def find_cluster_centers(array, threshold=5):
     for index, value in np.ndenumerate(array):
         if value >= threshold and check_maxima(array, index):  # TODO exclude neighbour centers
             clusterCenters.append(index)
+
     return clusterCenters
 
 
@@ -143,12 +159,14 @@ def expand_cluster_center(array, start, labels, currentLabel, clusterCenters, ve
     while expansionQueue:
         point = expansionQueue.pop(0)
         neighbours = get_neighbours(point, np.shape(array))
+
         for neighbour in neighbours:
             location = tuple(neighbour)
             if version == 1:
                 number = dropoff * math.sqrt(distance(start, location))
             elif version == 2:
                 number = math.floor(math.sqrt(dropoff * distance(start, location)))
+
             if array[location] == 0:
                 pass
             if (not visited[location]) and (number < array[location] <= array[point]):
@@ -169,6 +187,7 @@ def expand_cluster_center(array, start, labels, currentLabel, clusterCenters, ve
                                               clusterCenters[currentLabel - 1],
                                               clusterCenters[oldLabel - 1],
                                               version)
+                        # print(currentLabel, oldLabel, disRez)
                         if disRez == 1:
                             labels[location] = currentLabel
                             expansionQueue.append(location)

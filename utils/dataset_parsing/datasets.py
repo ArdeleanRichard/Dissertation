@@ -12,10 +12,74 @@ from feature_extraction.wlt import discretewlt as dwt, wavelets as wlt
 from utils import scatter_plot
 from feature_extraction import shape_features, derivatives as deriv
 from feature_extraction.feature_extraction import superlets as slt
+from utils.constants import dataName, dataFiles
 
-dataName = ["S1", "S2", "U", "UO", "Simulation"]
-files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
 
+def stack_simulations_array(number_array, randomize=False, no_noise=False):
+    spikes = np.empty((79,))
+    labels = np.empty((1,))
+    for i in range(0, len(number_array)):
+        if i == 25 or i == 44:
+            continue
+        new_spikes, new_labels = get_dataset_simulation(simNr=number_array[i])
+
+        #remove noise label == 0
+        if no_noise == True:
+            new_spikes = new_spikes[new_labels != 0]
+            new_labels = new_labels[new_labels != 0]
+
+        if randomize == True:
+            subsample = create_subsamples(new_spikes, new_labels,  percentage=80, nr_of_subsamples=1)
+            new_spikes, new_labels = subsample[0]
+
+        new_spikes = np.array(new_spikes)
+        new_labels = np.array(new_labels)
+        spikes = np.vstack((spikes, new_spikes))
+        labels = np.hstack((labels, new_labels))
+
+    # delete np.empty initialization
+    return spikes[1:], labels[1:]
+
+
+def stack_simulations_range(min, max, randomize=False, no_noise=False):
+    spikes = np.empty((79,))
+    labels = np.empty((1,))
+    for simulation_number in range(min, max):
+        print(simulation_number)
+        if simulation_number == 25 or simulation_number == 44:
+            continue
+        new_spikes, new_labels = get_dataset_simulation(simNr=simulation_number)
+
+        #remove noise label == 0
+        if no_noise == True:
+            new_spikes = new_spikes[new_labels != 0]
+            new_labels = new_labels[new_labels != 0]
+
+        if randomize == True:
+            subsample = create_subsamples(new_spikes, new_labels, percentage=80, nr_of_subsamples=1)
+            new_spikes, new_labels = subsample[0]
+
+        new_spikes = np.array(new_spikes)
+        new_labels = np.array(new_labels)
+        spikes = np.vstack((spikes, new_spikes))
+        labels = np.hstack((labels, new_labels))
+
+    # delete np.empty initialization
+    return spikes[1:], labels[1:]
+
+def create_subsamples(spikes, labels, percentage = 80, nr_of_subsamples=10):
+    """
+    Create a chosen number of random subsamples of the dataset each containing half of the points
+    :param X: dataset
+    :param nr_of_subsamples: number of subsamples to be created
+    """
+    subsamples = []
+    for i in range(nr_of_subsamples):
+        random_list = np.random.choice(range(len(spikes)), len(spikes) * percentage // 100, replace=False)
+        subset_spikes = spikes[random_list, :]
+        subset_labels = labels[random_list]
+        subsamples.append((subset_spikes, subset_labels))
+    return subsamples
 
 def spike_extract(signal, spike_start, spike_length):
     """
@@ -650,7 +714,7 @@ def load_particular_dataset(datasetNumber):
     datasetName = dataName[datasetNumber]
     simulation_number = 10
     if datasetNumber < 3:
-        X = np.genfromtxt("./datasets/" + files[datasetNumber], delimiter=",")
+        X = np.genfromtxt("./datasets/" + dataFiles[datasetNumber], delimiter=",")
         X, y = X[:, [0, 1]], X[:, 2]
     elif datasetNumber == 3:
         X, y = getGenData()

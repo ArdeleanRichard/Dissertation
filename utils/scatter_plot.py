@@ -109,7 +109,7 @@ def plot_grid(title, X, pn, labels=None, plot=True, marker='o'):
             # ax.set_xticks(np.arange(0, pn, 1))
             # ax.set_zticks(np.arange(0, pn, 1))
             # ax.set_yticks(np.arange(0, pn, 1))
-            ax.scatter(X[:, 0], X[:, 1], X[:, 2], marker=marker, c=label_color, s=25, )
+            ax.scatter(X[:, 0], X[:, 1], X[:, 2], marker=marker, c=label_color, s=25)
             # plt.grid(True)
 
 
