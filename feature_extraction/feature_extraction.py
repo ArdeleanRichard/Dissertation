@@ -10,7 +10,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from feature_extraction.wlt import discretewlt as dwt, wavelets as wlt
-import libraries.SimpSOM as sps
+#import libraries.SimpSOM as sps
 from feature_extraction import shape_features, derivatives as deriv
 from feature_extraction.fourier import stft_dpss
 from feature_extraction.slt import superlets as slt
@@ -54,8 +54,9 @@ def discrete_wavelet_transform_ks(spikes):
 
 
 def superlets(spikes):
-    slt_features = slt.slt(spikes, 2, 1.1)
-    # slt_features = slt.slt(spikes, 5, 1.8)
+    # slt_features = slt.slt(spikes, 2, 2, 1.1)
+    # slt_features = slt.slt(spikes, 5, 5, 1.8)
+    slt_features = slt.slt(spikes, 5, 10, 3)
 
     scaler = StandardScaler()
     features = scaler.fit_transform(slt_features)
@@ -244,7 +245,7 @@ def stft(spikes):
 def stft_d(spikes):
     sampled_frequencies, time_segments, Zxx = signal.stft(spikes, window='blackman', fs=1, nperseg=45)
     amplitude = np.abs(Zxx)
-    amplitude = np.apply_along_axis(deriv.compute_fdmethod_1spike, 2, amplitude)
+    amplitude = np.apply_along_axis(deriv.compute_fdmethod_1spike2, 2, amplitude)
     amplitude = amplitude.reshape(*amplitude.shape[:1], -1)
     return amplitude
 

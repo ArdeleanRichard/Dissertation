@@ -8,6 +8,7 @@ from sklearn.metrics.cluster.unsupervised import check_number_of_labels
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import check_X_y
 
+from feature_extraction.slt import superlets
 from utils.dataset_parsing import datasets as ds, realdata
 from utils import scatter_plot
 from feature_extraction import feature_extraction as fe
@@ -210,14 +211,123 @@ def main():
     waveforms_ = realdata.read_waveforms(
         'C:/poli/year4/licenta/codeGoodGit/Dissertation/datasets/c37_npx/c37_npx.spikew')
     spikes = []
-    for i in np.arange(len(waveforms_)/kampff_spike_len):
+    for i in np.arange(len(waveforms_) / kampff_spike_len):
         spk = []
         for j in np.arange(kampff_spike_len):
             spk.append(-waveforms_[int(i * kampff_spike_len + j)])
         spikes.append(spk)
     # scatter_plot.plot_spikes(spikes, step=20, title="cell 37 - kampff dataset")
-    features = fe.apply_feature_extraction_method(spikes,'cwt', 'pca2d')
+    features = fe.apply_feature_extraction_method(spikes, 'cwt', 'pca2d')
     labels = np.ones(4811)
     scatter_plot.plot_clusters(features, labels, title="cell 37 kampff cwt + pca2d",
                                save_folder='')
-main()
+
+
+# main()
+
+def run_kampff(cell_nr):
+    print("SPIKE SHAPE:")
+    c_spikes = np.fromfile(
+        'C:/poli/year4/licenta/dataset_studenti/c' + str(cell_nr) + '/waveforms/c' + str(cell_nr) + '_npx.spikew',
+        dtype='float32')
+    spikes = c_spikes.reshape((c_spikes.shape[0] // 54, 54))
+    print(spikes.shape)
+    print("SPIKE TIMESTAMPS:")
+    c_spike_timestamps = np.fromfile("C:/poli/year4/licenta/dataset_studenti/c14/waveforms/c14_npx.spiket",
+                                     dtype='int32')
+    print(c_spike_timestamps)
+    print("EVENT TIMESTAMPS:")
+    c_event_timestamps = np.fromfile("C:/poli/year4/licenta/dataset_studenti/c14/waveforms/c14_npx.eventt",
+                                     dtype='int32')
+    print(c_event_timestamps)
+    print("EVENT CODES:")
+    c_event_codes = np.fromfile("C:/poli/year4/licenta/dataset_studenti/c14/waveforms/c14_npx.eventc", dtype='int32')
+    print(c_event_codes)
+
+
+def run_kampff_preprocessed(cell_nr):
+    print("SPIKE SHAPE:")
+    c_spikes = np.fromfile(
+        'C:/poli/year4/licenta/ssd_studenti/c' + str(cell_nr) + '/units/c' + str(cell_nr) + '_npx.ssduw',
+        dtype='float32')
+    spikes = c_spikes.reshape((c_spikes.shape[0] // 54, 54))
+    print(spikes.shape)
+    features = fe.apply_feature_extraction_method(spikes,
+                                                  feature_extraction_method='slt',
+                                                  dim_reduction_method='pca2d'
+                                                  )
+    scatter_plot.plot_clusters(features, np.ones((c_spikes.shape[0] // 54)), title="slt", save_folder='')
+
+
+def computeLabels(cell_nr):
+    c_spikes = np.fromfile(
+        'C:/poli/year4/licenta/ssd_studenti/c' + str(cell_nr) + '/units/c' + str(cell_nr) + '_npx.ssduw',
+        dtype='float32')
+    spikes = c_spikes.reshape((c_spikes.shape[0] // 54, 54))
+
+    # print("SPIKE TIMESTAMPS:")
+    c_spike_timestamps = np.fromfile(
+        'C:/poli/year4/licenta/ssd_studenti/c' + str(cell_nr) + '/units/c' + str(cell_nr) + '_npx.ssdst',
+        dtype='int32')
+    # print(c_spike_timestamps)
+
+    # print("SPIKE WIDTHS:")
+    c_spike_widths = np.fromfile(
+        'C:/poli/year4/licenta/ssd_studenti/c' + str(cell_nr) + '/units/c' + str(cell_nr) + '_npx.ssdsw',
+        dtype='float32')
+    # print(c_spike_widths)
+
+    # print("SPIKE WAVEFORMS:")
+    c_spike_waveforms = np.fromfile(
+        'C:/poli/year4/licenta/ssd_studenti/c' + str(cell_nr) + '/units/c' + str(cell_nr) + '_npx.ssduw',
+        dtype='float32')
+    # print(c_spike_waveforms)
+
+    # print("EVENT TIMESTAMPS:")
+    c_event_timestamps = np.fromfile(
+        'C:/poli/year4/licenta/ssd_studenti/c' + str(cell_nr) + '/units/c' + str(cell_nr) + '_npx.ssdet',
+        dtype='int32')
+    # print(c_event_timestamps)
+
+    # print("EVENT CODES:")
+    c_event_codes = np.fromfile(
+        'C:/poli/year4/licenta/ssd_studenti/c' + str(cell_nr) + '/units/c' + str(cell_nr) + '_npx.ssdec',
+        dtype='int32')
+    # print(c_event_codes)
+    ##################################################################################
+    # print("SPIKE TIMESTAMPS BEFORE FILTER:")
+    # c_spike_timestamps = np.fromfile("C:/poli/year4/licenta/dataset_studenti/c14/waveforms/c14_npx.spiket",
+    #                                  dtype='int32')
+    # print(c_spike_timestamps)
+    # print("EVENT TIMESTAMPS BEFORE FILTER:")
+    # c_event_timestamps = np.fromfile("C:/poli/year4/licenta/dataset_studenti/c14/waveforms/c14_npx.eventt",
+    #                                  dtype='int32')
+    # print(c_event_timestamps)
+    ###################################################################################
+    labels = np.zeros(c_spike_timestamps.shape[0])
+    j = 0
+    count = 0
+    for i in np.arange(0, c_spike_timestamps.shape[0]):
+        if c_event_codes[j] != 1:
+            j = j + 1
+            continue
+        if abs(c_spike_timestamps[i] - c_event_timestamps[j]) <= 54:
+            labels[i] = 1
+            count = count + 1
+            j = j + 1
+            continue
+        while j < len(c_event_timestamps) and c_event_timestamps[j] < c_spike_timestamps[i]:
+            j = j + 1
+
+    print(count)
+    print("LABELS")
+    print(labels)
+    print("-------------------------")
+
+    # np.savetxt("C:/poli/year4/licenta/ssd_studenti/plots/c14/event_timestamps_full.txt", c_event_timestamps)
+    #
+    # np.savetxt("C:/poli/year4/licenta/ssd_studenti/plots/c14/spike_timestamps_full.txt", c_spike_timestamps, "%d")
+    #
+
+
+computeLabels(14)
