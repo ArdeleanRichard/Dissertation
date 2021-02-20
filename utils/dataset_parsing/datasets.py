@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from feature_extraction.wlt import discretewlt as dwt, wavelets as wlt
 from utils import scatter_plot
 from feature_extraction import shape_features, derivatives as deriv
-from feature_extraction.feature_extraction import superlets as slt
+from feature_extraction.slt import superlets as slt
 
 dataName = ["S1", "S2", "U", "UO", "Simulation"]
 files = ["s1_labeled.csv", "s2_labeled.csv", "unbalance.csv"]
