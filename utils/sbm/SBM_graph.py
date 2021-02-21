@@ -8,9 +8,11 @@ from sklearn.decomposition import PCA
 
 import networkx as nx
 
+
 def SBM(spikes, pn, ccThreshold=5, version=2):
     spikes = preprocessing.MinMaxScaler((0, pn)).fit_transform(spikes)
     spikes = np.floor(spikes).astype(int)
+    # spikes = spikes[np.all(spikes < pn, axis=1)]
 
     start = time.time()
     graph = create_graph(spikes)
@@ -41,7 +43,7 @@ def SBM(spikes, pn, ccThreshold=5, version=2):
     print(f"Expansion: {time.time() - start}")
 
     start = time.time()
-    labels = get_labels(graph, spikes)
+    labels = get_labels(graph, spikes, pn)
     print(f"Labeling: {time.time() - start}")
 
     return labels
@@ -91,7 +93,15 @@ def create_graph(spikes):
     #         if test_neighbour == 1 or test_neighbour == -1:
     #             g.add_edge(string_node1, string_node2)
 
+    # import matplotlib.pyplot as plt
+    # pos = nx.spring_layout(g, iterations=1000)
+    # nx.draw(g, pos=pos, node_color='r', edge_color='b', node_size=250)
+    # node_labels = nx.get_node_attributes(g, 'count')
+    # nx.draw_networkx_labels(g, pos, labels=node_labels)
+    # plt.show()
+
     return g
+
 
 def check_maxima(graph, count, spike_id):
     # for neighbour in graph.neighbors(spike_id):
@@ -112,6 +122,7 @@ def get_cluster_centers(graph, ccThreshold):
             centers.append(node)
 
     return centers
+
 
 
 def get_dropoff(graph, location):
@@ -213,6 +224,7 @@ def expand_cluster_center(graph, start, label, cluster_centers, version):
             except KeyError:
                 pass
 
+
 def get_strength(graph, cc, questionPoint):
     dist = get_distance(graph, cc, questionPoint)
     # strength = ndArray[expansionPoint] / ndArray[questionPoint] / dist
@@ -221,6 +233,7 @@ def get_strength(graph, cc, questionPoint):
     strength = graph.nodes[questionPoint]['count'] / dist / graph.nodes[cc]['count']
 
     return strength
+
 
 def disambiguate(graph, questionPoint, expansionPoint, cc1, cc2, version):
     # CHOOSE CLUSTER FOR ALREADY ASSIGNED POINT
@@ -259,7 +272,9 @@ def disambiguate(graph, questionPoint, expansionPoint, cc1, cc2, version):
     else:
         return 2
 
-def get_labels(graph, spikes):
+
+def get_labels(graph, spikes, pn):
+    # spikes[spikes >= pn] = pn - 1
     labels = []
 
     for spike in spikes:

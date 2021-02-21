@@ -285,36 +285,47 @@ def main(program, sub=""):
 
     elif program == "sbm_graph":
         simulation_number = 4
-        data, labels = ds.get_dataset_simulation(simNr=simulation_number)
+        data, y = ds.get_dataset_simulation(simNr=simulation_number)
 
-        # for dim in range(10, 16):
-        #     pca_2d = PCA(n_components=dim)
-        pca_2d = PCA(n_components=2)
-        spikes = pca_2d.fit_transform(data)
+        # dims = 2
+        for dims in range(2, 3):
+            print(dims)
+            pca_2d = PCA(n_components=dims)
 
-        scatter_plot.plot('GT-' + str(len(spikes)), spikes, labels, marker='o')
-        plt.savefig('./figures/sim4_gt')
+            pca_2d = PCA(n_components=dims)
+            spikes = pca_2d.fit_transform(data)
 
-        pn = 25
-        # start = time.time()
-        # labels = SBM.best(spikes, pn)
-        # print(f"SBMog: {time.time() - start}")
-        # scatter_plot.plot_grid('SBM-' + str(len(spikes)), spikes, pn, labels, marker='o')
-        # plt.savefig('./figures/sim4_sbm')
+            # scatter_plot.plot('GT-' + str(len(spikes)), spikes, labels, marker='o')
+            # plt.savefig('./figures/sim4_gt')
 
-        start = time.time()
-        labels = SBM_graph.SBM(spikes, pn)
-        print(f"SBMv2: {time.time() - start}")
+            pn = 5
+            # start = time.time()
+            # labels = SBM.best(spikes, pn)
+            # print(f"SBMog: {time.time() - start}")
+            # scatter_plot.plot_grid('SBM-' + str(len(spikes)), spikes, pn, labels, marker='o')
+            # plt.savefig('./figures/sim4_sbm')
 
-        # sum_time = 0
-        # nr = 20
-        # for test in range(nr):
-        #     start = time.time()
-        #     labels = SBM_graph.SBM(spikes, pn)
-        #     sum_time += time.time() - start
-        # print(f"SBMv2: {sum_time/nr}")
-        scatter_plot.plot_grid('SBMv2-' + str(len(spikes)), spikes, pn, labels, marker='o')
-        plt.savefig('./figures/sim4_sbmv2')
+            start = time.time()
+            labels = SBM_graph.SBM(spikes, pn)
+            print(f"SBMv2: {time.time() - start}")
+
+            # sum_time = 0
+            # nr = 20
+            # for test in range(nr):
+            #     start = time.time()
+            #     labels = SBM_graph.SBM(spikes, pn)
+            #     sum_time += time.time() - start
+            # print(f"SBMv2: {sum_time/nr}")
+
+            pca_2d = PCA(n_components=2)
+            spikes = pca_2d.fit_transform(data)
+
+            scatter_plot.plot('GT-' + str(len(spikes)), spikes, y, marker='o')
+            plt.savefig('./figures/sim4_gt')
+            scatter_plot.plot_grid('SBMv2-' + str(len(spikes)), spikes, pn, labels, marker='o')
+            plt.savefig(f'./figures/sim4_sbmv2_dim{dims}')
+
+            print()
 
 
 

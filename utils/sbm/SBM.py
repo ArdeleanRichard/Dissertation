@@ -24,6 +24,7 @@ def best(X, pn, ccThreshold=5, version=2):
     #X = fs.min_max_scaling(X, pn)
     X = preprocessing.MinMaxScaler((0, pn)).fit_transform(X)
     ndArray = fs.chunkify_numpy(X, pn)
+    # np.savetxt('data.csv', ndArray.astype(int), fmt='%i', delimiter=',')
 
     clusterCenters = fs.find_cluster_centers(ndArray, ccThreshold)
 
