@@ -152,7 +152,6 @@ def spikes_per_cluster(spikes, labels, sim_nr):
         # print(cluster_pca)
 
 
-
 """
 def make_distribution_one_feature(sim_nr, feature_nr, bins):
     X, _ = ds.get_dataset_simulation(sim_nr)
@@ -170,6 +169,8 @@ def make_distribution_one_feature(sim_nr, feature_nr, bins):
     plt.ylabel('Density')
     plt.show()
 """
+
+############################################# licenta
 
 def make_distribution_all_features(sim_nr):
     X, _ = ds.get_dataset_simulation(sim_nr)
@@ -255,8 +256,6 @@ if __name__ == "__main__":
     X_filtered = make_distributions(X, 15)
     print(X_filtered.shape)
 
-
-# intre 23-35 aprox
 # if __name__ == "__main__":
 # for i in range(79):
 #    make_distribution_one_feature(20, 22, 64)

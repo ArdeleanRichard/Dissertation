@@ -209,13 +209,11 @@ def distribution_filter_features(X, number_of_features):
 def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method, dim_reduction_method=None, plot=False,
                                           pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False,
                                           save_folder="", nr_features=None, weighted=False, **kwargs):
-    """
-
-    """
 
     # get original data
     X, y = ds.get_dataset_simulation(simulation_nr)
     weights = np.ones(nr_features)
+
     # reduce the feature space
     if feature_extract_method is not None:
         X = fe.apply_feature_extraction_method(X, feature_extract_method, dim_reduction_method, **kwargs)
@@ -231,7 +229,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
 
     # apply algorithm(s) and save clustering labels
     labels = [[], [], []]
-    for a in range(0, 3):  # exclude SBM for now
+    for a in range(0, 3):
         labels[a] = apply_algorithm(X, y, a, weights)
 
     # apply dimensionality reduction for visualization
@@ -261,7 +259,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
                     plt.savefig('figures/' + save_folder + '/' + "sim" + title_suffix + "_" + cs.algorithms[a] + '.png')
                 plt.show()
         elif X.shape[1] == 3:
-            for a in range(0, 3):
+            for a in range(0, 2):
                 if a == 1:
                     continue
                 fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2], color=labels[a].astype(str))
@@ -272,7 +270,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     if pe_labeled_data:
         # print("\nPerformance evaluation - labeled data - " + feature_extract_method)
         pe_labeled_data_results = [[], [], []]
-        for a in range(0, 3):  # exclude sbm for now
+        for a in range(0, 3):
             if a == 1:
                 continue
             pe_labeled_data_results[a] = benchmark_algorithm_labeled_data(y, labels[a])
@@ -283,7 +281,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
         print("\nPerformance evaluation - unlabeled data - " + feature_extract_method)
         pe_unlabeled_data_results = [[], [], []]
         pe_ground_results = benchmark_algorithm_unlabeled_data(X, y)
-        for a in range(0, 3):
+        for a in range(0, 2):
             if a == 1:
                 continue
             pe_unlabeled_data_results[a] = benchmark_algorithm_unlabeled_data(X, labels[a])
@@ -293,7 +291,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     if pe_extra:
         print("\nPerformance evaluation - extra - " + feature_extract_method)
         pe_extra_results = [[], [], []]
-        for a in range(0, 3):
+        for a in range(0, 2):
             if a == 1:
                 continue
             pe_extra_results[a] = benchmark_algorithm_extra(y, labels[a])

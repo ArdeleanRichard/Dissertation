@@ -22,14 +22,14 @@ from utils.feature_extraction_methods import feature_extraction_method
 
 def run_sim(sim_nr):
     bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
-                                             feature_extract_method=feature_extraction_method.PCA2D.value,
+                                             feature_extract_method=None,
                                              # dim_reduction_method='',
                                              # dim_reduction_method='pca2d',
                                              plot=True,
                                              pe_labeled_data=True,
                                              pe_unlabeled_data=False,
                                              pe_extra=False,
-                                             nr_features=30,
+                                             nr_features=6,
                                              weighted=True
                                              # save_folder='kohonen',
 
@@ -40,5 +40,5 @@ def run_sim(sim_nr):
                                              )
 
 
-run_sim(20)
+run_sim(4)
 

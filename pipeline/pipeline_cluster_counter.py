@@ -46,7 +46,7 @@ def remove_separated_clusters(features, spikes, labels, metric, threshold, clust
     for j in np.arange(len(means)):
         if means[j] != -1:
             print(means[j])
-            f.write("\n"+str(means[j]))
+            f.write("\n" + str(means[j]))
             if means[j] >= threshold:
                 labels_to_delete.append(j)
                 print("Deleted cluster " + str(j))
@@ -75,8 +75,10 @@ def pipeline(spikes, labels, methods, f, sim_nr):
             f.write("\nPipeline step " + str(step) + " applying " + method[0])
 
             features = fe.apply_feature_extraction_method(spikes, method[0], method[1])
-            new_spikes, new_features, new_labels, new_cluster_counter = remove_separated_clusters(features, spikes, labels, method[2],
-                                                                             method[3], cluster_counter, f)
+            new_spikes, new_features, new_labels, new_cluster_counter = remove_separated_clusters(features, spikes,
+                                                                                                  labels, method[2],
+                                                                                                  method[3],
+                                                                                                  cluster_counter, f)
             cluster_counter = new_cluster_counter
             print(cluster_counter)
             f.write("\nEliminated: " + str(cluster_counter))
@@ -112,7 +114,6 @@ def cluster_count():
             # ['pca', 'PCA2D', 'euclidean', 0.70],
         ], f, sim_nr)
     f.close()
-
 
 
 # spikes, labels = generate_dataset_from_simulations2([4], [[0, 1, 2, 3, 4]], False)
