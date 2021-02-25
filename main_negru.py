@@ -10,7 +10,7 @@ from scipy import fft
 from scipy.fftpack import hilbert
 from sklearn.decomposition import PCA
 
-from utils.benchmark import benchmark_data as bd
+from licenta.roxi import benchmark_data as bd
 from utils import constants as cs, scatter_plot
 from utils.dataset_parsing import datasets as ds
 import libraries.SimpSOM as sps
@@ -372,13 +372,15 @@ def real_dataset(channel, feature_extraction_method, dim_reduction_method):
 
 def run_sim(sim_nr):
     bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
-                                             feature_extract_method='pca2d',
+                                             feature_extract_method=None,
                                              # dim_reduction_method='',
                                              # dim_reduction_method='pca2d',
                                              plot=True,
                                              pe_labeled_data=True,
                                              pe_unlabeled_data=False,
                                              pe_extra=False,
+                                             weighted=True,
+                                             nr_features=10
                                              # save_folder='kohonen',
 
                                              # som_dim=[20, 20],
@@ -398,7 +400,7 @@ def run_pipeline():
 
 
 # run_sim(64)
-run_sim(79)
+run_sim(4)
 # run_pipeline()
 
 # bd.accuracy_all_algorithms_on_multiple_simulations(1, 3, feature_extract_method='hilbert',

@@ -319,3 +319,4 @@ def accuracy_all_algorithms_on_multiple_simulations(l_sim, r_sim, feature_extrac
     [print_benchmark_labeled_data(str(l_sim) + "-" + str(r_sim), alg, average_accuracy[alg]) for alg in range(0, 3)]
 
     return average_accuracy
+

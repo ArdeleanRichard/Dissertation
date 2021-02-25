@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.signal import find_peaks
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
-from scipy.signal import find_peaks
 
 from utils import constants as cs
 from utils.dataset_parsing import datasets as ds
@@ -152,6 +152,27 @@ def spikes_per_cluster(spikes, labels, sim_nr):
         # print(cluster_pca)
 
 
+"""
+def make_distribution_one_feature(sim_nr, feature_nr, bins):
+    X, _ = ds.get_dataset_simulation(sim_nr)
+    spikes = X[:, feature_nr]
+
+    sns.distplot(spikes, hist=True, kde=True,
+                 bins=bins, color='darkblue',
+                 hist_kws={'edgecolor': 'black'},
+                 kde_kws={'linewidth': 4})
+
+    # Plot formatting
+    # plt.legend(prop={'size': 16}, title='Airline')
+    plt.title('Distribution of spikes by magnitude for feature %s' % feature_nr)
+    plt.xlabel('Magnitude')
+    plt.ylabel('Density')
+    plt.show()
+"""
+
+
+############################################# licenta
+
 def make_distribution_all_features(sim_nr):
     X, _ = ds.get_dataset_simulation(sim_nr)
     # feature = X[:, feature_nr]
@@ -205,13 +226,15 @@ def compute_maxima(values):
 
 def make_distributions(X, number_of_features):
     features_distributions = []
-    for i in range(79):
+    print("Dataset features "+str(X.shape[1]))
+    for i in range(X.shape[1]):
         values = make_distribution_one_feature(X, i)
         tops = compute_maxima(values)
         features_distributions.append((i, values, tops))
 
     features_distributions.sort(key=lambda tup: tup[2], reverse=True)
     top_features = features_distributions[:number_of_features]
+    nr_peaks = [i[2] for i in top_features]
 
     indexes_list = [i[0] for i in top_features]
 
@@ -225,7 +248,7 @@ def make_distributions(X, number_of_features):
         # plot_distribution(X, top_features[i][0], 40)
         # plt.show()
 
-    return X[:, indexes_list]
+    return X[:, indexes_list], nr_peaks
 
 
 # intre 23-35 aprox
@@ -234,3 +257,10 @@ if __name__ == "__main__":
     print(X.shape)
     X_filtered = make_distributions(X, 15)
     print(X_filtered.shape)
+
+# if __name__ == "__main__":
+# for i in range(79):
+#    make_distribution_one_feature(20, 22, 64)
+# (9/36) 0.25*4=1
+# X, _ = ds.get_dataset_simulation(4)
+# plot_spikes(X)
