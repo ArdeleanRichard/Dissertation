@@ -38,16 +38,16 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
         X = fe.apply_feature_extraction_method(X, feature_extract_method, dim_reduction_method, **kwargs)
         title_suffix = title_suffix + "_" + feature_extract_method
 
-    nr_features = min(nr_features, X.shape[1])
-
-    if weighted is True:
+    if nr_features is not None:
+        nr_features = min(nr_features, X.shape[1])
         X, peaks = distribution_filter_features(X, nr_features)
-        X = apply_weights(X, peaks)
-        title_suffix = title_suffix + 'features_weighted'
+        if weighted is True:
+            X = apply_weights(X, peaks)
+            title_suffix = title_suffix + 'features_weighted'
 
     # apply algorithm(s) and save clustering labels
     labels = [[], [], []]
-    for a in range(0, 2):
+    for a in range(0, 1):
         labels[a] = apply_algorithm(X, y, a)
 
     # apply dimensionality reduction for visualization
@@ -134,9 +134,5 @@ def apply_weights(X, peaks):
     reference = peaks[0]
     for i in range(len(peaks)):
         ratio = peaks[i]/reference
-        if i == 3:
-            print(X[:, i])
-        print(f'Ratio for value {i} is {ratio}')
-        if i == 3:
-            print(X[:, i])
+        X[:, i] = X[:, i] * (ratio ** 0.5)
     return X
