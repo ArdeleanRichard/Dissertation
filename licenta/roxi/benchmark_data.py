@@ -31,38 +31,27 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     # get original data
     X, y = ds.get_dataset_simulation(simulation_nr)
 
-
+    title_suffix = str(simulation_nr)
 
     # reduce the feature space
     if feature_extract_method is not None:
         X = fe.apply_feature_extraction_method(X, feature_extract_method, dim_reduction_method, **kwargs)
-        title_suffix = str(simulation_nr) + "_" + feature_extract_method
-    else:
-        if weighted is True:
-            X, peaks = distribution_filter_features(X, nr_features)
-            weights = np.divide(np.power(peaks, 2), peaks[0] * peaks[0])
-            # weights = np.divide(peaks, peaks[0])
-            title_suffix = str(simulation_nr) + "_" + str(nr_features) + " features_weighted"
-        else:
-            title_suffix = str(simulation_nr) + "_" + str(nr_features) + " features_unweighted"
+        title_suffix = title_suffix + "_" + feature_extract_method
+
+    nr_features = min(nr_features, X.shape[1])
 
     if weighted is True:
         X, peaks = distribution_filter_features(X, nr_features)
-        weights = np.divide(np.power(peaks, 2), peaks[0] * peaks[0])
-        # weights = np.divide(peaks, peaks[0])
+        X = apply_weights(X, peaks)
         title_suffix = title_suffix + 'features_weighted'
-    else:
-        title_suffix += title_suffix + 'features_unweighted'
-        print('Number of features is '+str(X.shape[1])+'\n')
-        weights = np.ones(X.shape[1])
 
     # apply algorithm(s) and save clustering labels
     labels = [[], [], []]
-    for a in range(0, 3):
-        labels[a] = apply_algorithm(X, y, a, weights)
+    for a in range(0, 2):
+        labels[a] = apply_algorithm(X, y, a)
 
     # apply dimensionality reduction for visualization
-    if feature_extract_method is None:
+    if X.shape[1] > 2:
         X = fe.reduce_dimensionality(X, 'pca2d')
 
     # display ground truth
@@ -79,18 +68,14 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     # plot algorithms labels
     if plot:
         if X.shape[1] == 2:
-            for a in range(0, 3):
-                if a == 1:
-                    continue
+            for a in range(0, 1):
                 scatter_plot.plot(cs.algorithms[a] + " on Sim" + title_suffix, X, labels[a],
                                   marker='o')
                 if save_folder != "":
                     plt.savefig('figures/' + save_folder + '/' + "sim" + title_suffix + "_" + cs.algorithms[a] + '.png')
                 plt.show()
         elif X.shape[1] == 3:
-            for a in range(0, 2):
-                if a == 1:
-                    continue
+            for a in range(0, 1):
                 fig = px.scatter_3d(X, x=X[:, 0], y=X[:, 1], z=X[:, 2], color=labels[a].astype(str))
                 fig.update_layout(title=cs.algorithms[a] + " for Sim" + title_suffix)
                 fig.show()
@@ -99,9 +84,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     if pe_labeled_data:
         # print("\nPerformance evaluation - labeled data - " + feature_extract_method)
         pe_labeled_data_results = [[], [], []]
-        for a in range(0, 3):
-            if a == 1:
-                continue
+        for a in range(0, 1):
             pe_labeled_data_results[a] = benchmark_algorithm_labeled_data(y, labels[a])
             print_benchmark_labeled_data(simulation_nr, a, pe_labeled_data_results[a])
             write_benchmark_labeled_data(simulation_nr, feature_extract_method, pe_labeled_data_results)
@@ -110,9 +93,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
         print("\nPerformance evaluation - unlabeled data - " + feature_extract_method)
         pe_unlabeled_data_results = [[], [], []]
         pe_ground_results = benchmark_algorithm_unlabeled_data(X, y)
-        for a in range(0, 2):
-            if a == 1:
-                continue
+        for a in range(0, 1):
             pe_unlabeled_data_results[a] = benchmark_algorithm_unlabeled_data(X, labels[a])
             print_benchmark_unlabeled_data(simulation_nr, a, pe_unlabeled_data_results[a], pe_ground_results)
             write_benchmark_unlabeled_data(simulation_nr, feature_extract_method, pe_unlabeled_data_results,
@@ -120,14 +101,12 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
     if pe_extra:
         print("\nPerformance evaluation - extra - " + feature_extract_method)
         pe_extra_results = [[], [], []]
-        for a in range(0, 2):
-            if a == 1:
-                continue
+        for a in range(0, 1):
             pe_extra_results[a] = benchmark_algorithm_extra(y, labels[a])
             print_benchmark_extra(simulation_nr, a, pe_extra_results[a])
 
 
-def apply_algorithm(X, y, alg_number, weights):
+def apply_algorithm(X, y, alg_number):
     """
         Evaluate the performance of the clustering by using ARI, AMI and Fowlkes_Mallows.
         Specific to labeled data.
@@ -138,7 +117,7 @@ def apply_algorithm(X, y, alg_number, weights):
         :returns np.array: the labels as clustered by the algorithm
     """
     if alg_number == 0:
-        kmeans = KMeans(n_clusters=np.amax(y) + 1).fit(X, weight=weights)
+        kmeans = KMeans(n_clusters=np.amax(y) + 1).fit(X)
         labels = kmeans.labels_
     else:
         if alg_number == 1:
@@ -149,3 +128,15 @@ def apply_algorithm(X, y, alg_number, weights):
             labels = SBM.parallel(X, pn=25, version=2)
 
     return labels
+
+
+def apply_weights(X, peaks):
+    reference = peaks[0]
+    for i in range(len(peaks)):
+        ratio = peaks[i]/reference
+        if i == 3:
+            print(X[:, i])
+        print(f'Ratio for value {i} is {ratio}')
+        if i == 3:
+            print(X[:, i])
+    return X

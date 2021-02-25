@@ -380,7 +380,24 @@ def run_sim(sim_nr):
                                              pe_unlabeled_data=False,
                                              pe_extra=False,
                                              weighted=True,
-                                             nr_features=10
+                                             nr_features=45
+                                             # save_folder='kohonen',
+
+                                             # som_dim=[20, 20],
+                                             # som_epochs=1000,
+                                             # title='sim' + str(sim_nr),
+                                             # extra_plot=True,
+                                             )
+    bd.accuracy_all_algorithms_on_simulation(simulation_nr=sim_nr,
+                                             feature_extract_method=None,
+                                             # dim_reduction_method='',
+                                             # dim_reduction_method='pca2d',
+                                             plot=True,
+                                             pe_labeled_data=True,
+                                             pe_unlabeled_data=False,
+                                             pe_extra=False,
+                                             weighted=False,
+                                             nr_features=45
                                              # save_folder='kohonen',
 
                                              # som_dim=[20, 20],
@@ -400,7 +417,7 @@ def run_pipeline():
 
 
 # run_sim(64)
-run_sim(4)
+run_sim(5)
 # run_pipeline()
 
 # bd.accuracy_all_algorithms_on_multiple_simulations(1, 3, feature_extract_method='hilbert',
