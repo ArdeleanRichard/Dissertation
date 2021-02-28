@@ -328,7 +328,6 @@ def main(program, sub=""):
             print()
 
 
-
 # main("autoencoder_sim_array", sub="train")
 # main("autoencoder_sim_array", sub="test")
 # main("autoencoder_sim_range", sub="train")
