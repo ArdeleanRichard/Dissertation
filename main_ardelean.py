@@ -16,6 +16,7 @@ from autoencoder.model_auxiliaries import verify_output, get_codes, verify_rando
 from autoencoder.autoencoder import AutoencoderModel
 import networkx as nx
 
+
 def main(program, sub=""):
     # data = ds.getTINSData()
     # data, y = ds.getGenData()
