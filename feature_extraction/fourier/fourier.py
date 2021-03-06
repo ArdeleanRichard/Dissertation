@@ -19,7 +19,7 @@ def fourier_understanding():
     # sp.plot_spikes(spikes)
     # print(spikes[0])
 
-    # fft_signal = fft(spikes)
+    # fft_signal = fft_test(spikes)
     # print("A[0]:")
     # print(fft_signal[0:10, 0])
 

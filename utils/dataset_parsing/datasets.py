@@ -41,14 +41,14 @@ def stack_simulations_array(number_array, randomize=False, no_noise=False):
     return spikes[1:], labels[1:]
 
 
-def stack_simulations_range(min, max, randomize=False, no_noise=False):
+def stack_simulations_range(min, max, randomize=False, no_noise=False, alignment=True):
     spikes = np.empty((79,))
     labels = np.empty((1,))
     for simulation_number in range(min, max):
         print(simulation_number)
         if simulation_number == 25 or simulation_number == 44:
             continue
-        new_spikes, new_labels = get_dataset_simulation(simNr=simulation_number)
+        new_spikes, new_labels = get_dataset_simulation(simNr=simulation_number, align_to_peak=alignment)
 
         #remove noise label == 0
         if no_noise == True:
