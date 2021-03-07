@@ -11,9 +11,10 @@ class AutoencoderModel(Model):
 
     def __init__(self, input_size, encoder_layer_sizes, decoder_layer_sizes, code_size):
         super(AutoencoderModel, self).__init__()
+        self.input_size = input_size
         # self.code_size = 2  # size of the desired compression 2D or 3D to be able to visualize
 
-        self.input_spike = Input(shape=(input_size,))
+        self.input_spike = Input(shape=(self.input_size,))
 
         current_layer = self.input_spike
         for hidden_layer_size in encoder_layer_sizes:
@@ -22,7 +23,7 @@ class AutoencoderModel(Model):
 
         self.code_result = Dense(code_size, activation='tanh', activity_regularizer=l1(10e-7))(current_layer)
 
-        # self.input_img = Input(shape=(input_size,))
+        # self.input_img = Input(shape=(self.input_size,))
         # input_hidden_0 = Dense(hidden_size0, activation='relu')(self.input_img)
         # input_hidden_1 = Dense(hidden_size1, activation='relu')(input_hidden_0)
         # # input_hidden_1 = Dropout(.2)(input_hidden_1)
@@ -53,8 +54,8 @@ class AutoencoderModel(Model):
         # output_hidden_2 = Dense(hidden_size2, activation='relu')(output_hidden_3)
         # output_hidden_1 = Dense(hidden_size1, activation='relu')(output_hidden_2)
         # output_hidden_0 = Dense(hidden_size0, activation='relu')(output_hidden_1)
-        # self.output_img = Dense(input_size, activation='tanh')(output_hidden_0)
-        self.output_spike = Dense(input_size, activation='tanh')(current_layer)
+        # self.output_img = Dense(self.input_size, activation='tanh')(output_hidden_0)
+        self.output_spike = Dense(self.input_size, activation='tanh')(current_layer)
 
         self.autoencoder = Model(self.input_spike, self.output_spike)
 
@@ -65,7 +66,7 @@ class AutoencoderModel(Model):
         decoder_layer_weights = []
 
         current_training_data = training_data
-        current_input_size = 79
+        current_input_size = self.input_size
 
         for code_size in autoencoder_layer_sizes:
             input = Input(shape=(current_input_size,))

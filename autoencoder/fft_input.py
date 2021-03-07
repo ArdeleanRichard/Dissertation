@@ -8,7 +8,7 @@ Scipy FFT implementation is faster if array is of length power of 2
 => padding with/without rolling
 => reducing by deletion
 """
-def apply_fft(case, alignment, range_min, range_max):
+def apply_fft_on_range(case, alignment, range_min, range_max):
     spikes, labels = ds.stack_simulations_range(range_min, range_max, True, True, alignment=alignment)
 
     # ORIGINAL SPIKE
@@ -24,6 +24,23 @@ def apply_fft(case, alignment, range_min, range_max):
         fft_real, fft_imag = fft_reduced_spike(spikes)
 
     return fft_real, fft_imag
+
+def apply_fft_on_sim(sim_nr, case, alignment):
+    spikes, labels = ds.get_dataset_simulation(simNr=sim_nr, align_to_peak=alignment)
+
+    # ORIGINAL SPIKE
+    if case == "original":
+        fft_real, fft_imag = fft_original_spike(spikes)
+    # PADDED SPIKE
+    elif case == "padded":
+        fft_real, fft_imag = fft_padded_spike(spikes)
+    # ROLLED SPIKE (also padded before)
+    elif case == "rolled":
+        fft_real, fft_imag = fft_rolled_spike(spikes)
+    elif case == "reduced":
+        fft_real, fft_imag = fft_reduced_spike(spikes)
+
+    return fft_real, fft_imag, labels
 
 def fft_original_spike(spikes):
     fft_signal = fft(spikes)

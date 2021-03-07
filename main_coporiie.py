@@ -135,7 +135,7 @@ def main(program, sub):
 
     elif program == "run":
         range_min = 1
-        range_max = 2
+        range_max = 96
         epochs = 100
         case = "reduced"
         alignment = True
@@ -149,7 +149,7 @@ def main(program, sub):
         if not os.path.exists(plot_path):
             os.makedirs(plot_path)
 
-        fft_real, fft_imag = fft_input.apply_fft(case, alignment, range_min, range_max)
+        fft_real, fft_imag = fft_input.apply_fft_on_range(case, alignment, range_min, range_max)
 
         if on_type == "real":
             spikes = fft_real
@@ -177,7 +177,13 @@ def main(program, sub):
             for simulation_number in range(range_min, range_max):
                 if simulation_number == 25 or simulation_number == 44:
                     continue
-                spikes, labels = ds.get_dataset_simulation(simNr=simulation_number)
+
+                fft_real, fft_imag, labels = fft_input.apply_fft_on_sim(sim_nr=simulation_number, case=case, alignment=alignment)
+                if on_type == "real":
+                    spikes = fft_real
+                elif on_type == "imag":
+                    spikes = fft_imag
+                spikes = np.array(spikes)
 
                 spikes = spikes[labels != 0]
                 labels = labels[labels != 0]
