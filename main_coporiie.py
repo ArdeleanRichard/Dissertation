@@ -135,9 +135,9 @@ def main(program, sub):
 
     elif program == "run":
         range_min = 1
-        range_max = 96
+        range_max = 2
         epochs = 100
-        case = "original"
+        case = "reduced"
         alignment = True
         on_type = "real"
         spike_verif_path = f'./figures/fft/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/{case}/spike_verif'
@@ -157,7 +157,8 @@ def main(program, sub):
             spikes = fft_imag
         spikes = np.array(spikes)
 
-        autoencoder = AutoencoderModel(encoder_layer_sizes=autoencoder_layer_sizes,
+        autoencoder = AutoencoderModel(input_size=len(spikes[0]),
+                                       encoder_layer_sizes=autoencoder_layer_sizes,
                                        decoder_layer_sizes=autoencoder_layer_sizes,
                                        code_size=autoencoder_code_size)
 

@@ -9,12 +9,11 @@ from autoencoder.model_auxiliaries import get_codes
 
 class AutoencoderModel(Model):
 
-    def __init__(self, encoder_layer_sizes, decoder_layer_sizes, code_size):
+    def __init__(self, input_size, encoder_layer_sizes, decoder_layer_sizes, code_size):
         super(AutoencoderModel, self).__init__()
-        self.input_size = 79
         # self.code_size = 2  # size of the desired compression 2D or 3D to be able to visualize
 
-        self.input_spike = Input(shape=(self.input_size,))
+        self.input_spike = Input(shape=(input_size,))
 
         current_layer = self.input_spike
         for hidden_layer_size in encoder_layer_sizes:
@@ -23,7 +22,7 @@ class AutoencoderModel(Model):
 
         self.code_result = Dense(code_size, activation='tanh', activity_regularizer=l1(10e-7))(current_layer)
 
-        # self.input_img = Input(shape=(self.input_size,))
+        # self.input_img = Input(shape=(input_size,))
         # input_hidden_0 = Dense(hidden_size0, activation='relu')(self.input_img)
         # input_hidden_1 = Dense(hidden_size1, activation='relu')(input_hidden_0)
         # # input_hidden_1 = Dropout(.2)(input_hidden_1)
@@ -54,8 +53,8 @@ class AutoencoderModel(Model):
         # output_hidden_2 = Dense(hidden_size2, activation='relu')(output_hidden_3)
         # output_hidden_1 = Dense(hidden_size1, activation='relu')(output_hidden_2)
         # output_hidden_0 = Dense(hidden_size0, activation='relu')(output_hidden_1)
-        # self.output_img = Dense(self.input_size, activation='tanh')(output_hidden_0)
-        self.output_spike = Dense(self.input_size, activation='tanh')(current_layer)
+        # self.output_img = Dense(input_size, activation='tanh')(output_hidden_0)
+        self.output_spike = Dense(input_size, activation='tanh')(current_layer)
 
         self.autoencoder = Model(self.input_spike, self.output_spike)
 
@@ -104,7 +103,6 @@ class AutoencoderModel(Model):
         # autoencoder = Model(input_img, output_img)
         # autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
         # autoencoder.fit(training_data, training_data, epochs=20)
-
 
         # autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
         self.autoencoder.compile(optimizer='adam', loss='mse')

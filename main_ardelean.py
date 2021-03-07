@@ -58,8 +58,8 @@ def main(program, sub=""):
 
         stack_simulations_array([1,2,3])
 
-
-        autoencoder = AutoencoderModel(encoder_layer_sizes=autoencoder_layer_sizes,
+        autoencoder = AutoencoderModel(input_size=len(spikes[0]),
+                                       encoder_layer_sizes=autoencoder_layer_sizes,
                                        decoder_layer_sizes=autoencoder_layer_sizes,
                                        code_size=20)
         # encoder, decoder = model.train(spikes, epochs=1000)
@@ -84,7 +84,8 @@ def main(program, sub=""):
 
         spikes, labels = ds.stack_simulations_array(simulation_array)
 
-        autoencoder = AutoencoderModel(encoder_layer_sizes=autoencoder_layer_sizes,
+        autoencoder = AutoencoderModel(input_size=len(spikes[0]),
+                                       encoder_layer_sizes=autoencoder_layer_sizes,
                                        decoder_layer_sizes=autoencoder_layer_sizes,
                                        code_size=20)
 
@@ -127,7 +128,8 @@ def main(program, sub=""):
 
         spikes, labels = ds.stack_simulations_range(range_min, range_max, True, True)
 
-        autoencoder = AutoencoderModel(encoder_layer_sizes=autoencoder_layer_sizes,
+        autoencoder = AutoencoderModel(input_size=len(spikes[0]),
+                                       encoder_layer_sizes=autoencoder_layer_sizes,
                                        decoder_layer_sizes=autoencoder_layer_sizes,
                                        code_size=autoencoder_code_size)
 
@@ -252,7 +254,8 @@ def main(program, sub=""):
         range_max = 96
         autoencoder_layers = [70, 60, 50, 40, 30, 20]
 
-        autoencoder = AutoencoderModel(encoder_layer_sizes=autoencoder_layers[:-1],
+        autoencoder = AutoencoderModel(input_size=79,
+                                       encoder_layer_sizes=autoencoder_layers[:-1],
                                        decoder_layer_sizes=autoencoder_layers[:-1],
                                        code_size=autoencoder_layers[-1])
 
