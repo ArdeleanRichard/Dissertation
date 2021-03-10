@@ -27,7 +27,7 @@ def distribution_filter_features(X, number_of_features):
 
 def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method, dim_reduction_method=None, plot=False,
                                           pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False,
-                                          save_folder="", nr_features=None, weighted=False, distribution_filtering=False, **kwargs):
+                                          save_folder="", nr_features=None, weighted=False, **kwargs):
     # get original data
     X, y = ds.get_dataset_simulation(simulation_nr)
 
@@ -40,6 +40,7 @@ def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method,
 
     if nr_features is not None:
         nr_features = min(nr_features, X.shape[1])
+        print(f"Number of features for distribution is {nr_features}")
         X, peaks = distribution_filter_features(X, nr_features)
         if weighted is True:
             X = apply_weights(X, peaks)

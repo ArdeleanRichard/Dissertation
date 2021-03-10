@@ -41,7 +41,7 @@ def apply_algorithm(X, y, alg_number):
     return labels
 
 
-def benchmark_algorithm_labeled_data(y, labels):
+def benchmark_algorithm_labeled_data(y, labels, nonPoints):
     """
         Evaluate the performance of the clustering by using ARI, AMI and Fowlkes_Mallows.
         Specific to labeled data.
@@ -53,14 +53,14 @@ def benchmark_algorithm_labeled_data(y, labels):
     all_ami = metrics.adjusted_mutual_info_score(y, labels)
     all_fmi = metrics.fowlkes_mallows_score(y, labels)
 
-    adj = labels > 0
-    y_nn = y[adj]
-    labels_nn = labels[adj]
-    nnp_ari = metrics.adjusted_rand_score(y_nn, labels_nn)
-    nnp_ami = metrics.adjusted_mutual_info_score(y_nn, labels_nn)
-
-    return np.array([all_ari, all_ami, nnp_ari, nnp_ami, all_fmi])
-
+    if nonPoints is True:
+        adj = labels > 0
+        y_nn = y[adj]
+        labels_nn = labels[adj]
+        nnp_ari = metrics.adjusted_rand_score(y_nn, labels_nn)
+        nnp_ami = metrics.adjusted_mutual_info_score(y_nn, labels_nn)
+        return np.array([all_ari, all_ami, nnp_ari, nnp_ami, all_fmi])
+    return np.array([all_ari, all_ami, all_fmi])
 
 def print_benchmark_labeled_data(sim_nr, algorithm_number, pe_results):
     """
