@@ -311,6 +311,9 @@ def reduce_dimensionality(n_features, method='PCA2D'):
     elif method.lower() == 'pca3d':
         pca_3d = PCA(n_components=3)
         features = pca_3d.fit_transform(n_features)
+    elif method.lower() == 'pca10d':
+        pca_5d = PCA(n_components=10)
+        features = pca_5d.fit_transform(n_features)
     elif method.lower() == 'derivatives2d':
         features = deriv.compute_fdmethod(n_features)
     elif method.lower() == 'derivatives3d':
@@ -335,10 +338,11 @@ def apply_feature_extraction_method(spikes, feature_extraction_method=None, dim_
         'extra_plot': False,
     }
     options.update(kwargs)
-
     if feature_extraction_method.lower() == 'pca2d':
         features = reduce_dimensionality(spikes, feature_extraction_method)
     elif feature_extraction_method.lower() == 'pca3d':
+        features = reduce_dimensionality(spikes, feature_extraction_method)
+    elif feature_extraction_method.lower() == 'pca10d':
         features = reduce_dimensionality(spikes, feature_extraction_method)
     elif feature_extraction_method.lower() == 'derivatives2d':
         features = derivatives2d(spikes)

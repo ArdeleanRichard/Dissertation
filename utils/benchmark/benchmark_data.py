@@ -209,7 +209,7 @@ def distribution_filter_features(X, number_of_features):
 def accuracy_all_algorithms_on_simulation(simulation_nr, feature_extract_method, dim_reduction_method=None, plot=False,
                                           pe_labeled_data=True, pe_unlabeled_data=True, pe_extra=False,
                                           save_folder="", **kwargs):
-    title_suffix = str(simulation_nr) + "_" + feature_extract_method
+    title_suffix = str(simulation_nr) # + "_" + feature_extract_method
     # get data
     X, y = ds.get_dataset_simulation(simulation_nr)
     X = distribution_filter_features(X, 15)

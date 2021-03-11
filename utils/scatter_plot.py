@@ -226,7 +226,8 @@ def compute_maxima(values):
 
 def make_distributions(X, number_of_features):
     features_distributions = []
-    print("Dataset features "+str(X.shape[1]))
+    print("Dataset features " + str(X.shape[1]))
+
     for i in range(X.shape[1]):
         values = make_distribution_one_feature(X, i)
         tops = compute_maxima(values)
