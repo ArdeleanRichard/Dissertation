@@ -22,7 +22,7 @@ import statistics as sts
 warnings.simplefilter(action='ignore', category=FutureWarning)
 sys.setrecursionlimit(100000)
 
-batch_size = 5
+batch_size = 10
 
 
 def statistic_kmeans_on_sim(simulation_nr, feature_extract_method, dim_reduction_method=None,
@@ -63,20 +63,20 @@ def statistic_kmeans_on_sim(simulation_nr, feature_extract_method, dim_reduction
 
     print(mean_final)
     print(std_dev_final)
-    return mean_final, std_dev_final
+    return mean_final, std_dev_final, len(np.unique(y))
 
 
 def statistic_kmeans_on_sim_interval(simulation_nr_l, simulation_nr_r, feature_extract_method, dim_reduction_method=None,
                                      pe_labeled_data=True, save_folder="",
                                      nr_features=None, weighted=False, **kwargs):
-    header_labeled_data = ['Sim', 'ARI-a', 'ARI-std', 'AMI-a', 'AMI-std', 'FMI-a', 'FMI-std']
+    header_labeled_data = ['Sim', 'ARI-a', 'AMI-a', 'FMI-a', 'ARI-std',  'AMI-std', 'FMI-std', 'clusterNr']
     rows = [header_labeled_data]
     for i in range(simulation_nr_l, simulation_nr_r):
-        mean, std_dev = statistic_kmeans_on_sim(i, feature_extract_method, dim_reduction_method,
+        mean, std_dev, clusters = statistic_kmeans_on_sim(i, feature_extract_method, dim_reduction_method,
                                                 pe_labeled_data, save_folder,
                                                 nr_features, weighted, **kwargs)
         print([[i] + mean + std_dev])
-        rows.append([i] + mean + std_dev)
+        rows.append([i] + mean + std_dev + [clusters])
 
     print(rows)
     with open(f'./results/Sim_{simulation_nr_l}_{simulation_nr_r}_labeled_{feature_extract_method}_{dim_reduction_method}_{weighted}.csv', 'w', newline='') as file:

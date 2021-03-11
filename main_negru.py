@@ -373,9 +373,9 @@ def real_dataset(channel, feature_extraction_method, dim_reduction_method):
 
 def run_sim(sim_nr_l, sim_nr_r):
     st.statistic_kmeans_on_sim_interval(simulation_nr_l=sim_nr_l, simulation_nr_r=sim_nr_r,
-                                        feature_extract_method=None,
+                                        feature_extract_method='slt',
                                         # dim_reduction_method='',
-                                        # dim_reduction_method='pca2d',
+                                        dim_reduction_method='pca2d',
                                         weighted=True,
                                         nr_features=15
                                         # save_folder='kohonen',
@@ -398,7 +398,7 @@ def run_pipeline():
 
 
 # run_sim(64)
-run_sim(7, 10)
+run_sim(10, 24)
 # run_pipeline()
 
 # bd.accuracy_all_algorithms_on_multiple_simulations(1, 3, feature_extract_method='hilbert',

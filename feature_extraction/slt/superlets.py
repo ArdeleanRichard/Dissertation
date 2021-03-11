@@ -10,7 +10,7 @@ from feature_extraction import derivatives as deriv
 def slt(spikes, ord, ncyc, derivatives=True):
 
     # superletsDLL = ctypes.WinDLL("D:\\AC\\Anul_4\\Licenta\\superlets_wrapper.dll")
-    superletsDLL = ctypes.WinDLL("superlets_wrapper.dll")
+    superletsDLL = ctypes.WinDLL("feature_extraction/slt/superlets_wrapper.dll")
 
     superletsDLL.asrwt_alloc.restype = ctypes.POINTER(ctypes.c_int)
     superletsDLL.asrwt_alloc.argtypes = [ctypes.c_int, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_int,
@@ -94,7 +94,7 @@ def slt(spikes, ord, ncyc, derivatives=True):
 
 def slt_1spike(spike, spike_pos, label, ord, ncyc, freq_start, freq_end):
     superletsDLL = ctypes.WinDLL(
-        "C:\\poli\\year4\\licenta\\codeGoodGit\\superletwrapper\\x64\\Release\\superlets_wrapper.dll")
+        "D:\\Vlad\\Licenta\\Dissertation\\feature_extraction\\sltsuperlets_wrapper.dll")
     superletsDLL.asrwt_alloc.restype = ctypes.POINTER(ctypes.c_int)
     superletsDLL.asrwt_alloc.argtypes = [ctypes.c_int, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_int,
                                          ctypes.c_float, ctypes.c_int, ctypes.c_int, ctypes.c_bool]
