@@ -50,7 +50,7 @@ def stack_split_train_test(alignment=True):
     all_list = np.arange(0, number_of_simulations)
     random_train = np.random.choice(range(number_of_simulations), number_of_simulations // 2, replace=False)
     random_test = np.setdiff1d(all_list, random_train)
-    
+
 
 def stack_simulations_split_train_test(min, max, no_noise=False, alignment=True):
     train_spikes = np.empty((79,))
@@ -110,7 +110,7 @@ def stack_simulations_range(min, max, randomize=False, no_noise=False, alignment
     labels = np.empty((1,))
     for simulation_number in range(min, max):
         print(simulation_number)
-        if simulation_number == 25 or simulation_number == 44:
+        if simulation_number == 25 or simulation_number == 44 or simulation_number== 78:
             continue
         new_spikes, new_labels = get_dataset_simulation(simNr=simulation_number, align_to_peak=alignment)
 
@@ -166,13 +166,35 @@ def spike_preprocess(signal, spike_start, spike_length, align_to_peak, normalize
     spikes = spike_extract(signal, spike_start, spike_length)
 
     # align to max
-    if align_to_peak:
+    if isinstance(align_to_peak, bool) and align_to_peak:
         # peak_ind is a vector that contains the index (0->78 / 79 points for each spike) of the maximum of each spike
         peak_ind = np.argmax(spikes, axis=1)
         # avg_peak is the avg of all the peaks
         avg_peak = np.floor(np.mean(peak_ind))
         # spike_start is reinitialized so that the spikes are aligned
         spike_start = spike_start - (avg_peak - peak_ind)
+        spike_start = spike_start.astype(int)
+        # the spikes are re-extracted using the new spike_start
+        spikes = spike_extract(signal, spike_start, spike_length)
+    # align_to_peak == 2 means that it will align the maximum point (Na+ polarization) to index 39 (the middle)
+    elif align_to_peak == 2:
+        # peak_ind is a vector that contains the index (0->78 / 79 points for each spike) of the maximum of each spike
+        peak_ind = np.argmax(spikes, axis=1)
+        # avg_peak is the avg of all the peaks
+        index_to_align_peak = 39
+        # spike_start is reinitialized so that the spikes are aligned
+        spike_start = spike_start - (index_to_align_peak - peak_ind)
+        spike_start = spike_start.astype(int)
+        # the spikes are re-extracted using the new spike_start
+        spikes = spike_extract(signal, spike_start, spike_length)
+    # align_to_peak == 3 means that it will align the minimum point (K+ polarization) to index 39 (the middle)
+    elif align_to_peak == 3:
+        # peak_ind is a vector that contains the index (0->78 / 79 points for each spike) of the maximum of each spike
+        peak_ind = np.argmin(spikes, axis=1)
+        # avg_peak is the avg of all the peaks
+        index_to_align_peak = 39
+        # spike_start is reinitialized so that the spikes are aligned
+        spike_start = spike_start - (index_to_align_peak - peak_ind)
         spike_start = spike_start.astype(int)
         # the spikes are re-extracted using the new spike_start
         spikes = spike_extract(signal, spike_start, spike_length)

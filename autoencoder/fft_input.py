@@ -215,3 +215,4 @@ def fft_reduced_spike(spikes):
 
 def apply_blackman_window(spikes):
     return np.multiply(spikes, np.blackman(len(spikes[0])))
+

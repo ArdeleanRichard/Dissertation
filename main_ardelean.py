@@ -572,9 +572,9 @@ def main_fft_windowed(program, alignment, on_type):
     range_min = 1
     range_max = 96
     epochs = 100
-    spike_verif_path = f'./figures/fft_windowed/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/spike_verif'
-    plot_path = f'./figures/fft_windowed/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/'
-    weights_path = f'./autoencoder/weights/autoencoder_allsim_e100_d80_nonoise_c{autoencoder_code_size}_fft_windowed-{on_type}_{"wA" if alignment else "woA"}'
+    spike_verif_path = f'./figures/fft_windowed/c{autoencoder_code_size}/{on_type}/align{alignment}/spike_verif'
+    plot_path = f'./figures/fft_windowed/c{autoencoder_code_size}/{on_type}/align{alignment}/'
+    weights_path = f'./autoencoder/weights/autoencoder_allsim_e100_d80_nonoise_c{autoencoder_code_size}_fft_windowed-{on_type}_align{alignment}'
 
     if not os.path.exists(spike_verif_path):
         os.makedirs(spike_verif_path)
@@ -607,7 +607,7 @@ def main_fft_windowed(program, alignment, on_type):
         autoencoder.save_weights(weights_path)
 
         for simulation_number in range(range_min, range_max):
-            if simulation_number == 25 or simulation_number == 44:
+            if simulation_number == 25 or simulation_number == 44 or simulation_number== 78:
                 continue
 
             fft_real, fft_imag, labels = fft_input.apply_fft_windowed_on_sim(sim_nr=simulation_number,
@@ -631,10 +631,12 @@ def main_fft_windowed(program, alignment, on_type):
 
             pn = 25
             labels = SBM.parallel(autoencoder_features, pn, ccThreshold=5, version=2)
-
-            scatter_plot.plot_grid('SBM' + str(len(autoencoder_features)), autoencoder_features, pn, labels,
-                                   marker='o')
-            plt.savefig(plot_path + f'gt_model_sim{simulation_number}_sbm')
+            try:
+                scatter_plot.plot_grid('SBM' + str(len(autoencoder_features)), autoencoder_features, pn, labels,
+                                       marker='o')
+                plt.savefig(plot_path + f'gt_model_sim{simulation_number}_sbm')
+            except KeyError:
+                pass
 
 def test_fft_windowed():
     def verify_output(spikes, windowed_spikes, i=0, path=""):
@@ -652,7 +654,7 @@ def test_fft_windowed():
         for random_index in random_list:
             verify_output(spikes, windowed_spikes, random_index, path)
 
-    for alignment in [True, False]:
+    for alignment in [True, False, 2, 3]:
         plot_path = f'./figures/fft/blackman_test/align{alignment}'
 
         if not os.path.exists(plot_path):
@@ -692,7 +694,11 @@ def test_fft_windowed():
 # test_fft_windowed()
 
 # case, alignment, on_type
-for alignment in [True, False]:
-    for on_type in ["real", "imag", "magnitude", "power", "phase", "concatenated"]:
-        main_fft_windowed("train", alignment, on_type)
-        main_fft_windowed("test", alignment, on_type)
+# for alignment in [True, False, 2, 3]:
+#     for on_type in ["real", "imag", "magnitude", "power", "phase", "concatenated"]:
+#         main_fft_windowed("train", alignment, on_type)
+#         main_fft_windowed("test", alignment, on_type)
+
+for alignment in [3]:
+    main_fft_windowed("train", alignment, "power")
+    main_fft_windowed("test", alignment, "power")
