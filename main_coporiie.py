@@ -138,7 +138,7 @@ def main(program, sub):
         range_max = 96
         epochs = 100
         case = "reduced"
-        alignment = True
+        alignment = False
         on_type = "real"
         spike_verif_path = f'./figures/fft/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/{case}/spike_verif'
         plot_path = f'./figures/fft/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/{case}/'
@@ -155,6 +155,9 @@ def main(program, sub):
             spikes = fft_real
         elif on_type == "imag":
             spikes = fft_imag
+        elif on_type == "magnitude":
+            spikes = np.sqrt(fft_real*fft_real + fft_imag*fft_imag)
+
         spikes = np.array(spikes)
 
         autoencoder = AutoencoderModel(input_size=len(spikes[0]),

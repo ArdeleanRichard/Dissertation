@@ -2,6 +2,8 @@
 # DECODER order is reversed
 autoencoder_layer_sizes = [70,60,50,40,30]
 autoencoder_code_size = 20
+lstm_layer_sizes = [64, 32]
+lstm_code_size = 20
 
 feature_extraction_methods = ["pca_2d", "pca_3d", "derivatives_2d", "superlets_2d", "superlets_3d",
                               "wavelet_derivatives_2d", "wavelet_derivatives_3d", "dwt_2d", "hilbert",

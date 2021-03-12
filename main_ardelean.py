@@ -1,4 +1,5 @@
 import math
+import os
 import time
 
 import matplotlib.pyplot as plt
@@ -6,12 +7,16 @@ import numpy as np
 from sklearn import preprocessing, metrics
 from sklearn.decomposition import PCA
 
+from autoencoder import fft_input
+from autoencoder import lstm_input
 from autoencoder.benchmark import validate_model
+from autoencoder.lstm_autoencoder import LSTMAutoencoderModel
+from autoencoder.lstm_input import lstm_create_code_numpy, lstm_get_codes
 from utils.dataset_parsing.datasets import stack_simulations_array
 from utils.sbm import SBM, SBM_graph
 from utils.dataset_parsing import datasets as ds
 from utils import scatter_plot
-from utils.constants import autoencoder_layer_sizes, autoencoder_code_size
+from utils.constants import autoencoder_layer_sizes, autoencoder_code_size, lstm_layer_sizes, lstm_code_size
 from autoencoder.model_auxiliaries import verify_output, get_codes, verify_random_outputs
 from autoencoder.autoencoder import AutoencoderModel
 import networkx as nx
@@ -287,6 +292,150 @@ def main(program, sub=""):
                 if means[label] > 0.7:
                     print(f"SIM{simulation_number} separates {label}")
 
+    elif program == "lstm":
+        range_min = 1
+        range_max = 2
+        epochs = 100
+        timesteps = 20
+
+        spike_verif_path = f'./figures/lstm_c{lstm_code_size}/spike_verif/'
+        plot_path = f'./figures/lstm_c{lstm_code_size}/'
+        weights_path = f'./autoencoder/weights/lstm_allsim_e100_d80_nonoise_c{lstm_code_size}'
+        if not os.path.exists(spike_verif_path):
+            os.makedirs(spike_verif_path)
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+
+        # spikes, labels = ds.stack_simulations_range(range_min, range_max, True, True)
+        # spikes = np.reshape(spikes, (spikes.shape[0], spikes.shape[1], 1))
+
+        spikes, labels = ds.stack_simulations_range(range_min, range_max, True, True)
+        # spikes, labels = lstm_input.temporalize_spikes(spikes, labels, timesteps)
+        spikes = lstm_input.temporalize_spikes(spikes, timesteps)
+
+        autoencoder = LSTMAutoencoderModel(input_size=spikes.shape,
+                                       lstm_layer_sizes=lstm_layer_sizes,
+                                       code_size=lstm_code_size)
+
+        encoder, autoenc = autoencoder.return_encoder()
+
+        if sub == "train":
+            autoencoder.train(spikes, epochs=epochs)
+            autoencoder.save_weights(weights_path)
+
+            # verify_output(spikes, encoder, autoenc, path=spike_verif_path)
+            # verify_random_outputs(spikes, encoder, autoenc, 10, path=spike_verif_path)
+        elif sub == "test":
+            autoencoder.load_weights(weights_path)
+
+            for simulation_number in range(range_min+1, range_max+9):
+                if simulation_number == 25 or simulation_number == 44:
+                    continue
+                spikes, labels = ds.get_dataset_simulation(simNr=simulation_number)
+                # spikes, labels = lstm_input.temporalize_data(spikes, labels, timesteps)
+                spikes = lstm_input.temporalize_spikes(spikes, timesteps)
+
+                autoencoder_features = lstm_get_codes(spikes, encoder, timesteps)
+
+                pca_2d = PCA(n_components=2)
+                autoencoder_features = pca_2d.fit_transform(autoencoder_features)
+
+                scatter_plot.plot('GT' + str(len(autoencoder_features)), autoencoder_features, labels, marker='o')
+                plt.savefig(plot_path + f'gt_model_sim{simulation_number}')
+
+                pn = 25
+                labels = SBM.parallel(autoencoder_features, pn, ccThreshold=5, version=2)
+
+                scatter_plot.plot_grid('SBM' + str(len(autoencoder_features)), autoencoder_features, pn, labels,
+                                       marker='o')
+                plt.savefig(plot_path + f'gt_model_sim{simulation_number}_sbm')
+
+    elif program == "split_lstm":
+        range_min = 1
+        range_max = 2
+        epochs = 100
+        timesteps = 20
+        overlap = 10
+
+        spike_verif_path = f'./figures/lstm_c{lstm_code_size}_TS{timesteps}_OL{overlap}/spike_verif/'
+        plot_path = f'./figures/lstm_c{lstm_code_size}_TS{timesteps}_OL{overlap}/'
+        weights_path = f'./autoencoder/weights/lstm_allsim_e100_d80_nonoise_c{lstm_code_size}_TS{timesteps}_OL{overlap}'
+        if not os.path.exists(spike_verif_path):
+            os.makedirs(spike_verif_path)
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+
+
+        train_spikes, train_labels, test_spikes, test_labels = ds.stack_simulations_split_train_test(range_min, range_max, False, True)
+        train_spikes = lstm_input.temporalize_spikes(train_spikes, timesteps, overlap)
+
+        autoencoder = LSTMAutoencoderModel(input_size=train_spikes.shape,
+                                           lstm_layer_sizes=lstm_layer_sizes,
+                                           code_size=lstm_code_size)
+
+        encoder, autoenc = autoencoder.return_encoder()
+
+        if sub == "train":
+            # autoencoder.train(train_spikes, epochs=epochs)
+            # autoencoder.save_weights(weights_path)
+            autoencoder.load_weights(weights_path)
+
+            lstm_input.lstm_verify_output(train_spikes, timesteps, encoder, autoenc, path=spike_verif_path)
+            lstm_input.lstm_verify_random_outputs(train_spikes, timesteps, encoder, autoenc, 10, path=spike_verif_path)
+        elif sub == "test":
+            autoencoder.load_weights(weights_path)
+
+            sim_list_index = range_min
+            for simulation_number in range(range_min, range_max):
+                if simulation_number == 25 or simulation_number == 44:
+                    continue
+
+                spikes = test_spikes[sim_list_index-1]
+                labels = test_labels[sim_list_index-1]
+
+                spikes = lstm_input.temporalize_spikes(spikes, timesteps, overlap)
+
+                autoencoder_features = lstm_get_codes(spikes, encoder, timesteps)
+
+                pca_2d = PCA(n_components=2)
+                autoencoder_features = pca_2d.fit_transform(autoencoder_features)
+
+                scatter_plot.plot(f'GT{len(autoencoder_features)}/{len(train_spikes)+len(spikes)}', autoencoder_features, labels, marker='o')
+                plt.savefig(plot_path + f'gt_model_sim{simulation_number}')
+
+                pn = 25
+                try:
+                    labels = SBM.parallel(autoencoder_features, pn, ccThreshold=5, version=2)
+
+                    scatter_plot.plot_grid('SBM' + str(len(autoencoder_features)), autoencoder_features, pn, labels,
+                                           marker='o')
+                    plt.savefig(plot_path + f'gt_model_sim{simulation_number}_sbm')
+                except KeyError:
+                    pass
+
+                sim_list_index += 1
+
+    elif program == "lstm_pca_check":
+        plot_path = f'./figures/lstm_pca_check/'
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+        for simulation_number in range(1, 96):
+            if simulation_number == 25 or simulation_number == 44:
+                continue
+            spikes, labels = ds.get_dataset_simulation(simNr=simulation_number, align_to_peak=True)
+
+            check_spikes = spikes[:, 20:40]
+            print(len(check_spikes[0]))
+
+            pca_2d = PCA(n_components=2)
+            new_features = pca_2d.fit_transform(check_spikes)
+
+            scatter_plot.plot(f'GT{len(new_features)}', new_features,
+                              labels, marker='o')
+            plt.savefig(plot_path + f'check_sim{simulation_number}')
+
+
+
     elif program == "sbm_graph":
         simulation_number = 4
         data, y = ds.get_dataset_simulation(simNr=simulation_number)
@@ -331,6 +480,192 @@ def main(program, sub=""):
 
             print()
 
+def get_type(on_type, fft_real, fft_imag):
+    if on_type == "real":
+        spikes = fft_real
+    elif on_type == "imag":
+        spikes = fft_imag
+    elif on_type == "magnitude":
+        spikes = np.sqrt(fft_real * fft_real + fft_imag * fft_imag)
+    elif on_type == "power":
+        spikes = fft_real * fft_real + fft_imag * fft_imag
+    elif on_type == "phase":
+        spikes = np.arctan2(fft_imag, fft_real)
+    elif on_type == "concatened":
+        power = fft_real * fft_real + fft_imag * fft_imag
+        phase = np.arctan2(fft_imag, fft_real)
+        spikes = np.concatenate(power, phase)
+
+    return spikes
+
+def main_fft(program, case, alignment, on_type):
+    range_min = 1
+    range_max = 96
+    epochs = 100
+    spike_verif_path = f'./figures/fft/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/{case}/spike_verif'
+    plot_path = f'./figures/fft/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/{case}/'
+    weights_path = f'./autoencoder/weights/autoencoder_allsim_e100_d80_nonoise_c{autoencoder_code_size}_fft-{on_type}-{case}_{"wA" if alignment else "woA"}'
+
+    if not os.path.exists(spike_verif_path):
+        os.makedirs(spike_verif_path)
+    if not os.path.exists(plot_path):
+        os.makedirs(plot_path)
+
+    fft_real, fft_imag = fft_input.apply_fft_on_range(case, alignment, range_min, range_max)
+
+    fft_real = np.array(fft_real)
+    fft_imag = np.array(fft_imag)
+
+    spikes = get_type(on_type, fft_real, fft_imag)
+
+    spikes = np.array(spikes)
+
+    autoencoder = AutoencoderModel(input_size=len(spikes[0]),
+                                   encoder_layer_sizes=autoencoder_layer_sizes,
+                                   decoder_layer_sizes=autoencoder_layer_sizes,
+                                   code_size=autoencoder_code_size)
+
+    encoder, autoenc = autoencoder.return_encoder()
+
+    if program == "train":
+        autoencoder.train(spikes, epochs=epochs)
+        autoencoder.save_weights(weights_path)
+
+        verify_output(spikes, encoder, autoenc, path=spike_verif_path)
+        verify_random_outputs(spikes, encoder, autoenc, 10, path=spike_verif_path)
+
+    if program == "test":
+        autoencoder.save_weights(weights_path)
+
+        for simulation_number in range(range_min, range_max):
+            if simulation_number == 25 or simulation_number == 44:
+                continue
+
+            fft_real, fft_imag, labels = fft_input.apply_fft_on_sim(sim_nr=simulation_number, case=case,
+                                                                    alignment=alignment)
+            fft_real = np.array(fft_real)
+            fft_imag = np.array(fft_imag)
+
+            spikes = get_type(on_type, fft_real, fft_imag)
+
+            spikes = spikes[labels != 0]
+            labels = labels[labels != 0]
+
+            autoencoder_features = get_codes(spikes, encoder)
+
+            pca_2d = PCA(n_components=2)
+            autoencoder_features = pca_2d.fit_transform(autoencoder_features)
+
+            scatter_plot.plot('GT' + str(len(autoencoder_features)), autoencoder_features, labels, marker='o')
+            plt.savefig(plot_path + f'gt_model_sim{simulation_number}')
+
+            pn = 25
+            labels = SBM.parallel(autoencoder_features, pn, ccThreshold=5, version=2)
+
+            scatter_plot.plot_grid('SBM' + str(len(autoencoder_features)), autoencoder_features, pn, labels,
+                                   marker='o')
+            plt.savefig(plot_path + f'gt_model_sim{simulation_number}_sbm')
+
+
+
+def main_fft_windowed(program, alignment, on_type):
+    range_min = 1
+    range_max = 96
+    epochs = 100
+    spike_verif_path = f'./figures/fft_windowed/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/spike_verif'
+    plot_path = f'./figures/fft_windowed/c{autoencoder_code_size}/{on_type}/{"wA" if alignment else "woA"}/'
+    weights_path = f'./autoencoder/weights/autoencoder_allsim_e100_d80_nonoise_c{autoencoder_code_size}_fft_windowed-{on_type}_{"wA" if alignment else "woA"}'
+
+    if not os.path.exists(spike_verif_path):
+        os.makedirs(spike_verif_path)
+    if not os.path.exists(plot_path):
+        os.makedirs(plot_path)
+
+    fft_real, fft_imag = fft_input.apply_fft_windowed_on_range(alignment, range_min, range_max)
+
+    fft_real = np.array(fft_real)
+    fft_imag = np.array(fft_imag)
+
+    spikes = get_type(on_type, fft_real, fft_imag)
+    spikes = np.array(spikes)
+
+    autoencoder = AutoencoderModel(input_size=len(spikes[0]),
+                                   encoder_layer_sizes=autoencoder_layer_sizes,
+                                   decoder_layer_sizes=autoencoder_layer_sizes,
+                                   code_size=autoencoder_code_size)
+
+    encoder, autoenc = autoencoder.return_encoder()
+
+    if program == "train":
+        autoencoder.train(spikes, epochs=epochs)
+        autoencoder.save_weights(weights_path)
+
+        verify_output(spikes, encoder, autoenc, path=spike_verif_path)
+        verify_random_outputs(spikes, encoder, autoenc, 10, path=spike_verif_path)
+
+    if program == "test":
+        autoencoder.save_weights(weights_path)
+
+        for simulation_number in range(range_min, range_max):
+            if simulation_number == 25 or simulation_number == 44:
+                continue
+
+            fft_real, fft_imag, labels = fft_input.apply_fft_windowed_on_sim(sim_nr=simulation_number,
+                                                                    alignment=alignment)
+            fft_real = np.array(fft_real)
+            fft_imag = np.array(fft_imag)
+
+            spikes = get_type(on_type, fft_real, fft_imag)
+            spikes = np.array(spikes)
+
+            spikes = spikes[labels != 0]
+            labels = labels[labels != 0]
+
+            autoencoder_features = get_codes(spikes, encoder)
+
+            pca_2d = PCA(n_components=2)
+            autoencoder_features = pca_2d.fit_transform(autoencoder_features)
+
+            scatter_plot.plot('GT' + str(len(autoencoder_features)), autoencoder_features, labels, marker='o')
+            plt.savefig(plot_path + f'gt_model_sim{simulation_number}')
+
+            pn = 25
+            labels = SBM.parallel(autoencoder_features, pn, ccThreshold=5, version=2)
+
+            scatter_plot.plot_grid('SBM' + str(len(autoencoder_features)), autoencoder_features, pn, labels,
+                                   marker='o')
+            plt.savefig(plot_path + f'gt_model_sim{simulation_number}_sbm')
+
+def test_fft_windowed():
+    def verify_output(spikes, windowed_spikes, i=0, path=""):
+        plt.plot(np.arange(len(spikes[i])), spikes[i])
+        plt.plot(np.arange(len(windowed_spikes[i])), windowed_spikes[i])
+        plt.xlabel('Time')
+        plt.ylabel('Magnitude')
+        plt.title(f"Verify spike {i}")
+        plt.savefig(f'{path}/spike{i}')
+        plt.show()
+
+    def verify_random_outputs(spikes, windowed_spikes, verifications=0, path=""):
+        random_list = np.random.choice(range(len(spikes)), verifications, replace=False)
+
+        for random_index in random_list:
+            verify_output(spikes, windowed_spikes, random_index, path)
+
+    for alignment in [True, False]:
+        plot_path = f'./figures/fft/blackman_test/align{alignment}'
+
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+
+        spikes, labels = ds.get_dataset_simulation(simNr=1, align_to_peak=alignment)
+
+        windowed_spikes = fft_input.apply_blackman_window(spikes)
+
+        # verify_random_outputs(spikes, windowed_spikes, 10, plot_path)
+        verify_output(spikes, windowed_spikes, 685, path=plot_path)
+        verify_output(spikes, windowed_spikes, 2171, path=plot_path)
+        verify_output(spikes, windowed_spikes, 2592, path=plot_path)
 
 # main("autoencoder_sim_array", sub="train")
 # main("autoencoder_sim_array", sub="test")
@@ -339,4 +674,25 @@ def main(program, sub=""):
 # main("autoencoder_sim_range", sub="pre")
 # main("benchmark", sub="")
 # main("pipeline_test", sub="")
-main("sbm_graph", sub="")
+# main("sbm_graph", sub="")
+
+# case, alignment, on_type
+# for alignment in [True, False]:
+#     for case in ["original", "padded", "rolled", "reduced"]:
+#         for on_type in ["real", "imag", "magnitude"]:
+#             main_fft("train", case, alignment, on_type)
+#             main_fft("test", case, alignment, on_type)
+
+# main("lstm", sub="train")
+# main("lstm", sub="test")
+# main("split_lstm", sub="train")
+# main("split_lstm", sub="test")
+# main("lstm_pca_check", sub="")
+
+# test_fft_windowed()
+
+# case, alignment, on_type
+for alignment in [True, False]:
+    for on_type in ["real", "imag", "magnitude", "power", "phase", "concatenated"]:
+        main_fft_windowed("train", alignment, on_type)
+        main_fft_windowed("test", alignment, on_type)

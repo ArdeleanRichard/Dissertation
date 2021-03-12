@@ -25,6 +25,32 @@ def apply_fft_on_range(case, alignment, range_min, range_max):
 
     return fft_real, fft_imag
 
+def apply_fft_windowed_on_range(alignment, range_min, range_max):
+    spikes, labels = ds.stack_simulations_range(range_min, range_max, True, True, alignment=alignment)
+
+    windows_spikes = apply_blackman_window(spikes)
+
+    # PADDED SPIKE
+    fft_real, fft_imag = fft_padded_spike(windows_spikes)
+
+    fft_real = np.array(fft_real)
+    fft_imag = np.array(fft_imag)
+
+    return fft_real, fft_imag
+
+def apply_fft_windowed_on_sim(sim_nr, alignment):
+    spikes, labels = ds.get_dataset_simulation(simNr=sim_nr, align_to_peak=alignment)
+
+    windows_spikes = apply_blackman_window(spikes)
+
+    # PADDED SPIKE
+    fft_real, fft_imag = fft_padded_spike(windows_spikes)
+
+    fft_real = np.array(fft_real)
+    fft_imag = np.array(fft_imag)
+
+    return fft_real, fft_imag, labels
+
 def apply_fft_on_sim(sim_nr, case, alignment):
     spikes, labels = ds.get_dataset_simulation(simNr=sim_nr, align_to_peak=alignment)
 
@@ -72,8 +98,25 @@ def fft_original_spike(spikes):
 """
 PADDING AT END WITH 0
 """
+
+
+# Compute power of two greater than or equal to `n`
+def findNextPowerOf2(n):
+    # decrement `n` (to handle cases when `n` itself
+    # is a power of 2)
+    n = n - 1
+
+    # do till only one bit is left
+    while n & n - 1:
+        n = n & n - 1  # unset rightmost bit
+
+    # `n` is now a power of two (less than `n`)
+
+    # return next power of 2
+    return n << 1
+
 def fft_padded_spike(spikes):
-    spikes = np.pad(spikes, ((0, 0), (0, 128 - len(spikes[0]))), 'constant')
+    spikes = np.pad(spikes, ((0, 0), (0, findNextPowerOf2(len(spikes[0])) - len(spikes[0]))), 'constant')
     fft_signal = fft(spikes)
 
     fft_real = [[point.real for point in fft_spike] for fft_spike in fft_signal]
@@ -167,3 +210,8 @@ def fft_reduced_spike(spikes):
     # plt.cla()
 
     return fft_real, fft_imag
+
+
+
+def apply_blackman_window(spikes):
+    return np.multiply(spikes, np.blackman(len(spikes[0])))
