@@ -568,7 +568,7 @@ def main_fft(program, case, alignment, on_type):
 
 
 
-def main_fft_windowed(program, alignment, on_type):
+def main_fft_windowed(program, alignment, on_type, window_type):
     range_min = 1
     range_max = 96
     epochs = 100
@@ -611,7 +611,8 @@ def main_fft_windowed(program, alignment, on_type):
                 continue
 
             fft_real, fft_imag, labels = fft_input.apply_fft_windowed_on_sim(sim_nr=simulation_number,
-                                                                    alignment=alignment)
+                                                                             alignment=alignment,
+                                                                             window_type=window_type)
             fft_real = np.array(fft_real)
             fft_imag = np.array(fft_imag)
 
@@ -638,7 +639,7 @@ def main_fft_windowed(program, alignment, on_type):
             except KeyError:
                 pass
 
-def test_fft_windowed():
+def test_fft_windowed(window_type):
     def verify_output(spikes, windowed_spikes, i=0, path=""):
         plt.plot(np.arange(len(spikes[i])), spikes[i])
         plt.plot(np.arange(len(windowed_spikes[i])), windowed_spikes[i])
@@ -646,7 +647,8 @@ def test_fft_windowed():
         plt.ylabel('Magnitude')
         plt.title(f"Verify spike {i}")
         plt.savefig(f'{path}/spike{i}')
-        plt.show()
+        plt.clf()
+        # plt.show()
 
     def verify_random_outputs(spikes, windowed_spikes, verifications=0, path=""):
         random_list = np.random.choice(range(len(spikes)), verifications, replace=False)
@@ -655,19 +657,24 @@ def test_fft_windowed():
             verify_output(spikes, windowed_spikes, random_index, path)
 
     for alignment in [True, False, 2, 3]:
-        plot_path = f'./figures/fft/blackman_test/align{alignment}'
+        plot_path = f'./figures/fft/{window_type}_test/align{alignment}'
 
         if not os.path.exists(plot_path):
             os.makedirs(plot_path)
 
         spikes, labels = ds.get_dataset_simulation(simNr=1, align_to_peak=alignment)
 
-        windowed_spikes = fft_input.apply_blackman_window(spikes)
+        if window_type == "blackman":
+            windowed_spikes = fft_input.apply_blackman_window(spikes)
+        # std value from 5-15 to get 68% in mean-std:mean+std
+        elif window_type == "gaussian":
+            windowed_spikes = fft_input.apply_gaussian_window(spikes, std=10)
 
         # verify_random_outputs(spikes, windowed_spikes, 10, plot_path)
         verify_output(spikes, windowed_spikes, 685, path=plot_path)
         verify_output(spikes, windowed_spikes, 2171, path=plot_path)
         verify_output(spikes, windowed_spikes, 2592, path=plot_path)
+
 
 # main("autoencoder_sim_array", sub="train")
 # main("autoencoder_sim_array", sub="test")
@@ -691,14 +698,23 @@ def test_fft_windowed():
 # main("split_lstm", sub="test")
 # main("lstm_pca_check", sub="")
 
-# test_fft_windowed()
+test_fft_windowed(window_type="gaussian")
+# test_fft_windowed(window_type="blackman")
 
-# case, alignment, on_type
-# for alignment in [True, False, 2, 3]:
-#     for on_type in ["real", "imag", "magnitude", "power", "phase", "concatenated"]:
-#         main_fft_windowed("train", alignment, on_type)
-#         main_fft_windowed("test", alignment, on_type)
+# case, alignment, on_type, window_type
+# for window_type in ["blackman", "gaussian"]:
+#     for alignment in [True, False, 2, 3]:
+#         for on_type in ["real", "imag", "magnitude", "power", "phase", "concatenated"]:
+#             main_fft_windowed("train", alignment, on_type, window_type)
+#             main_fft_windowed("test", alignment, on_type, window_type)
 
-for alignment in [3]:
-    main_fft_windowed("train", alignment, "power")
-    main_fft_windowed("test", alignment, "power")
+for window_type in ["gaussian"]:
+    for alignment in [True, False]:
+        # , "power", "phase", "concatenated"]:
+        for on_type in ["real", "imag", "magnitude", "power", "phase", "concatenated"]:
+            main_fft_windowed("train", alignment, on_type, window_type)
+            main_fft_windowed("test", alignment, on_type, window_type)
+
+# for alignment in [3]:
+#     main_fft_windowed("train", alignment, "power")
+#     main_fft_windowed("test", alignment, "power")

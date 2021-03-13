@@ -86,7 +86,8 @@ def lstm_verify_output(training_data, lookahead, encoder, autoencoder, i=0, path
     plt.ylabel('Magnitude')
     plt.title(f"Verify spike {i}")
     plt.savefig(f'{path}/spike{i}')
-    plt.show()
+    # plt.show()
+    plt.clf()
 
 
 def lstm_verify_random_outputs(training_data, lookahead, encoder, autoencoder, verifications=0, path=""):

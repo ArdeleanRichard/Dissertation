@@ -21,7 +21,8 @@ def verify_output(training_data, encoder, autoencoder, i=0, path=""):
     plt.ylabel('Magnitude')
     plt.title(f"Verify spike {i}")
     plt.savefig(f'{path}/spike{i}')
-    plt.show()
+    plt.clf()
+    # plt.show()
 
 
 def verify_random_outputs(training_data, encoder, autoencoder, verifications=0, path=""):

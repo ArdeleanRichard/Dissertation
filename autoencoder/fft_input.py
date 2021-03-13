@@ -1,4 +1,5 @@
 from scipy.fftpack import fft
+from scipy.signal.windows import gaussian
 import numpy as np
 
 from utils.dataset_parsing import datasets as ds
@@ -38,13 +39,17 @@ def apply_fft_windowed_on_range(alignment, range_min, range_max):
 
     return fft_real, fft_imag
 
-def apply_fft_windowed_on_sim(sim_nr, alignment):
+def apply_fft_windowed_on_sim(sim_nr, alignment, window_type):
     spikes, labels = ds.get_dataset_simulation(simNr=sim_nr, align_to_peak=alignment)
 
-    windows_spikes = apply_blackman_window(spikes)
+    if window_type == "blackman":
+        windowed_spikes = apply_blackman_window(spikes)
+    # std value from 5-15 to get 68% in mean-std:mean+std
+    elif window_type == "gaussian":
+        windowed_spikes = apply_gaussian_window(spikes, std=10)
 
     # PADDED SPIKE
-    fft_real, fft_imag = fft_padded_spike(windows_spikes)
+    fft_real, fft_imag = fft_padded_spike(windowed_spikes)
 
     fft_real = np.array(fft_real)
     fft_imag = np.array(fft_imag)
@@ -212,7 +217,9 @@ def fft_reduced_spike(spikes):
     return fft_real, fft_imag
 
 
-
 def apply_blackman_window(spikes):
     return np.multiply(spikes, np.blackman(len(spikes[0])))
 
+
+def apply_gaussian_window(spikes, std):
+    return np.multiply(spikes, gaussian(M=len(spikes[0]), std=std))
